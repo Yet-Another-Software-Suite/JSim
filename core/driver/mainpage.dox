@@ -1,0 +1,230 @@
+/**
+ * @mainpage JSim Native Driver
+ *
+ * @section intro Introduction
+ *
+ * JSim is an open-source physics simulation framework for FIRST Robotics
+ * Competition (FRC) robots. The native driver is the C++ engine that powers
+ * JSim's simulation backend. It provides rigid-body dynamics, drivetrain
+ * models, gamepiece physics, field boundary contact resolution, and a full
+ * JNI bridge so that Java robot code running under WPILib's simulation
+ * infrastructure can call into the engine transparently.
+ *
+ * The native driver lives under the @c frcsim namespace and exposes three
+ * primary layers:
+ * - A header-only or compiled C++ API for direct embedding in C++ toolchains.
+ * - A C ABI (@c frcsim/api.h) for FFI use or linking from non-C++ consumers.
+ * - A JNI bridge (@c jsim_jni_JSimJNI) that the Java runtime loads via
+ *   @c System.loadLibrary.
+ *
+ * All physics quantities use SI units throughout: meters, kilograms, seconds,
+ * newtons, radians, and radians per second. No unit conversion happens inside
+ * the engine; callers are responsible for converting from field-unit or
+ * imperial representations before passing values in.
+ *
+ * @section arch Architecture
+ *
+ * The simulation stack is layered as follows, from highest to lowest level:
+ *
+ * **Java API** (WPILib simulation hooks / JSim Java layer)\n
+ * The Java side calls @c JSimJNI methods that map one-to-one to C functions
+ * in the C ABI. Each call crosses the JNI boundary with scalar primitives or
+ * opaque @c jlong handles; no Java objects are passed through to C++.
+ *
+ * **JNI Bridge** (@c src/JSimJNI.cpp, @c src/math_jni.cpp)\n
+ * Thin C++ translation layer. @c JNI_OnLoad validates JNI version 1.6.
+ * Subsequent calls forward to the C ABI using the opaque handle pattern:
+ * world and body pointers are cast to @c jlong on the way out and cast back
+ * on the way in. Math helpers in @c math_jni.cpp translate between Java
+ * double arrays and @c frcsim::Vector3 / @c frcsim::Quaternion values.
+ *
+ * **C ABI** (@c include/frcsim/api.h, @c src/api.cpp)\n
+ * Stable extern "C" surface. Functions such as @c frcsim_create_world,
+ * @c frcsim_create_body, @c frcsim_step_world, and @c frcsim_create_gamepiece
+ * allocate and return opaque typed pointers. This layer exists to allow the
+ * engine to be loaded from Java, Python, or any language with a C FFI without
+ * recompiling call sites when the C++ internals change.
+ *
+ * **PhysicsWorld** (@c frcsim::PhysicsWorld)\n
+ * Central scene manager. Owns all @c RigidBody, @c RigidAssembly, @c Gamepiece,
+ * and @c EnvironmentalBoundary instances. The @c PhysicsWorld::step method
+ * drives one fixed timestep: it evaluates global and per-body force generators,
+ * integrates body states, resolves boundary contacts, processes aerodynamic
+ * drag and Magnus lift when enabled, enforces joint constraints in assemblies,
+ * and advances all gamepiece simulators. Behavior is controlled by
+ * @c PhysicsConfig, which exposes the timestep, integration method, and
+ * feature-enable flags.
+ *
+ * **RigidBodies** (@c frcsim::RigidBody)\n
+ * Each body stores pose (position + quaternion orientation), linear and
+ * angular velocity, mass, an optional body-frame inertia tensor, accumulated
+ * force/torque buffers, and optional aerodynamic geometry metadata. Forces are
+ * accumulated between steps and cleared after each @c integrate call.
+ * Three integration schemes are available: semi-implicit (symplectic) Euler
+ * (the default), explicit Euler, and second-order Runge-Kutta (RK2).
+ *
+ * **RigidAssemblies** (@c frcsim::RigidAssembly)\n
+ * Groups of bodies connected by joints. The assembly solver enforces revolute,
+ * prismatic, and fixed joint constraints each step. Assemblies are used to
+ * model multi-link mechanisms such as arms and elevators.
+ *
+ * **Gamepieces** (@c frcsim::Gamepiece)\n
+ * Specialized ball simulators that track airborne, grounded, and held states.
+ * In the airborne state a full aerodynamic integration step is performed,
+ * including optional drag, Magnus lift, and spin decay. On ground contact the
+ * piece transitions to kGrounded and applies rolling friction. Gamepieces can
+ * be picked up by a carrier (setting state to kHeld, pausing integration) and
+ * launched back into flight via @c outtake. Season-specific presets for 2025
+ * and 2026 are provided in @c frcsim/gamepiece/season_2025_gamepiece_presets.hpp
+ * and @c frcsim/gamepiece/season_2026_gamepiece_presets.hpp.
+ *
+ * **Drivetrains** (@c frcsim::TankModel, @c frcsim::SwerveModel, @c frcsim::MecanumModel)\n
+ * Per-frame kinematic and dynamic models applied to the chassis @c RigidBody.
+ * Tank drive accepts left/right voltage and computes wheel forces and torques.
+ * Swerve and mecanum variants handle module-level force decomposition.
+ *
+ * **Forces** (@c frcsim::ForceGenerator)\n
+ * Extensible force generation system. Built-in generators include gravity
+ * (also embedded in @c RigidBody::integrate), motor force, spring force, and
+ * the aerodynamics subsystem (drag and Magnus). Custom generators implement
+ * @c ForceGenerator and are registered via @c PhysicsWorld::addGlobalForceGenerator.
+ *
+ * **Math** (@c frcsim::Vector3, @c frcsim::Quaternion, @c frcsim::Matrix3)\n
+ * Lightweight header-only math types. @c Vector3 is 16-byte aligned and covers
+ * all standard operations plus helpers like @c planarSpeed, @c normalized, and
+ * @c isZero. @c Quaternion wraps orientation arithmetic and provides @c rotate
+ * and @c inverse. @c Matrix3 provides 3x3 matrix arithmetic and @c inverse for
+ * inertia tensor inversion.
+ *
+ * @section quickstart Quick Start
+ *
+ * The following snippet creates a world, adds a 5 kg dynamic body, applies an
+ * impulse, and steps the simulation forward at 50 Hz for 1 second.
+ *
+ * @code{.cpp}
+ * #include "frcsim/physics_world.hpp"
+ *
+ * int main() {
+ *     // Configure a 50 Hz world with gravity and semi-implicit Euler integration.
+ *     frcsim::PhysicsConfig cfg;
+ *     cfg.fixed_dt_s          = 0.02;
+ *     cfg.enable_gravity      = true;
+ *     cfg.integration_method  = frcsim::IntegrationMethod::kSemiImplicitEuler;
+ *
+ *     frcsim::PhysicsWorld world(cfg);
+ *
+ *     // Create a 5 kg robot chassis starting at the origin, 0.1 m above the floor.
+ *     frcsim::RigidBody& chassis = world.createBody(5.0);
+ *     chassis.setPosition(0.0, 0.0, 0.1);
+ *     chassis.flags().enable_gravity = true;
+ *
+ *     // Apply a 10 N forward impulse for the first step.
+ *     chassis.applyForce(10.0, 0.0, 0.0);
+ *
+ *     // Advance 50 steps (1 simulated second at 50 Hz).
+ *     for (int i = 0; i < 50; ++i) {
+ *         world.step();
+ *     }
+ *
+ *     // Read final body state.
+ *     const frcsim::Vector3& pos = chassis.position();
+ *     // pos.x, pos.y, pos.z in meters.
+ *
+ *     return 0;
+ * }
+ * @endcode
+ *
+ * To add a gamepiece (e.g., a 2025-season ball) and launch it:
+ *
+ * @code{.cpp}
+ * frcsim::Gamepiece& piece = world.createGamepiece();
+ * piece.setTypeName("ball");
+ * piece.place(frcsim::Vector3{3.0, 0.0, 0.1});
+ *
+ * // Launch 5 m/s forward with backspin.
+ * piece.outtake(
+ *     frcsim::Vector3{3.0, 0.0, 0.5},  // muzzle position
+ *     frcsim::Vector3{5.0, 0.0, 2.0},  // muzzle velocity (m/s)
+ *     frcsim::Vector3{0.0, -20.0, 0.0} // backspin (rad/s)
+ * );
+ * @endcode
+ *
+ * @section modules Modules
+ *
+ * - @ref world "World" — @c frcsim::PhysicsWorld and @c frcsim::PhysicsConfig.
+ *   The top-level simulation context. Create one per robot simulation session.
+ *
+ * - @ref bodies "Bodies" — @c frcsim::RigidBody, @c frcsim::RigidAssembly,
+ *   @c frcsim::BodyFlags, and @c frcsim::Material. Core dynamics state and
+ *   integration logic.
+ *
+ * - @ref gamepieces "Gamepieces" — @c frcsim::Gamepiece, @c frcsim::BallPhysicsSim3D,
+ *   @c frcsim::IntakeSimulation, and season-specific presets. Everything needed
+ *   to simulate game elements flying, rolling, and being handled by mechanisms.
+ *
+ * - @ref drivetrains "Drivetrains" — @c frcsim::TankModel, @c frcsim::SwerveModel,
+ *   and @c frcsim::MecanumModel. Per-step chassis force models that accept motor
+ *   voltages or wheel commands and apply appropriate forces to the chassis body.
+ *
+ * - @ref math "Math" — @c frcsim::Vector3, @c frcsim::Quaternion,
+ *   @c frcsim::Matrix3, and @c frcsim::Integrator. Header-only, no external
+ *   dependencies.
+ *
+ * - @ref jni "JNI Bridge" — @c JSimJNI, @c math_jni. The Java-to-C++ bridge
+ *   used when the engine is loaded by a WPILib simulation process. Opaque
+ *   @c jlong handles carry world and body pointers across the JNI boundary.
+ *
+ * @section coord Coordinate System
+ *
+ * JSim uses a right-handed coordinate system consistent with the WPILib field
+ * coordinate convention:
+ *
+ * - **+X** points forward (downfield, away from the driver station).
+ * - **+Y** points to the left from the robot's perspective.
+ * - **+Z** points upward (away from the floor).
+ *
+ * Angles follow the right-hand rule about each axis. Positive rotation about
+ * +Z is counter-clockwise when viewed from above, which matches the WPILib
+ * convention where 0 degrees faces +X and angles increase counter-clockwise.
+ *
+ * Gravity defaults to @c {0, 0, -9.81} m/s^2, acting in the -Z direction.
+ * The field floor is at Z = 0 by default; gamepiece ground height is
+ * configurable per @c BallPhysicsSim3D::Config::ground_height_m.
+ *
+ * All positional quantities are in **meters**, velocities in **meters per
+ * second**, angular velocities in **radians per second**, forces in
+ * **newtons**, and torques in **newton-meters**.
+ *
+ * @section building Building
+ *
+ * The native driver is built as part of the JSim Gradle project. The
+ * recommended approach uses the vendordep Gradle wrapper at the repository
+ * root, which invokes the NDK or host toolchain and produces the shared
+ * library loaded by the Java runtime.
+ *
+ * For standalone C++ builds or IDE integration:
+ *
+ * 1. Ensure the following are available on your PATH:
+ *    - CMake 3.20 or later (or any build system that can consume the headers)
+ *    - A C++17-capable compiler (GCC 9+, Clang 10+, or MSVC 2019+)
+ *    - (Optional) Doxygen 1.9+ for documentation generation
+ *
+ * 2. Add @c include/ to your include path. The public API requires only the
+ *    standard library; there are no third-party runtime dependencies.
+ *
+ * 3. Compile the sources under @c src/ into a shared or static library.
+ *    The JNI sources (@c JSimJNI.cpp, @c math_jni.cpp) require the JDK
+ *    headers (@c jni.h) and the generated @c jsim_jni_JSimJNI.h header
+ *    produced by @c javac -h. They can be omitted for pure C++ builds.
+ *
+ * 4. To generate this documentation locally, run Doxygen from the
+ *    @c core/driver/ directory:
+ *    @code{.sh}
+ *    cd core/driver
+ *    doxygen Doxyfile
+ *    # Output written to docs/html/index.html
+ *    @endcode
+ *
+ * The project is distributed under the LGPLv3 license; see the root
+ * @c LICENSE file for details.
+ */

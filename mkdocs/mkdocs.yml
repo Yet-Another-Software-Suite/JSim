@@ -1,0 +1,102 @@
+site_name: JSim
+repo_url: https://github.com/Ruthie-FRC/JSim
+repo_name: Ruthie-FRC/JSim
+site_description: >-
+  Professional documentation for the JSim FRC physics library.
+site_author: Ruthie-FRC
+edit_uri: edit/main/mkdocs/docs/
+
+theme:
+  name: material
+ # logo: assets/logo.png
+ # favicon: assets/logo.png
+  font:
+    text: Source Sans 3
+    code: IBM Plex Mono
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+    - announce.dismiss
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - getting_started.md
+      - API Usage: api_usage.md
+      - Architecture: architecture.md
+  - Walkthroughs:
+      - Swerve Drive Simulation: walkthroughs/swerve_drive.md
+      - Gamepiece Simulation: walkthroughs/gamepiece_simulation.md
+  - API Reference:
+      - SimRobot: api/sim_robot.md
+      - StateManager: api/state_manager.md
+      - PhysicsWorld: api/physics_world.md
+      - GamepieceZone: api/gamepiece_zone.md
+      - NetworkTables Publishing: api/network_tables.md
+  - Physics Models:
+      - physics_models.md
+      - Physics Reference: physics_reference.md
+      - Collision Impulses: collision_impulses.md
+      - Drivetrain and Mechanism Dynamics: drivetrain_mechanism_dynamics.md
+  - Math Reference:
+      - math_index.md
+      - Units and Conventions: units_and_conventions.md
+      - Integrators: integrators.md
+      - Vector3: vector.md
+      - Matrix3: matrix.md
+      - Quaternion: quaternion.md
+      - Aerodynamics Math: aerodynamics.md
+      - Magnus Effect Math: magnus.md
+
+plugins:
+  - search
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Ruthie-FRC/JSim
+      name: JSim on GitHub
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra_javascript:
+  - assets/javascripts/external-links.js
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - attr_list
+  - md_in_html
+  - tables
+  - pymdownx.highlight
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.details

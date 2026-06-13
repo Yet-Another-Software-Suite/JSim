@@ -1,0 +1,291 @@
+import edu.wpi.first.toolchain.*
+
+plugins {
+    id 'cpp'
+    id 'java'
+    id 'google-test'
+    id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2025.0'
+    id 'edu.wpi.first.NativeUtils' version '2026.0.1'
+    id 'edu.wpi.first.GradleJni' version '1.1.0'
+    id 'edu.wpi.first.GradleVsCode' version '2.1.0'
+    id 'org.ysb33r.doxygen' version "2.1.1"
+    id 'com.diffplug.spotless' version '8.0.0'
+}
+
+// WPILib Version
+ext.wpilibVersion = "2026.2.1"
+ext.frcYear = ext.wpilibVersion.split(/\./)[0] as Integer
+ext.releasePath = "$buildDir/maven"
+ext.pubVersion = System.getenv("releaseVersion") ?: System.getenv("releaseName") ?: "test"
+
+// Generate version properties file at build time
+tasks.register('generateVersionProperties') {
+    def propsFile = file("$buildDir/resources/main/jsim_version.properties")
+    outputs.file(propsFile)
+    doLast {
+        propsFile.parentFile.mkdirs()
+        propsFile.text = "frc.year=${frcYear}\n"
+    }
+}
+
+processResources.dependsOn generateVersionProperties
+
+repositories {
+    mavenCentral()
+}
+if (project.hasProperty('releaseMode')) {
+    wpilibRepositories.addAllReleaseRepositories(project)
+} else {
+    wpilibRepositories.addAllDevelopmentRepositories(project)
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+}
+
+// Apply C++ configuration
+apply from: 'config.gradle'
+
+// Apply Java configuration
+dependencies {
+    implementation "edu.wpi.first.cscore:cscore-java:$wpilibVersion"
+    implementation "edu.wpi.first.cameraserver:cameraserver-java:$wpilibVersion"
+    implementation "edu.wpi.first.ntcore:ntcore-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpilibj:wpilibj-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpiutil:wpiutil-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpimath:wpimath-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpiunits:wpiunits-java:$wpilibVersion"
+    implementation "edu.wpi.first.hal:hal-java:$wpilibVersion"
+    implementation "org.ejml:ejml-simple:0.44.0"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:2.19.2"
+    implementation "com.fasterxml.jackson.core:jackson-core:2.19.2"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.19.2"
+    implementation 'edu.wpi.first.thirdparty.frc2025.opencv:opencv-java:4.10.0-2'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'us.hebi.quickbuf:quickbuf-runtime:1.4'
+}
+
+// Set up java tests
+test {
+    useJUnitPlatform()
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+    testLogging {
+        events "failed"
+        exceptionFormat = "full"
+    }
+}
+
+if (project.hasProperty('onlylinuxathena') || project.hasProperty('onlylinuxarm32') || project.hasProperty('onlylinuxarm64') || project.hasProperty('onlywindowsarm64') || project.hasProperty('onlylinuxsystemcore')) {
+    test.enabled = false
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs.add '-XDstringConcat=inline'
+    options.encoding = 'UTF-8'
+}
+
+// Setup Javadocs to link back to WPILib docs
+def enableExternalJavadocLinks = !gradle.startParameter.isOffline() && System.getenv('CI') == null
+
+javadoc {
+    title = "JSim API"
+
+    // Exclude helper/example API trees from published Javadocs.
+
+    failOnError = true
+    options {
+        if (enableExternalJavadocLinks) {
+            links "https://docs.oracle.com/en/java/javase/${JavaVersion.current().majorVersion}/docs/api/", 'https://github.wpilib.org/allwpilib/docs/release/java/'
+        }
+        addBooleanOption('Werror', true)
+    }
+}
+
+// https://ysb33rorg.gitlab.io/gradle/doxygen-gradle-plugin/doxygen-gradle-plugin/2.1.1/usage.html
+// Outputs to build/docs/doxygen
+doxygen {
+    sourceSets {
+        main {
+            // Name
+            option "project_name", "JSim"
+            option "project_number", "$pubVersion"
+
+            // Driver C++ headers + sources
+            sources "src/main/driver/include"
+
+            // Java (for JNI + API docs)
+            sources "src/main/java"
+
+            // Configure warnings
+            option "warnings", true
+            option "warn_if_undocumented", true
+            option "warn_if_undoc_enum_val", true
+            option "warn_layout_file", true
+            option "warn_line_format", true
+            option "warn_if_doc_error", true
+            option "warn_no_paramdoc", true
+            option "warn_as_error", "fail_on_warnings"
+
+            // Core Doxygen options
+            option "recursive", true
+            option "generate_html", true
+            option "generate_latex", false
+
+            // Useful for mixed-language projects
+            option "file_patterns", "*.java *.cpp *.h *.hpp *.c"
+            option "extract_all", true
+        }
+    }
+}
+
+
+// Set up exports properly
+nativeUtils {
+    privateExportsConfigs {
+        JSimDriver {
+            exportsFile = project.file("src/main/driver/symbols.txt")
+        }
+    }
+}
+
+ext.getCurrentArch = {
+    return NativePlatforms.desktop
+}
+
+def systemArch = getCurrentArch()
+
+// Native C++ should track the driver implementation. Keep JNI glue out of the
+// pure native component and let the driver/JNI library own it.
+def nativeFromDriverExcludes = [
+    '**/JSimJNI.cpp',
+    '**/physics_jni.cpp'
+]
+
+// Keep the driver build independent from WPILibC-native compilation units.
+// Native code can still reference WPILibC elsewhere, but driver targets should
+// not compile WPILibC-labeled sources.
+def driverWpilibCExcludes = [
+    'src/main/driver/cpp/**/wpilib/**'
+]
+
+
+sourceSets {
+    main {
+        java {
+            srcDirs "src/main/java/"
+        }
+    }
+    //    test {
+    //        java {
+    //            srcDir "src/test/java"
+    //        }
+    //    } // TODO: Eventually write java unit tests
+}
+
+
+model {
+    components {
+        JSim(NativeLibrarySpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDirs 'src/main/driver/cpp'
+                        include 'src/main/driver/include'
+                        exclude nativeFromDriverExcludes
+                        exclude driverWpilibCExcludes
+                    }
+                    exportedHeaders {
+                        srcDirs 'src/main/driver/include'
+                    }
+                }
+            }
+            binaries.all {
+                lib library: 'JSimDriver', linkage: 'shared'
+            }
+            nativeUtils.useRequiredLibrary(it, 'wpilib_shared', 'wpimath_shared')
+        }
+
+        JSimDriver(JniNativeLibrarySpec) {
+            enableCheckTask true
+            javaCompileTasks << compileJava
+            jniCrossCompileOptions << JniCrossCompileOptions(nativeUtils.wpi.platforms.roborio)
+            // Leave these for future proofing
+            jniCrossCompileOptions << JniCrossCompileOptions(nativeUtils.wpi.platforms.linuxarm32)
+            jniCrossCompileOptions << JniCrossCompileOptions(nativeUtils.wpi.platforms.linuxarm64)
+            sources {
+                cpp {
+                    source {
+                        srcDirs 'src/main/driver/cpp'
+                        include '**/*.cpp'
+                        exclude driverWpilibCExcludes
+                    }
+                    exportedHeaders {
+                        srcDirs 'src/main/driver/include'
+                    }
+                }
+            }
+
+            nativeUtils.useRequiredLibrary(it, "driver_shared")
+        }
+    }
+    testSuites {
+        JSimTest {
+            sources.cpp {
+                source {
+                    srcDir 'src/test/native/cpp'
+                    include '**/*.cpp'
+                }
+            }
+
+            binaries.all {
+                lib library: 'JSimDriver', linkage: 'shared'
+
+                def arch = it.targetPlatform.name
+                if (systemArch == arch && it.buildType.name == 'debug') {
+                    def filePath = it.tasks.install.installDirectory.get().toString() + File.separatorChar + 'lib'
+                    test.dependsOn it.tasks.install
+                    test.systemProperty 'java.library.path', filePath
+                    test.environment 'LD_LIBRARY_PATH', filePath
+                    test.workingDir filePath
+                }
+            }
+
+            nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared", "googletest_static")
+        }
+
+        JSimDriverTest {
+            sources.cpp {
+                source {
+                    srcDir 'src/test/driver/cpp'
+                    include '**/*.cpp'
+                }
+            }
+            nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared", "googletest_static")
+        }
+    }
+}
+
+
+tasks.register("wpiformat", Exec) {
+    commandLine "wpiformat"
+
+    onlyIf {
+        try {
+            ["wpiformat", "-h"].execute().waitFor() == 0
+        } catch (Exception ignored) {
+            false
+        }
+    }
+}
+
+build.dependsOn wpiformat
+build.dependsOn javadoc
+build.dependsOn doxygenDox
+
+apply from: 'publish.gradle'
+
+wrapper {
+    gradleVersion = '8.14.3'
+}
