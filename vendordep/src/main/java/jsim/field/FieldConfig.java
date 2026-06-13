@@ -4,9 +4,12 @@
 
 package jsim.field;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Single JSON per season config parser mapping.
  */
+//@JsonIgnoreProperties(ignoreUnknown = true)
 public class FieldConfig {
     /** The game season associated with this field configuration. */
     public String season;

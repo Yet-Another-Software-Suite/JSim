@@ -19,7 +19,7 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
     if (isSimulation()) {
-      JSim.initializeField(2026);
+      JSim.initializeField(2025);
       // Initialize the physics world from the vendordep-configured field.
       DriverStation.silenceJoystickConnectionWarning(true);
     }
