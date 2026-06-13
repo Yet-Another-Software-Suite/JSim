@@ -1,4 +1,12 @@
 /**
+ * @defgroup jni JNI Bridge
+ * @brief Java-to-C++ bridge loaded by WPILib simulation via System.loadLibrary.
+ *
+ * Opaque @c jlong handles carry world and body pointers across the JNI
+ * boundary. No Java objects are passed through to C++.
+ */
+
+/**
  * @file math_jni.h
  * @brief JNI entry points bridging Java api.Vector3, api.Quaternion, api.Matrix3, and api.NativePhysics.
  *

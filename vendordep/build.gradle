@@ -111,7 +111,7 @@ doxygen {
             option "project_name", "JSim"
             option "project_number", "$pubVersion"
 
-            sources file('src/main/driver/include')
+            sources file('src/main/driver/include'), file('../core/driver/mainpage.dox')
             template = file('../core/driver/Doxyfile')
         }
     }
