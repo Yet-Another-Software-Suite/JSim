@@ -112,8 +112,6 @@ ext.createAllCombined = { list, name, base, type, project ->
 
 ext.includeStandardZipFormat = { task, value ->
     value.each { binary ->
-        if (binary.buildable) {
-            // Removed: unresolved SharedLibraryBinarySpec/StaticLibraryBinarySpec logic
-        }
+        if (binary.buildable) {        }
     }
 }
