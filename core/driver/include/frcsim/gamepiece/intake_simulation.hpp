@@ -4,7 +4,8 @@
 
 /**
  * @file intake_simulation.hpp
- * @brief Proximity-based intake interaction model for collecting nearby gamepieces.
+ * @brief Proximity-based intake interaction model for collecting nearby
+ * gamepieces.
  */
 
 #pragma once
@@ -74,11 +75,7 @@ class IntakeSimulation {
    * @brief Sets optional custom acceptance predicate for candidate balls.
    * @param predicate Callable receiving gamepiece index and simulator state.
    */
-  void setCustomIntakeCondition(
-      const std::function<bool(std::size_t, const BallGamepieceSim&)>&
-          predicate) {
-    custom_condition_ = predicate;
-  }
+  void setCustomIntakeCondition(const std::function<bool(std::size_t, const BallGamepieceSim&)>& predicate) { custom_condition_ = predicate; }
 
   /** @brief Returns current intake inventory count. @return Number of stored
    * pieces. */
@@ -98,9 +95,7 @@ class IntakeSimulation {
 
   /** @brief Returns contact events generated during the most recent update
    * call. @return Event deque. */
-  const std::deque<ContactEvent>& recentEvents() const {
-    return recent_events_;
-  }
+  const std::deque<ContactEvent>& recentEvents() const { return recent_events_; }
 
   /**
    * @brief Performs proximity scanning and intake processing for one simulation
@@ -126,13 +121,11 @@ class IntakeSimulation {
       if (ball.sim.state().held) {
         continue;
       }
-      if (!config_.targeted_type.empty() &&
-          sim.ballTypeName(i) != config_.targeted_type) {
+      if (!config_.targeted_type.empty() && sim.ballTypeName(i) != config_.targeted_type) {
         continue;
       }
 
-      const double distance =
-          (ball.sim.state().position_m - intake_world).norm();
+      const double distance = (ball.sim.state().position_m - intake_world).norm();
       if (distance <= robot.intake_radius_m) {
         recent_events_.push_back({i, ContactEvent::Phase::kBegin});
       }

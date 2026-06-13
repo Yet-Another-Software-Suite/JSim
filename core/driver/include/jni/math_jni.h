@@ -1,3 +1,7 @@
+// Copyright (c) JSim contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the LGPLv3 license file in the root directory of this project.
+
 /**
  * @defgroup jni JNI Bridge
  * @brief Java-to-C++ bridge loaded by WPILib simulation via System.loadLibrary.
@@ -8,7 +12,8 @@
 
 /**
  * @file math_jni.h
- * @brief JNI entry points bridging Java api.Vector3, api.Quaternion, api.Matrix3, and api.NativePhysics.
+ * @brief JNI entry points bridging Java api.Vector3, api.Quaternion,
+ * api.Matrix3, and api.NativePhysics.
  *
  * Each function follows standard JNI naming conventions:
  * Java_<package>_<class>_<method>.  Native objects are represented as jlong
@@ -21,9 +26,10 @@
 
 #pragma once
 #include <jni.h>
-#include "frcsim/math/vector.hpp"
-#include "frcsim/math/quaternion.hpp"
+
 #include "frcsim/math/matrix.hpp"
+#include "frcsim/math/quaternion.hpp"
+#include "frcsim/math/vector.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,7 +61,8 @@ JNIEXPORT void JNICALL Java_api_Quaternion_nativeDelete(JNIEnv*, jobject, jlong)
 JNIEXPORT jlong JNICALL Java_api_Matrix3_nativeCreate(JNIEnv*, jobject);
 JNIEXPORT jlong JNICALL Java_api_Matrix3_nativeFromQuaternion(JNIEnv*, jclass, jlong);
 JNIEXPORT jlong JNICALL Java_api_Matrix3_nativeMultiply(JNIEnv*, jobject, jlong, jlong);
-JNIEXPORT jlong JNICALL Java_api_Matrix3_nativeTransform(JNIEnv*, jobject, jlong, jlong); // matrix * vector
+JNIEXPORT jlong JNICALL Java_api_Matrix3_nativeTransform(JNIEnv*, jobject, jlong,
+                                                         jlong);  // matrix * vector
 JNIEXPORT jlong JNICALL Java_api_Matrix3_nativeTranspose(JNIEnv*, jobject, jlong);
 JNIEXPORT void JNICALL Java_api_Matrix3_nativeDelete(JNIEnv*, jobject, jlong);
 
@@ -73,5 +80,5 @@ JNIEXPORT jlong JNICALL Java_api_NativePhysics_nativeCreateBall(JNIEnv*, jclass,
 JNIEXPORT void JNICALL Java_api_NativePhysics_nativeBallShoot(JNIEnv*, jclass, jlong, jdouble, jdouble, jdouble, jdouble, jdouble, jdouble);
 JNIEXPORT jdoubleArray JNICALL Java_api_NativePhysics_nativeGetBallState(JNIEnv*, jclass, jlong);
 #ifdef __cplusplus
-}
+}  // extern "C"
 #endif

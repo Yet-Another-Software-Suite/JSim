@@ -31,10 +31,7 @@ inline const double kPi = std::acos(-1.0);
  * @return World-space anchor point obtained by rotating the local offset by
  *         the body orientation and adding the body position.
  */
-inline Vector3 worldAnchor(const RigidBody* body,
-                           const Vector3& local_anchor) {
-  return body->position() + body->orientation().rotate(local_anchor);
-}
+inline Vector3 worldAnchor(const RigidBody* body, const Vector3& local_anchor) { return body->position() + body->orientation().rotate(local_anchor); }
 
 /**
  * @brief Clamps a scalar into a closed range.
@@ -43,9 +40,7 @@ inline Vector3 worldAnchor(const RigidBody* body,
  * @param max_value Upper bound.
  * @return value constrained to [min_value, max_value].
  */
-inline double clampValue(double value, double min_value, double max_value) {
-  return std::max(min_value, std::min(value, max_value));
-}
+inline double clampValue(double value, double min_value, double max_value) { return std::max(min_value, std::min(value, max_value)); }
 
 /**
  * @brief Applies a positional correction split across two bodies by mass.
@@ -61,15 +56,11 @@ inline double clampValue(double value, double min_value, double max_value) {
  * @param gain Fraction of the error to resolve this step, typically in the
  *        range [0, 1].
  */
-inline void applyPositionCorrection(RigidBody* body_a, RigidBody* body_b,
-                                    const Vector3& error, double gain) {
-  const double inv_a =
-      body_a->flags().is_kinematic ? 0.0 : body_a->inverseMass();
-  const double inv_b =
-      body_b->flags().is_kinematic ? 0.0 : body_b->inverseMass();
+inline void applyPositionCorrection(RigidBody* body_a, RigidBody* body_b, const Vector3& error, double gain) {
+  const double inv_a = body_a->flags().is_kinematic ? 0.0 : body_a->inverseMass();
+  const double inv_b = body_b->flags().is_kinematic ? 0.0 : body_b->inverseMass();
   const double total_inv = inv_a + inv_b;
-  if (total_inv <= kJointEpsilon)
-    return;
+  if (total_inv <= kJointEpsilon) return;
 
   const Vector3 correction_a = error * (gain * (inv_a / total_inv));
   const Vector3 correction_b = error * (gain * (inv_b / total_inv));
@@ -95,16 +86,11 @@ inline void applyPositionCorrection(RigidBody* body_a, RigidBody* body_b,
  *        second to reduce.
  * @param gain Fraction of the velocity error to resolve this step.
  */
-inline void applyVelocityCorrection(RigidBody* body_a, RigidBody* body_b,
-                                    const Vector3& relative_velocity,
-                                    double gain) {
-  const double inv_a =
-      body_a->flags().is_kinematic ? 0.0 : body_a->inverseMass();
-  const double inv_b =
-      body_b->flags().is_kinematic ? 0.0 : body_b->inverseMass();
+inline void applyVelocityCorrection(RigidBody* body_a, RigidBody* body_b, const Vector3& relative_velocity, double gain) {
+  const double inv_a = body_a->flags().is_kinematic ? 0.0 : body_a->inverseMass();
+  const double inv_b = body_b->flags().is_kinematic ? 0.0 : body_b->inverseMass();
   const double total_inv = inv_a + inv_b;
-  if (total_inv <= kJointEpsilon)
-    return;
+  if (total_inv <= kJointEpsilon) return;
 
   const Vector3 correction_a = relative_velocity * (gain * (inv_a / total_inv));
   const Vector3 correction_b = relative_velocity * (gain * (inv_b / total_inv));
@@ -126,9 +112,7 @@ inline void applyVelocityCorrection(RigidBody* body_a, RigidBody* body_b,
  * @return Normalized world-space axis, or fallback_axis if the rotated axis
  *         collapses to zero length.
  */
-inline Vector3 worldAxisOrFallback(const RigidBody* body,
-                                   const Vector3& local_axis,
-                                   const Vector3& fallback_axis) {
+inline Vector3 worldAxisOrFallback(const RigidBody* body, const Vector3& local_axis, const Vector3& fallback_axis) {
   Vector3 axis_world = body->orientation().rotate(local_axis).normalized();
   return axis_world.isZero() ? fallback_axis : axis_world;
 }
@@ -158,8 +142,7 @@ inline Vector3 worldAxisOrFallback(const RigidBody* body,
  *        vector when possible.
  * @return Signed twist angle in radians about axis_world.
  */
-inline double signedTwistAngleRad(const Quaternion& qa, const Quaternion& qb,
-                                  const Vector3& axis_world) {
+inline double signedTwistAngleRad(const Quaternion& qa, const Quaternion& qb, const Vector3& axis_world) {
   Quaternion q_rel = qb * qa.inverse();
   q_rel.normalizeIfNeeded();
 

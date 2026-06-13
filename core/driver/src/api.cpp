@@ -1,3 +1,7 @@
+// Copyright (c) JSim contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the LGPLv3 license file in the root directory of this project.
+
 /**
  * @file api.cpp
  * @brief Implements the high-level frcsim C API declared in frcsim/api.h.
@@ -13,22 +17,16 @@
 
 extern "C" {
 
-PhysicsWorld_t* frcsim_create_world() {
-  return new PhysicsWorld_t;
-}
+PhysicsWorld_t* frcsim_create_world(void) { return new PhysicsWorld_t; }
 
-void frcsim_destroy_world(PhysicsWorld_t* w) {
-  delete w;
-}
+void frcsim_destroy_world(PhysicsWorld_t* w) { delete w; }
 
 RigidBody_t* frcsim_create_body(PhysicsWorld_t* w, double mass_kg) {
   if (!w) return nullptr;
   return &w->createBody(mass_kg);
 }
 
-Gamepiece_t* frcsim_create_gamepiece(PhysicsWorld_t* w,
-                                    const frcsim::Gamepiece::Config* config,
-                                    const frcsim::Gamepiece::Properties* props) {
+Gamepiece_t* frcsim_create_gamepiece(PhysicsWorld_t* w, const frcsim::Gamepiece::Config* config, const frcsim::Gamepiece::Properties* props) {
   if (!w) return nullptr;
   // NOTE: Either or both pointers may be null; substitute defaults so callers
   // can omit parameters they don't care about without a separate overload.
@@ -79,8 +77,7 @@ void frcsim_set_body_position(RigidBody_t* body, double x, double y, double z) {
   body->setPosition(x, y, z);
 }
 
-void frcsim_get_gamepiece_state(Gamepiece_t* gamepiece, double* px, double* py, double* pz,
-                                double* vx, double* vy, double* vz) {
+void frcsim_get_gamepiece_state(Gamepiece_t* gamepiece, double* px, double* py, double* pz, double* vx, double* vy, double* vz) {
   if (!gamepiece) return;
   const auto& state = gamepiece->state();
   if (px) *px = state.position_m.x;
@@ -91,12 +88,11 @@ void frcsim_get_gamepiece_state(Gamepiece_t* gamepiece, double* px, double* py, 
   if (vz) *vz = state.velocity_mps.z;
 }
 
-void frcsim_gamepiece_outtake(Gamepiece_t* gamepiece, double px, double py, double pz,
-                              double vx, double vy, double vz) {
+void frcsim_gamepiece_outtake(Gamepiece_t* gamepiece, double px, double py, double pz, double vx, double vy, double vz) {
   if (!gamepiece) return;
   frcsim::Vector3 pos(px, py, pz);
   frcsim::Vector3 vel(vx, vy, vz);
   gamepiece->outtake(pos, vel);
 }
 
-}
+}  // extern "C"

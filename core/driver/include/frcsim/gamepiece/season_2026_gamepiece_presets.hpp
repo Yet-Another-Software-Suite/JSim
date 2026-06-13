@@ -4,7 +4,8 @@
 
 /**
  * @file season_2026_gamepiece_presets.hpp
- * @brief Factory functions for 2026 season ball properties, field config, and goal zones.
+ * @brief Factory functions for 2026 season ball properties, field config, and
+ * goal zones.
  */
 
 #pragma once
@@ -15,7 +16,8 @@
 
 namespace frcsim::BallGamepiecePresets {
 
-/** @brief Returns field config tuned for the 2026 FRC game, including net boundary user-id. */
+/** @brief Returns field config tuned for the 2026 FRC game, including net
+ * boundary user-id. */
 inline BallGamepieceSim::FieldConfig season2026FieldConfig() {
   BallGamepieceSim::FieldConfig config = evergreenFieldConfig();
   config.net_boundary_user_id = 2026;
@@ -24,7 +26,8 @@ inline BallGamepieceSim::FieldConfig season2026FieldConfig() {
   return config;
 }
 
-/** @brief Returns BallProperties for the 2026 season game piece (coral disc, r=0.075 m). */
+/** @brief Returns BallProperties for the 2026 season game piece (coral disc,
+ * r=0.075 m). */
 inline BallPhysicsSim3D::BallProperties season2026BallProperties() {
   BallPhysicsSim3D::BallProperties properties{};
   properties.mass_kg = 0.216;
@@ -44,7 +47,8 @@ inline BallPhysicsSim3D::Config season2026BallConfig() {
 }
 
 /**
- * @brief Applies the 2026 field layout to a simulator, including the hub net boundary and goal zone.
+ * @brief Applies the 2026 field layout to a simulator, including the hub net
+ * boundary and goal zone.
  * @param sim Simulator to configure.
  */
 inline void configureSeason2026Field(BallGamepieceSim& sim) {

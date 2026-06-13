@@ -10,4 +10,3 @@ Typical module responsibilities
 
 Using modules
 - Build the whole project with the top-level build scripts. Use examples in each module to learn API usage: `examples/cpp`, `examples/python`, `jsim/examples`.
-

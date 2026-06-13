@@ -4,14 +4,13 @@
 
 /**
  * @file driversource.cpp
- * @brief C ABI wrappers around the frcsim physics engine for language-binding use.
+ * @brief C ABI wrappers around the frcsim physics engine for language-binding
+ * use.
  *
  * All worlds are stored in a process-wide handle map protected by a single
  * mutex. Functions return 0 on success and -1 on error to keep the interface
  * simple for FFI consumers (Java, Python, etc.).
  */
-
-#include "driverheader.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -21,6 +20,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "driverheader.h"
 #include "frcsim/physics_world.hpp"
 #include "frcsim/rigidbody/material.hpp"
 
@@ -30,15 +30,13 @@ namespace {
 std::mutex g_world_mutex;
 
 /// Map from handle -> owned PhysicsWorld instance.
-std::unordered_map<std::uint64_t, std::unique_ptr<frcsim::PhysicsWorld>>
-    g_worlds;
+std::unordered_map<std::uint64_t, std::unique_ptr<frcsim::PhysicsWorld>> g_worlds;
 
 /// Monotonic handle allocator for new worlds.
 std::uint64_t g_next_handle = 1;
 
 /// Mapping of world handle -> (gamepiece index -> type tag)
-static std::unordered_map<std::uint64_t, std::unordered_map<int, int>>
-  g_gamepiece_types;
+static std::unordered_map<std::uint64_t, std::unordered_map<int, int>> g_gamepiece_types;
 
 /**
  * @brief Convert a small integer kind tag to a human readable type name.
@@ -48,14 +46,22 @@ static std::unordered_map<std::uint64_t, std::unordered_map<int, int>>
  */
 std::string typeNameForKind(int type) {
   switch (type) {
-    case 0: return "Ball";
-    case 1: return "Fuel";
-    case 2: return "Coral";
-    case 3: return "custom1";
-    case 4: return "custom2";
-    case 5: return "custom3";
-    case 6: return "custom4";
-    default: return "unknown";
+    case 0:
+      return "Ball";
+    case 1:
+      return "Fuel";
+    case 2:
+      return "Coral";
+    case 3:
+      return "custom1";
+    case 4:
+      return "custom2";
+    case 5:
+      return "custom3";
+    case 6:
+      return "custom4";
+    default:
+      return "unknown";
   }
 }
 
@@ -65,9 +71,7 @@ std::string typeNameForKind(int type) {
  * @param handle World handle to check.
  * @return true if the world exists, false otherwise.
  */
-bool worldExists(std::uint64_t handle) {
-  return g_worlds.find(handle) != g_worlds.end();
-}
+bool worldExists(std::uint64_t handle) { return g_worlds.find(handle) != g_worlds.end(); }
 
 /**
  * @brief Lookup a world pointer for a handle.
@@ -89,9 +93,7 @@ frcsim::PhysicsWorld* lookupWorld(std::uint64_t handle) {
  * @param handle World handle.
  * @return Pointer to the world, or nullptr if not found.
  */
-frcsim::PhysicsWorld* getWorld(std::uint64_t handle) {
-  return lookupWorld(handle);
-}
+frcsim::PhysicsWorld* getWorld(std::uint64_t handle) { return lookupWorld(handle); }
 
 /**
  * @brief Safely get a body pointer from a world by index.
@@ -197,8 +199,7 @@ int c_rsCreateBody(uint64_t world_handle, double mass_kg) {
  * @param restitution Coefficient of restitution [0..1].
  * @return Index of the created gamepiece, or -1 on error.
  */
-int c_rsCreateGamepiece(uint64_t world_handle, double radius_m,
-                        double mass_kg, double restitution) {
+int c_rsCreateGamepiece(uint64_t world_handle, double radius_m, double mass_kg, double restitution) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   if (!world) {
@@ -213,8 +214,7 @@ int c_rsCreateGamepiece(uint64_t world_handle, double radius_m,
 
   props.mass_kg = (mass_kg > 0.0) ? mass_kg : 0.27;
   props.restitution = std::clamp(restitution, 0.0, 1.0);
-  props.reference_area_m2 =
-      3.14159265358979323846 * props.radius_m * props.radius_m;
+  props.reference_area_m2 = 3.14159265358979323846 * props.radius_m * props.radius_m;
 
   world->createBall(frcsim::BallPhysicsSim3D::Config(), props);
   return static_cast<int>(world->gamepieces().size() - 1);
@@ -233,8 +233,7 @@ int c_rsCreateGamepiece(uint64_t world_handle, double radius_m,
  * @param restitution Restitution [0..1].
  * @return Index of the created gamepiece, or -1 on error.
  */
-int c_rsCreateGamepieceWithType(uint64_t world_handle, int type, double radius_m,
-                                double mass_kg, double restitution) {
+int c_rsCreateGamepieceWithType(uint64_t world_handle, int type, double radius_m, double mass_kg, double restitution) {
   const int idx = c_rsCreateGamepiece(world_handle, radius_m, mass_kg, restitution);
   if (idx < 0) {
     return idx;
@@ -268,8 +267,7 @@ int c_rsCreateGamepieceWithType(uint64_t world_handle, int type, double radius_m
  * @param restitution Restitution [0..1].
  * @return Index of the created gamepiece, or -1 on error.
  */
-int c_rsCreateGamepieceWithTypeName(uint64_t world_handle, const char* type_name,
-                                   double radius_m, double mass_kg, double restitution) {
+int c_rsCreateGamepieceWithTypeName(uint64_t world_handle, const char* type_name, double radius_m, double mass_kg, double restitution) {
   // Create the gamepiece using existing spherical defaults today.
   int idx = c_rsCreateGamepiece(world_handle, radius_m, mass_kg, restitution);
   if (idx < 0) {
@@ -346,11 +344,8 @@ const char* c_rsGetGamepieceTypeName(uint64_t world_handle, int gamepiece_index)
  * @param carry_offset_z Carry offset z component (m).
  * @return 0 on success, -1 on failure.
  */
-int c_rsPickGamepiece(uint64_t world_handle, int gamepiece_index,
-                      double intake_x, double intake_y, double intake_z,
-                      double capture_radius,
-                      double carry_offset_x, double carry_offset_y,
-                      double carry_offset_z) {
+int c_rsPickGamepiece(uint64_t world_handle, int gamepiece_index, double intake_x, double intake_y, double intake_z, double capture_radius,
+                      double carry_offset_x, double carry_offset_y, double carry_offset_z) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   if (!world || gamepiece_index < 0) {
@@ -377,8 +372,7 @@ int c_rsPickGamepiece(uint64_t world_handle, int gamepiece_index,
  *
  * Convenience wrapper around c_rsSetGamepiecePosition.
  */
-int c_rsPlaceGamepiece(uint64_t world_handle, int gamepiece_index,
-                      double x_m, double y_m, double z_m) {
+int c_rsPlaceGamepiece(uint64_t world_handle, int gamepiece_index, double x_m, double y_m, double z_m) {
   return c_rsSetGamepiecePosition(world_handle, gamepiece_index, x_m, y_m, z_m);
 }
 
@@ -387,9 +381,7 @@ int c_rsPlaceGamepiece(uint64_t world_handle, int gamepiece_index,
  *
  * @return 0 on success, -1 on error.
  */
-int c_rsOuttakeGamepiece(uint64_t world_handle, int gamepiece_index,
-                      double px, double py, double pz,
-                      double vx, double vy, double vz) {
+int c_rsOuttakeGamepiece(uint64_t world_handle, int gamepiece_index, double px, double py, double pz, double vx, double vy, double vz) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   if (!world || gamepiece_index < 0) {
@@ -411,8 +403,7 @@ int c_rsOuttakeGamepiece(uint64_t world_handle, int gamepiece_index,
  *
  * @return 0 on success, -1 on error.
  */
-int c_rsSetBodyPosition(uint64_t world_handle, int body_index,
-                        double x_m, double y_m, double z_m) {
+int c_rsSetBodyPosition(uint64_t world_handle, int body_index, double x_m, double y_m, double z_m) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   frcsim::RigidBody* body = getBody(world, body_index);
@@ -428,8 +419,7 @@ int c_rsSetBodyPosition(uint64_t world_handle, int body_index,
  *
  * @return 0 on success, -1 on error.
  */
-int c_rsSetBodyLinearVelocity(uint64_t world_handle, int body_index,
-                              double vx_mps, double vy_mps, double vz_mps) {
+int c_rsSetBodyLinearVelocity(uint64_t world_handle, int body_index, double vx_mps, double vy_mps, double vz_mps) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   frcsim::RigidBody* body = getBody(world, body_index);
@@ -445,8 +435,7 @@ int c_rsSetBodyLinearVelocity(uint64_t world_handle, int body_index,
  *
  * @return 0 on success, -1 on error.
  */
-int c_rsSetBodyOrientation(uint64_t world_handle, int body_index,
-                           double qw, double qx, double qy, double qz) {
+int c_rsSetBodyOrientation(uint64_t world_handle, int body_index, double qw, double qx, double qy, double qz) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   frcsim::RigidBody* body = getBody(world, body_index);
@@ -463,8 +452,7 @@ int c_rsSetBodyOrientation(uint64_t world_handle, int body_index,
  * @param enabled Non-zero to enable gravity.
  * @return 0 on success, -1 on error.
  */
-int c_rsSetBodyGravityEnabled(uint64_t world_handle, int body_index,
-                              int enabled) {
+int c_rsSetBodyGravityEnabled(uint64_t world_handle, int body_index, int enabled) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   frcsim::RigidBody* body = getBody(world, body_index);
@@ -480,9 +468,7 @@ int c_rsSetBodyGravityEnabled(uint64_t world_handle, int body_index,
  *
  * @return 0 on success, -1 on error.
  */
-int c_rsGetBodyOrientation(uint64_t world_handle, int body_index,
-                           double* out_qw, double* out_qx,
-                           double* out_qy, double* out_qz) {
+int c_rsGetBodyOrientation(uint64_t world_handle, int body_index, double* out_qw, double* out_qx, double* out_qy, double* out_qz) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   frcsim::RigidBody* body = getBody(world, body_index);
@@ -503,9 +489,8 @@ int c_rsGetBodyOrientation(uint64_t world_handle, int body_index,
  * Values are clamped to reasonable ranges where applicable.
  * @return 0 on success, -1 on error.
  */
-int c_rsSetBodyMaterial(uint64_t world_handle, int body_index,
-                        double restitution, double friction_kinetic,
-                        double friction_static, double collision_damping) {
+int c_rsSetBodyMaterial(uint64_t world_handle, int body_index, double restitution, double friction_kinetic, double friction_static,
+                        double collision_damping) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   frcsim::RigidBody* body = getBody(world, body_index);
@@ -514,12 +499,9 @@ int c_rsSetBodyMaterial(uint64_t world_handle, int body_index,
   }
 
   frcsim::Material material;
-  material.coefficient_of_restitution =
-      std::clamp(restitution, 0.0, 1.0);
-  material.coefficient_of_friction_kinetic =
-      std::max(0.0, friction_kinetic);
-  material.coefficient_of_friction_static =
-      std::max(0.0, friction_static);
+  material.coefficient_of_restitution = std::clamp(restitution, 0.0, 1.0);
+  material.coefficient_of_friction_kinetic = std::max(0.0, friction_kinetic);
+  material.coefficient_of_friction_static = std::max(0.0, friction_static);
   material.collision_damping = std::clamp(collision_damping, 0.0, 1.0);
 
   body->setMaterial(material);
@@ -531,8 +513,7 @@ int c_rsSetBodyMaterial(uint64_t world_handle, int body_index,
  *
  * @return 0 on success, -1 on error.
  */
-int c_rsSetBodyMaterialId(uint64_t world_handle, int body_index,
-                          int32_t material_id) {
+int c_rsSetBodyMaterialId(uint64_t world_handle, int body_index, int32_t material_id) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   frcsim::RigidBody* body = getBody(world, body_index);
@@ -549,9 +530,7 @@ int c_rsSetBodyMaterialId(uint64_t world_handle, int body_index,
  *
  * @return 0 on success, -1 on error.
  */
-int c_rsSetBodyCollisionFilter(uint64_t world_handle, int body_index,
-                               uint32_t collision_layer_bits,
-                               uint32_t collision_mask_bits) {
+int c_rsSetBodyCollisionFilter(uint64_t world_handle, int body_index, uint32_t collision_layer_bits, uint32_t collision_mask_bits) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   frcsim::RigidBody* body = getBody(world, body_index);
@@ -570,8 +549,7 @@ int c_rsSetBodyCollisionFilter(uint64_t world_handle, int body_index,
  * Also updates the world's default drag coefficient when provided.
  * @return 0 on success, -1 on error.
  */
-int c_rsSetBodyAerodynamicSphere(uint64_t world_handle, int body_index,
-                                 double radius_m, double drag_coefficient) {
+int c_rsSetBodyAerodynamicSphere(uint64_t world_handle, int body_index, double radius_m, double drag_coefficient) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   frcsim::RigidBody* body = getBody(world, body_index);
@@ -584,8 +562,7 @@ int c_rsSetBodyAerodynamicSphere(uint64_t world_handle, int body_index,
   geometry.radius_m = std::max(0.0, radius_m);
   body->setAerodynamicGeometry(geometry);
 
-  world->config().default_drag_coefficient =
-      std::max(0.0, drag_coefficient);
+  world->config().default_drag_coefficient = std::max(0.0, drag_coefficient);
   return 0;
 }
 
@@ -593,9 +570,7 @@ int c_rsSetBodyAerodynamicSphere(uint64_t world_handle, int body_index,
  * @brief Define a box-shaped aerodynamic proxy for the body.
  * @return 0 on success, -1 on error.
  */
-int c_rsSetBodyAerodynamicBox(uint64_t world_handle, int body_index,
-                              double x_m, double y_m, double z_m,
-                              double drag_coefficient) {
+int c_rsSetBodyAerodynamicBox(uint64_t world_handle, int body_index, double x_m, double y_m, double z_m, double drag_coefficient) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   frcsim::RigidBody* body = getBody(world, body_index);
@@ -605,12 +580,10 @@ int c_rsSetBodyAerodynamicBox(uint64_t world_handle, int body_index,
 
   frcsim::RigidBody::AerodynamicGeometry geometry;
   geometry.shape = frcsim::RigidBody::AerodynamicGeometry::Shape::kBox;
-  geometry.box_dimensions_m =
-      frcsim::Vector3(std::max(0.0, x_m), std::max(0.0, y_m), std::max(0.0, z_m));
+  geometry.box_dimensions_m = frcsim::Vector3(std::max(0.0, x_m), std::max(0.0, y_m), std::max(0.0, z_m));
   body->setAerodynamicGeometry(geometry);
 
-  world->config().default_drag_coefficient =
-      std::max(0.0, drag_coefficient);
+  world->config().default_drag_coefficient = std::max(0.0, drag_coefficient);
   return 0;
 }
 
@@ -619,8 +592,7 @@ int c_rsSetBodyAerodynamicBox(uint64_t world_handle, int body_index,
  *
  * @return 0 on success, -1 on error.
  */
-int c_rsSetGamepiecePosition(uint64_t world_handle, int gamepiece_index,
-                             double x_m, double y_m, double z_m) {
+int c_rsSetGamepiecePosition(uint64_t world_handle, int gamepiece_index, double x_m, double y_m, double z_m) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   if (!world || gamepiece_index < 0) {
@@ -643,8 +615,7 @@ int c_rsSetGamepiecePosition(uint64_t world_handle, int gamepiece_index,
  * @brief Set a gamepiece's linear velocity.
  * @return 0 on success, -1 on error.
  */
-int c_rsSetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index,
-                                   double vx_mps, double vy_mps, double vz_mps) {
+int c_rsSetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index, double vx_mps, double vy_mps, double vz_mps) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   if (!world || gamepiece_index < 0) {
@@ -667,12 +638,8 @@ int c_rsSetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index,
  * @brief Configure global aerodynamics settings for a world.
  * @return 0 on success, -1 on error.
  */
-int c_rsSetWorldAerodynamics(uint64_t world_handle, int enabled,
-                             double air_density_kgpm3,
-                             double linear_drag_coefficient_n_per_mps,
-                             double magnus_coefficient,
-                             double default_drag_coefficient,
-                             double default_drag_reference_area_m2) {
+int c_rsSetWorldAerodynamics(uint64_t world_handle, int enabled, double air_density_kgpm3, double linear_drag_coefficient_n_per_mps,
+                             double magnus_coefficient, double default_drag_coefficient, double default_drag_reference_area_m2) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   if (!world) {
@@ -682,12 +649,10 @@ int c_rsSetWorldAerodynamics(uint64_t world_handle, int enabled,
   auto& cfg = world->config();
   cfg.enable_aerodynamics = (enabled != 0);
   cfg.air_density_kgpm3 = std::max(0.0, air_density_kgpm3);
-  cfg.linear_drag_coefficient_n_per_mps =
-      std::max(0.0, linear_drag_coefficient_n_per_mps);
+  cfg.linear_drag_coefficient_n_per_mps = std::max(0.0, linear_drag_coefficient_n_per_mps);
   cfg.magnus_coefficient = magnus_coefficient;
   cfg.default_drag_coefficient = std::max(0.0, default_drag_coefficient);
-  cfg.default_drag_reference_area_m2 =
-      std::max(0.0, default_drag_reference_area_m2);
+  cfg.default_drag_reference_area_m2 = std::max(0.0, default_drag_reference_area_m2);
 
   return 0;
 }
@@ -697,9 +662,8 @@ int c_rsSetWorldAerodynamics(uint64_t world_handle, int enabled,
  *
  * @return 0 on success, -1 on error.
  */
-int c_rsSetMaterialInteraction(uint64_t world_handle, int32_t material_a_id,
-                               int32_t material_b_id, double restitution,
-                               double friction, int enabled) {
+int c_rsSetMaterialInteraction(uint64_t world_handle, int32_t material_a_id, int32_t material_b_id, double restitution, double friction,
+                               int enabled) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   if (!world) {
@@ -741,8 +705,7 @@ int c_rsStepWorld(uint64_t world_handle, int steps) {
  *
  * @return 0 on success, -1 on error.
  */
-int c_rsSetWorldGravity(uint64_t world_handle, double gx_mps2,
-                        double gy_mps2, double gz_mps2) {
+int c_rsSetWorldGravity(uint64_t world_handle, double gx_mps2, double gy_mps2, double gz_mps2) {
   std::lock_guard<std::mutex> lock(g_world_mutex);
   frcsim::PhysicsWorld* world = getWorld(world_handle);
   if (!world) {
@@ -754,15 +717,13 @@ int c_rsSetWorldGravity(uint64_t world_handle, double gx_mps2,
   return 0;
 }
 
-
 /**
  * @brief Read a gamepiece's position into output pointers.
  *
  * All output pointers must be non-null.
  * @return 0 on success, -1 on error.
  */
-int c_rsGetGamepiecePosition(uint64_t world_handle, int gamepiece_index,
-                             double* x_m, double* y_m, double* z_m) {
+int c_rsGetGamepiecePosition(uint64_t world_handle, int gamepiece_index, double* x_m, double* y_m, double* z_m) {
   if (!x_m || !y_m || !z_m) {
     return -1;
   }
@@ -786,13 +747,11 @@ int c_rsGetGamepiecePosition(uint64_t world_handle, int gamepiece_index,
   return 0;
 }
 
-
 /**
  * @brief Read a gamepiece's linear velocity into output pointers.
  * @return 0 on success, -1 on error.
  */
-int c_rsGetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index,
-                                   double* vx_mps, double* vy_mps, double* vz_mps) {
+int c_rsGetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index, double* vx_mps, double* vy_mps, double* vz_mps) {
   if (!vx_mps || !vy_mps || !vz_mps) {
     return -1;
   }
@@ -820,8 +779,7 @@ int c_rsGetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index,
  * @brief Read a rigid body's position into output pointers.
  * @return 0 on success, -1 on error.
  */
-int c_rsGetBodyPosition(uint64_t world_handle, int body_index,
-                        double* x_m, double* y_m, double* z_m) {
+int c_rsGetBodyPosition(uint64_t world_handle, int body_index, double* x_m, double* y_m, double* z_m) {
   if (!x_m || !y_m || !z_m) {
     return -1;
   }
@@ -844,8 +802,7 @@ int c_rsGetBodyPosition(uint64_t world_handle, int body_index,
  * @brief Read a rigid body's linear velocity into output pointers.
  * @return 0 on success, -1 on error.
  */
-int c_rsGetBodyLinearVelocity(uint64_t world_handle, int body_index,
-                              double* vx_mps, double* vy_mps, double* vz_mps) {
+int c_rsGetBodyLinearVelocity(uint64_t world_handle, int body_index, double* vx_mps, double* vy_mps, double* vz_mps) {
   if (!vx_mps || !vy_mps || !vz_mps) {
     return -1;
   }
@@ -870,8 +827,7 @@ int c_rsGetBodyLinearVelocity(uint64_t world_handle, int body_index,
  * The caller supplies a buffer of size at least 7*max_bodies doubles.
  * @return Number of bodies written, or -1 on error.
  */
-int c_rsGetBodyPose7Array(uint64_t world_handle, double* out_pose7,
-                          int max_bodies) {
+int c_rsGetBodyPose7Array(uint64_t world_handle, double* out_pose7, int max_bodies) {
   if (!out_pose7 || max_bodies < 0) {
     return -1;
   }
@@ -904,8 +860,7 @@ int c_rsGetBodyPose7Array(uint64_t world_handle, double* out_pose7,
  * @brief Fill an array with linear and angular velocity (vx,vy,vz,wx,wy,wz).
  * @return Number of bodies written, or -1 on error.
  */
-int c_rsGetBodyVelocity6Array(uint64_t world_handle, double* out_velocity6,
-                              int max_bodies) {
+int c_rsGetBodyVelocity6Array(uint64_t world_handle, double* out_velocity6, int max_bodies) {
   if (!out_velocity6 || max_bodies < 0) {
     return -1;
   }
@@ -938,8 +893,7 @@ int c_rsGetBodyVelocity6Array(uint64_t world_handle, double* out_velocity6,
  * (pos(3), quat(4), linvel(3), angvel(3)).
  * @return Number of bodies written, or -1 on error.
  */
-int c_rsGetBodyState13Array(uint64_t world_handle, double* out_state13,
-                            int max_bodies) {
+int c_rsGetBodyState13Array(uint64_t world_handle, double* out_state13, int max_bodies) {
   if (!out_state13 || max_bodies < 0) {
     return -1;
   }

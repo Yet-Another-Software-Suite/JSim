@@ -8,7 +8,8 @@
 
 /**
  * @file driverheader.h
- * @brief Stable C ABI for constructing, configuring, stepping, and querying JSim worlds.
+ * @brief Stable C ABI for constructing, configuring, stepping, and querying
+ * JSim worlds.
  *
  * This header is intentionally C-compatible so it can be consumed from JNI,
  * Python/ctypes, C#, Rust FFI, and other foreign-function interfaces without
@@ -23,17 +24,20 @@
  * - A world handle value of 0 is invalid.
  * - Functions returning `int` use 0 for success and non-zero for failure.
  * - Indices are zero-based and must reference an existing body.
- * - Pointer out-parameters must be non-null unless explicitly documented as optional.
+ * - Pointer out-parameters must be non-null unless explicitly documented as
+ * optional.
  *
  * Error model:
- * - Invalid handle, invalid body index, invalid pointer, or invalid numeric input
- *   results in a non-zero error code.
- * - APIs are best-effort deterministic and do not throw C++ exceptions across this ABI.
+ * - Invalid handle, invalid body index, invalid pointer, or invalid numeric
+ * input results in a non-zero error code.
+ * - APIs are best-effort deterministic and do not throw C++ exceptions across
+ * this ABI.
  *
  * Threading model:
  * - World mutation functions are not re-entrant for the same world handle.
  * - Callers should serialize writes and step operations per world.
- * - Query-only calls should not race with mutating calls unless external locking is used.
+ * - Query-only calls should not race with mutating calls unless external
+ * locking is used.
  */
 
 #ifdef __cplusplus
@@ -50,20 +54,23 @@ void c_doThing(void);
 
 /**
  * @brief Creates a new physics world and returns its opaque handle.
- * @param fixed_dt_s Fixed simulation timestep in seconds. Typical FRC values are 0.005-0.02.
+ * @param fixed_dt_s Fixed simulation timestep in seconds. Typical FRC values
+ * are 0.005-0.02.
  * @param enable_gravity Non-zero enables gravity by default; zero disables it.
  * @return Opaque non-zero world handle on success; 0 on failure.
  */
 uint64_t c_rsCreateWorld(double fixed_dt_s, int enable_gravity);
 
 /**
- * @brief Destroys a previously created world and releases all associated resources.
+ * @brief Destroys a previously created world and releases all associated
+ * resources.
  * @param world_handle Opaque world handle returned by c_rsCreateWorld().
  *
  * Safe behavior:
  * - Passing an invalid handle is ignored or treated as an error internally,
  *   but callers should not rely on double-destroy semantics.
- * - After destruction, all body indices and references from that world are invalid.
+ * - After destruction, all body indices and references from that world are
+ * invalid.
  */
 void c_rsDestroyWorld(uint64_t world_handle);
 
@@ -83,20 +90,20 @@ int c_rsCreateBody(uint64_t world_handle, double mass_kg);
  * @param restitution Coefficient of restitution in [0, 1].
  * @return Non-negative gamepiece index on success; negative value on failure.
  */
-int c_rsCreateGamepiece(uint64_t world_handle, double radius_m,
-                        double mass_kg, double restitution);
+int c_rsCreateGamepiece(uint64_t world_handle, double radius_m, double mass_kg, double restitution);
 
 /**
  * @brief Creates a new generic gamepiece with an explicit type tag.
  * @param world_handle Target world handle.
- * @param type Integer type tag (application-defined). For Java usage, map from GamePieceType.ordinal().
- * @param radius_m Sphere hitbox radius in meters (ignored for non-spherical types currently).
+ * @param type Integer type tag (application-defined). For Java usage, map from
+ * GamePieceType.ordinal().
+ * @param radius_m Sphere hitbox radius in meters (ignored for non-spherical
+ * types currently).
  * @param mass_kg Gamepiece mass in kilograms.
  * @param restitution Coefficient of restitution in [0, 1].
  * @return Non-negative gamepiece index on success; negative value on failure.
  */
-int c_rsCreateGamepieceWithType(uint64_t world_handle, int type, double radius_m,
-                                double mass_kg, double restitution);
+int c_rsCreateGamepieceWithType(uint64_t world_handle, int type, double radius_m, double mass_kg, double restitution);
 
 /**
  * @brief Creates a new generic gamepiece with a human-readable type name.
@@ -110,13 +117,13 @@ int c_rsCreateGamepieceWithType(uint64_t world_handle, int type, double radius_m
  * @param world_handle Target world handle.
  * @param type_name Null-terminated UTF-8 name for the gamepiece type. May be
  *                  NULL to indicate unnamed/default.
- * @param radius_m Sphere hitbox radius in meters (ignored for non-spherical types currently).
+ * @param radius_m Sphere hitbox radius in meters (ignored for non-spherical
+ * types currently).
  * @param mass_kg Gamepiece mass in kilograms.
  * @param restitution Coefficient of restitution in [0, 1].
  * @return Non-negative gamepiece index on success; negative value on failure.
  */
-int c_rsCreateGamepieceWithTypeName(uint64_t world_handle, const char* type_name,
-                                   double radius_m, double mass_kg, double restitution);
+int c_rsCreateGamepieceWithTypeName(uint64_t world_handle, const char* type_name, double radius_m, double mass_kg, double restitution);
 
 /**
  * @brief Reads the registered type name for a gamepiece.
@@ -129,7 +136,8 @@ const char* c_rsGetGamepieceTypeName(uint64_t world_handle, int gamepiece_index)
 /**
  * @brief Request pickup of a gamepiece into a carrier.
  * @param world_handle Target world handle.
- * @param gamepiece_index Zero-based gamepiece index returned by c_rsCreateGamepiece().
+ * @param gamepiece_index Zero-based gamepiece index returned by
+ * c_rsCreateGamepiece().
  * @param intake_x Intake world x position.
  * @param intake_y Intake world y position.
  * @param intake_z Intake world z position.
@@ -139,24 +147,18 @@ const char* c_rsGetGamepieceTypeName(uint64_t world_handle, int gamepiece_index)
  * @param carry_offset_z Carry offset z in meters.
  * @return 0 on success (picked), non-zero on failure.
  */
-int c_rsPickGamepiece(uint64_t world_handle, int gamepiece_index,
-                      double intake_x, double intake_y, double intake_z,
-                      double capture_radius,
-                      double carry_offset_x, double carry_offset_y,
-                      double carry_offset_z);
+int c_rsPickGamepiece(uint64_t world_handle, int gamepiece_index, double intake_x, double intake_y, double intake_z, double capture_radius,
+                      double carry_offset_x, double carry_offset_y, double carry_offset_z);
 
 /**
  * @brief Place a gamepiece at a world position and mark grounded.
  */
-int c_rsPlaceGamepiece(uint64_t world_handle, int gamepiece_index,
-                      double x_m, double y_m, double z_m);
+int c_rsPlaceGamepiece(uint64_t world_handle, int gamepiece_index, double x_m, double y_m, double z_m);
 
 /**
  * @brief Outtake a gamepiece from a muzzle pose with velocity (launch).
  */
-int c_rsOuttakeGamepiece(uint64_t world_handle, int gamepiece_index,
-                      double px, double py, double pz,
-                      double vx, double vy, double vz);
+int c_rsOuttakeGamepiece(uint64_t world_handle, int gamepiece_index, double px, double py, double pz, double vx, double vy, double vz);
 
 /**
  * @brief Sets a body's world-space position.
@@ -167,8 +169,7 @@ int c_rsOuttakeGamepiece(uint64_t world_handle, int gamepiece_index,
  * @param z_m Position z in meters.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsSetBodyPosition(uint64_t world_handle, int body_index,
-                        double x_m, double y_m, double z_m);
+int c_rsSetBodyPosition(uint64_t world_handle, int body_index, double x_m, double y_m, double z_m);
 
 /**
  * @brief Sets a body's world-space linear velocity.
@@ -179,8 +180,7 @@ int c_rsSetBodyPosition(uint64_t world_handle, int body_index,
  * @param vz_mps Velocity z component in meters/second.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsSetBodyLinearVelocity(uint64_t world_handle, int body_index,
-                              double vx_mps, double vy_mps, double vz_mps);
+int c_rsSetBodyLinearVelocity(uint64_t world_handle, int body_index, double vx_mps, double vy_mps, double vz_mps);
 
 /**
  * @brief Set a rigid body's orientation.
@@ -192,8 +192,7 @@ int c_rsSetBodyLinearVelocity(uint64_t world_handle, int body_index,
  * @param qz Quaternion z component.
  * @return 0 on success, non-zero on error.
  */
-int c_rsSetBodyOrientation(uint64_t world_handle, int body_index,
-                           double qw, double qx, double qy, double qz);
+int c_rsSetBodyOrientation(uint64_t world_handle, int body_index, double qw, double qx, double qy, double qz);
 
 /**
  * @brief Read a rigid body's orientation quaternion.
@@ -205,9 +204,7 @@ int c_rsSetBodyOrientation(uint64_t world_handle, int body_index,
  * @param out_qz Output pointer for quaternion z component.
  * @return 0 on success, non-zero on error.
  */
-int c_rsGetBodyOrientation(uint64_t world_handle, int body_index,
-                           double* out_qw, double* out_qx,
-                           double* out_qy, double* out_qz);
+int c_rsGetBodyOrientation(uint64_t world_handle, int body_index, double* out_qw, double* out_qx, double* out_qy, double* out_qz);
 
 /**
  * @brief Enables or disables gravity for a single body.
@@ -216,8 +213,7 @@ int c_rsGetBodyOrientation(uint64_t world_handle, int body_index,
  * @param enabled Non-zero to enable gravity for this body; zero to disable.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsSetBodyGravityEnabled(uint64_t world_handle, int body_index,
-                              int enabled);
+int c_rsSetBodyGravityEnabled(uint64_t world_handle, int body_index, int enabled);
 
 /**
  * @brief Sets per-body material coefficients used in contact response.
@@ -229,9 +225,8 @@ int c_rsSetBodyGravityEnabled(uint64_t world_handle, int body_index,
  * @param collision_damping Additional collision damping term, typically >= 0.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsSetBodyMaterial(uint64_t world_handle, int body_index,
-                        double restitution, double friction_kinetic,
-                        double friction_static, double collision_damping);
+int c_rsSetBodyMaterial(uint64_t world_handle, int body_index, double restitution, double friction_kinetic, double friction_static,
+                        double collision_damping);
 
 /**
  * @brief Assigns a numeric material id to a body.
@@ -240,27 +235,25 @@ int c_rsSetBodyMaterial(uint64_t world_handle, int body_index,
  * @param material_id Application-defined material identifier.
  * @return 0 on success, non-zero on failure.
  *
- * The material id is used by world-level material interaction tables to override
- * restitution/friction for specific material pairs.
+ * The material id is used by world-level material interaction tables to
+ * override restitution/friction for specific material pairs.
  */
-int c_rsSetBodyMaterialId(uint64_t world_handle, int body_index,
-                          int32_t material_id);
+int c_rsSetBodyMaterialId(uint64_t world_handle, int body_index, int32_t material_id);
 
 /**
  * @brief Sets broad-phase collision filtering for a body.
  * @param world_handle Target world handle.
  * @param body_index Zero-based body index.
  * @param collision_layer_bits Bitmask describing layers this body belongs to.
- * @param collision_mask_bits Bitmask describing layers this body can interact with.
+ * @param collision_mask_bits Bitmask describing layers this body can interact
+ * with.
  * @return 0 on success, non-zero on failure.
  *
  * A pair (A, B) is considered eligible only if both expressions are non-zero:
  * - (A.layer_bits & B.mask_bits)
  * - (B.layer_bits & A.mask_bits)
  */
-int c_rsSetBodyCollisionFilter(uint64_t world_handle, int body_index,
-                               uint32_t collision_layer_bits,
-                               uint32_t collision_mask_bits);
+int c_rsSetBodyCollisionFilter(uint64_t world_handle, int body_index, uint32_t collision_layer_bits, uint32_t collision_mask_bits);
 
 /**
  * @brief Configures spherical aerodynamic metadata for a body.
@@ -270,8 +263,7 @@ int c_rsSetBodyCollisionFilter(uint64_t world_handle, int body_index,
  * @param drag_coefficient Dimensionless drag coefficient (Cd).
  * @return 0 on success, non-zero on failure.
  */
-int c_rsSetBodyAerodynamicSphere(uint64_t world_handle, int body_index,
-                                 double radius_m, double drag_coefficient);
+int c_rsSetBodyAerodynamicSphere(uint64_t world_handle, int body_index, double radius_m, double drag_coefficient);
 
 /**
  * @brief Configures box aerodynamic metadata for a body.
@@ -283,9 +275,7 @@ int c_rsSetBodyAerodynamicSphere(uint64_t world_handle, int body_index,
  * @param drag_coefficient Dimensionless drag coefficient (Cd).
  * @return 0 on success, non-zero on failure.
  */
-int c_rsSetBodyAerodynamicBox(uint64_t world_handle, int body_index,
-                              double x_m, double y_m, double z_m,
-                              double drag_coefficient);
+int c_rsSetBodyAerodynamicBox(uint64_t world_handle, int body_index, double x_m, double y_m, double z_m, double drag_coefficient);
 
 /**
  * @brief Sets a gamepiece's world-space position.
@@ -296,8 +286,7 @@ int c_rsSetBodyAerodynamicBox(uint64_t world_handle, int body_index,
  * @param z_m Position z in meters.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsSetGamepiecePosition(uint64_t world_handle, int gamepiece_index,
-                        double x_m, double y_m, double z_m);
+int c_rsSetGamepiecePosition(uint64_t world_handle, int gamepiece_index, double x_m, double y_m, double z_m);
 
 /**
  * @brief Sets a gamepiece's world-space linear velocity.
@@ -308,8 +297,7 @@ int c_rsSetGamepiecePosition(uint64_t world_handle, int gamepiece_index,
  * @param vz_mps Velocity z component in meters/second.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsSetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index,
-                                   double vx_mps, double vy_mps, double vz_mps);
+int c_rsSetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index, double vx_mps, double vy_mps, double vz_mps);
 
 /**
  * @brief Reads a gamepiece's world-space position.
@@ -320,8 +308,7 @@ int c_rsSetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index,
  * @param z_m Output pointer for z position in meters.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsGetGamepiecePosition(uint64_t world_handle, int gamepiece_index,
-                             double* x_m, double* y_m, double* z_m);
+int c_rsGetGamepiecePosition(uint64_t world_handle, int gamepiece_index, double* x_m, double* y_m, double* z_m);
 
 /**
  * @brief Reads a gamepiece's world-space linear velocity.
@@ -332,8 +319,7 @@ int c_rsGetGamepiecePosition(uint64_t world_handle, int gamepiece_index,
  * @param vz_mps Output pointer for z velocity in meters/second.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsGetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index,
-                                   double* vx_mps, double* vy_mps, double* vz_mps);
+int c_rsGetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index, double* vx_mps, double* vy_mps, double* vz_mps);
 
 /**
  * @brief Configures world-level aerodynamic constants and feature toggle.
@@ -342,16 +328,14 @@ int c_rsGetGamepieceLinearVelocity(uint64_t world_handle, int gamepiece_index,
  * @param air_density_kgpm3 Air density in kg/m^3.
  * @param linear_drag_coefficient_n_per_mps Linear drag coefficient in N/(m/s).
  * @param magnus_coefficient Magnus lift scale factor.
- * @param default_drag_coefficient Default dimensionless Cd when body value is unset.
- * @param default_drag_reference_area_m2 Default area in m^2 when body geometry is unset.
+ * @param default_drag_coefficient Default dimensionless Cd when body value is
+ * unset.
+ * @param default_drag_reference_area_m2 Default area in m^2 when body geometry
+ * is unset.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsSetWorldAerodynamics(uint64_t world_handle, int enabled,
-                             double air_density_kgpm3,
-                             double linear_drag_coefficient_n_per_mps,
-                             double magnus_coefficient,
-                             double default_drag_coefficient,
-                             double default_drag_reference_area_m2);
+int c_rsSetWorldAerodynamics(uint64_t world_handle, int enabled, double air_density_kgpm3, double linear_drag_coefficient_n_per_mps,
+                             double magnus_coefficient, double default_drag_coefficient, double default_drag_reference_area_m2);
 
 /**
  * @brief Adds or updates a material-pair interaction override.
@@ -365,9 +349,7 @@ int c_rsSetWorldAerodynamics(uint64_t world_handle, int enabled,
  *
  * Pair lookup is symmetric: (A, B) and (B, A) resolve to the same entry.
  */
-int c_rsSetMaterialInteraction(uint64_t world_handle, int32_t material_a_id,
-                               int32_t material_b_id, double restitution,
-                               double friction, int enabled);
+int c_rsSetMaterialInteraction(uint64_t world_handle, int32_t material_a_id, int32_t material_b_id, double restitution, double friction, int enabled);
 
 /**
  * @brief Advances the world by `steps` fixed timesteps.
@@ -385,8 +367,7 @@ int c_rsStepWorld(uint64_t world_handle, int steps);
  * @param gz_mps2 Gravity z component in m/s^2.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsSetWorldGravity(uint64_t world_handle, double gx_mps2,
-                        double gy_mps2, double gz_mps2);
+int c_rsSetWorldGravity(uint64_t world_handle, double gx_mps2, double gy_mps2, double gz_mps2);
 
 /**
  * @brief Reads a body's world-space position.
@@ -397,8 +378,7 @@ int c_rsSetWorldGravity(uint64_t world_handle, double gx_mps2,
  * @param z_m Output pointer for z position in meters.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsGetBodyPosition(uint64_t world_handle, int body_index,
-                        double* x_m, double* y_m, double* z_m);
+int c_rsGetBodyPosition(uint64_t world_handle, int body_index, double* x_m, double* y_m, double* z_m);
 
 /**
  * @brief Reads a body's world-space linear velocity.
@@ -409,8 +389,7 @@ int c_rsGetBodyPosition(uint64_t world_handle, int body_index,
  * @param vz_mps Output pointer for z velocity in meters/second.
  * @return 0 on success, non-zero on failure.
  */
-int c_rsGetBodyLinearVelocity(uint64_t world_handle, int body_index,
-                              double* vx_mps, double* vy_mps, double* vz_mps);
+int c_rsGetBodyLinearVelocity(uint64_t world_handle, int body_index, double* vx_mps, double* vy_mps, double* vz_mps);
 
 /**
  * @brief Exports body poses as a tightly packed 7-tuple array.
@@ -428,8 +407,7 @@ int c_rsGetBodyLinearVelocity(uint64_t world_handle, int body_index,
  * - out_pose7[i * 7 + 5] = qy
  * - out_pose7[i * 7 + 6] = qz
  */
-int c_rsGetBodyPose7Array(uint64_t world_handle, double* out_pose7,
-                          int max_bodies);
+int c_rsGetBodyPose7Array(uint64_t world_handle, double* out_pose7, int max_bodies);
 
 /**
  * @brief Exports body velocities as a tightly packed 6-tuple array.
@@ -446,8 +424,7 @@ int c_rsGetBodyPose7Array(uint64_t world_handle, double* out_pose7,
  * - out_velocity6[i * 6 + 4] = wy (rad/s)
  * - out_velocity6[i * 6 + 5] = wz (rad/s)
  */
-int c_rsGetBodyVelocity6Array(uint64_t world_handle, double* out_velocity6,
-                              int max_bodies);
+int c_rsGetBodyVelocity6Array(uint64_t world_handle, double* out_velocity6, int max_bodies);
 
 /**
  * @brief Exports full body state as a tightly packed 13-tuple array.
@@ -471,8 +448,7 @@ int c_rsGetBodyVelocity6Array(uint64_t world_handle, double* out_velocity6,
  * - out_state13[i * 13 + 11] = wy (rad/s)
  * - out_state13[i * 13 + 12] = wz (rad/s)
  */
-int c_rsGetBodyState13Array(uint64_t world_handle, double* out_state13,
-                            int max_bodies);
+int c_rsGetBodyState13Array(uint64_t world_handle, double* out_state13, int max_bodies);
 
 /**
  * @brief Creates and registers a rigid assembly container.

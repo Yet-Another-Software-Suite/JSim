@@ -8,9 +8,10 @@
  */
 
 #pragma once
-#include <cmath>
 #include <algorithm>
 #include <cassert>
+#include <cmath>
+
 #include "vector.hpp"
 
 /** @addtogroup math @{ */
@@ -48,15 +49,13 @@ struct Quaternion {
    * @param y_ Imaginary y.
    * @param z_ Imaginary z.
    */
-  constexpr Quaternion(double w_, double x_, double y_, double z_) noexcept
-      : w(w_), x(x_), y(y_), z(z_) {}
+  constexpr Quaternion(double w_, double x_, double y_, double z_) noexcept : w(w_), x(x_), y(y_), z(z_) {}
   /**
    * @brief Constructs from scalar and vector parts.
    * @param w_ Real part.
    * @param v Imaginary vector part.
    */
-  constexpr Quaternion(double w_, const Vector3& v) noexcept
-      : w(w_), x(v.x), y(v.y), z(v.z) {}
+  constexpr Quaternion(double w_, const Vector3& v) noexcept : w(w_), x(v.x), y(v.y), z(v.z) {}
 
   /// @brief Returns squared magnitude: w^2+x^2+y^2+z^2.
   [[nodiscard]]
@@ -75,8 +74,7 @@ struct Quaternion {
    */
   [[nodiscard]]
   bool isIdentity(double eps = 1e-12) const noexcept {
-    return std::abs(w - 1.0) < eps && std::abs(x) < eps && std::abs(y) < eps &&
-           std::abs(z) < eps;
+    return std::abs(w - 1.0) < eps && std::abs(x) < eps && std::abs(y) < eps && std::abs(z) < eps;
   }
   /// @brief Returns true when any component is NaN.
   [[nodiscard]]
@@ -86,24 +84,24 @@ struct Quaternion {
 
   /**
    * @brief Returns a normalized copy.
-   * @return Unit-length quaternion in the same orientation, or identity if near-zero.
+   * @return Unit-length quaternion in the same orientation, or identity if
+   * near-zero.
    */
   [[nodiscard]]
   Quaternion normalized() const noexcept {
     double n = norm();
-    if (n < 1e-12)
-      return Quaternion();
+    if (n < 1e-12) return Quaternion();
     return Quaternion(w / n, x / n, y / n, z / n);
   }
 
   /**
-   * @brief Normalizes in place only if the quaternion is not already unit-length.
+   * @brief Normalizes in place only if the quaternion is not already
+   * unit-length.
    * @param eps Tolerance for determining when re-normalization is needed.
    */
   void normalizeIfNeeded(double eps = 1e-12) noexcept {
     double n2 = norm2();
-    if (std::abs(n2 - 1.0) > eps)
-      normalize();
+    if (std::abs(n2 - 1.0) > eps) normalize();
   }
 
   /**
@@ -112,8 +110,7 @@ struct Quaternion {
    * @param angleRad Rotation angle in radians.
    * @return Unit quaternion representing the rotation.
    */
-  static Quaternion fromAxisAngle(const Vector3& axis,
-                                  double angleRad) noexcept {
+  static Quaternion fromAxisAngle(const Vector3& axis, double angleRad) noexcept {
     Vector3 nAxis = axis.normalized();
     double half = 0.5 * angleRad;
     double s = std::sin(half);
@@ -121,13 +118,13 @@ struct Quaternion {
   }
 
   /**
-   * @brief Constructs the incremental rotation quaternion for an angular-velocity step.
+   * @brief Constructs the incremental rotation quaternion for an
+   * angular-velocity step.
    * @param omega Angular velocity vector in radians per second.
    * @param dt Integration timestep in seconds.
    * @return Unit quaternion representing the incremental rotation.
    */
-  static Quaternion fromAngularVelocity(const Vector3& omega,
-                                        double dt) noexcept {
+  static Quaternion fromAngularVelocity(const Vector3& omega, double dt) noexcept {
     double angle = omega.norm() * dt;
     Vector3 axis = (angle > 1e-12) ? omega.normalized() : Vector3(1, 0, 0);
     return fromAxisAngle(axis, angle);
@@ -155,8 +152,7 @@ struct Quaternion {
    * @param t Interpolation parameter in [0, 1].
    * @return Interpolated unit quaternion.
    */
-  static Quaternion slerp(const Quaternion& a, const Quaternion& b,
-                          double t) noexcept {
+  static Quaternion slerp(const Quaternion& a, const Quaternion& b, double t) noexcept {
     double dot = a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
     Quaternion b2 = b;
     if (dot < 0.0) {
@@ -192,7 +188,8 @@ struct Quaternion {
     m[2][2] = 1.0 - 2.0 * (xx + yy);
   }
 
-  /// @brief Normalizes this quaternion in place; resets to identity on near-zero input.
+  /// @brief Normalizes this quaternion in place; resets to identity on
+  /// near-zero input.
   void normalize() noexcept {
     double n = norm();
     if (n < 1e-12) {
@@ -206,7 +203,8 @@ struct Quaternion {
     z /= n;
   }
 
-  /// @brief Returns the conjugate (w, -x, -y, -z) — inverse for unit quaternions.
+  /// @brief Returns the conjugate (w, -x, -y, -z) — inverse for unit
+  /// quaternions.
   [[nodiscard]]
   constexpr Quaternion conjugate() const noexcept {
     return Quaternion(w, -x, -y, -z);
@@ -219,8 +217,7 @@ struct Quaternion {
   [[nodiscard]]
   Quaternion inverse() const noexcept {
     double n2 = norm2();
-    if (n2 < 1e-12)
-      return Quaternion();
+    if (n2 < 1e-12) return Quaternion();
     Quaternion c = conjugate();
     return Quaternion(c.w / n2, c.x / n2, c.y / n2, c.z / n2);
   }
@@ -228,10 +225,8 @@ struct Quaternion {
   /// @brief Returns the Hamilton product of this quaternion and `rhs`.
   [[nodiscard]]
   constexpr Quaternion operator*(const Quaternion& rhs) const noexcept {
-    return Quaternion(w * rhs.w - x * rhs.x - y * rhs.y - z * rhs.z,
-                      w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y,
-                      w * rhs.y - x * rhs.z + y * rhs.w + z * rhs.x,
-                      w * rhs.z + x * rhs.y - y * rhs.x + z * rhs.w);
+    return Quaternion(w * rhs.w - x * rhs.x - y * rhs.y - z * rhs.z, w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y,
+                      w * rhs.y - x * rhs.z + y * rhs.w + z * rhs.x, w * rhs.z + x * rhs.y - y * rhs.x + z * rhs.w);
   }
 
   /// @brief Returns this quaternion scaled by `scalar` (right multiply).
@@ -240,8 +235,7 @@ struct Quaternion {
     return Quaternion(w * scalar, x * scalar, y * scalar, z * scalar);
   }
   /// @brief Returns quaternion `q` scaled by `scalar` (left multiply).
-  friend constexpr Quaternion operator*(double scalar,
-                                        const Quaternion& q) noexcept {
+  friend constexpr Quaternion operator*(double scalar, const Quaternion& q) noexcept {
     return Quaternion(q.w * scalar, q.x * scalar, q.y * scalar, q.z * scalar);
   }
 
@@ -273,7 +267,8 @@ struct Quaternion {
     return rotate(Vector3(1, 0, 0));
   }
 
-  /// @brief Returns the component-wise sum of two quaternions (not a rotation composition).
+  /// @brief Returns the component-wise sum of two quaternions (not a rotation
+  /// composition).
   [[nodiscard]]
   constexpr Quaternion operator+(const Quaternion& rhs) const noexcept {
     return Quaternion(w + rhs.w, x + rhs.x, y + rhs.y, z + rhs.z);
@@ -296,8 +291,7 @@ struct Quaternion {
 
   /// @brief Streams the quaternion in [w, (x, y, z)] notation.
   friend std::ostream& operator<<(std::ostream& os, const Quaternion& q) {
-    return os << "[" << q.w << ", (" << q.x << ", " << q.y << ", " << q.z
-              << ")]";
+    return os << "[" << q.w << ", (" << q.x << ", " << q.y << ", " << q.z << ")]";
   }
 };
 

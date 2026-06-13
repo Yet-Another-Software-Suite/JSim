@@ -143,15 +143,12 @@ TEST(DriverApiAeroTest, ConfigurableAerodynamicsSlowsBody) {
 
   ASSERT_EQ(c_rsSetBodyLinearVelocity(world, body, 10.0, 0.0, 0.0), 0);
   ASSERT_EQ(c_rsSetBodyAerodynamicSphere(world, body, 0.12, 0.47), 0);
-  ASSERT_EQ(c_rsSetWorldAerodynamics(world, 1, 1.225, 0.2, 1e-4, 0.47, 0.01),
-            0);
+  ASSERT_EQ(c_rsSetWorldAerodynamics(world, 1, 1.225, 0.2, 1e-4, 0.47, 0.01), 0);
 
   ASSERT_EQ(c_rsStepWorld(world, 50), 0);
 
   double out_v[3] = {};
-  ASSERT_EQ(
-      c_rsGetBodyLinearVelocity(world, body, &out_v[0], &out_v[1], &out_v[2]),
-      0);
+  ASSERT_EQ(c_rsGetBodyLinearVelocity(world, body, &out_v[0], &out_v[1], &out_v[2]), 0);
   EXPECT_LT(out_v[0], 10.0);
 
   c_rsDestroyWorld(world);

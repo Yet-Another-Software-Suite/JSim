@@ -9,10 +9,11 @@
 
 #pragma once
 
-#include "frcsim/gamepiece/ball_physics.hpp"
 #include <algorithm>
 #include <cctype>
 #include <string>
+
+#include "frcsim/gamepiece/ball_physics.hpp"
 
 /** @addtogroup gamepieces @{ */
 
@@ -43,9 +44,7 @@ class Gamepiece : public BallPhysicsSim3D {
   };
 
   Gamepiece() = default;
-  Gamepiece(const BallPhysicsSim3D::Config& cfg,
-            const BallPhysicsSim3D::BallProperties& props)
-      : BallPhysicsSim3D(cfg, props) {}
+  Gamepiece(const BallPhysicsSim3D::Config& cfg, const BallPhysicsSim3D::BallProperties& props) : BallPhysicsSim3D(cfg, props) {}
 
   /**
    * @brief Overrides the current lifecycle state.
@@ -82,13 +81,11 @@ class Gamepiece : public BallPhysicsSim3D {
   }
 
   /**
-   * @brief Outtake (launch) the gamepiece into free flight and mark as airborne.
+   * @brief Outtake (launch) the gamepiece into free flight and mark as
+   * airborne.
    */
-  void outtake(const Vector3& muzzle_position_m,
-             const Vector3& muzzle_velocity_mps,
-             const Vector3& muzzle_spin_radps = Vector3::zero()) {
-    BallPhysicsSim3D::shoot(muzzle_position_m, muzzle_velocity_mps,
-                            muzzle_spin_radps);
+  void outtake(const Vector3& muzzle_position_m, const Vector3& muzzle_velocity_mps, const Vector3& muzzle_spin_radps = Vector3::zero()) {
+    BallPhysicsSim3D::shoot(muzzle_position_m, muzzle_velocity_mps, muzzle_spin_radps);
     state_ = State::kAirborne;
   }
 
@@ -104,16 +101,14 @@ class Gamepiece : public BallPhysicsSim3D {
     if (state_ == State::kGrounded) {
       // Lightweight ground update: snap to ground and decay planar speed.
       BallPhysicsSim3D::BallState s = BallPhysicsSim3D::state();
-      const double floor_z = BallPhysicsSim3D::config().ground_height_m +
-                             BallPhysicsSim3D::ballProperties().radius_m;
+      const double floor_z = BallPhysicsSim3D::config().ground_height_m + BallPhysicsSim3D::ballProperties().radius_m;
       if (s.position_m.z < floor_z) {
         s.position_m.z = floor_z;
       }
 
       const double planar_speed = s.velocity_mps.planarSpeed();
       if (planar_speed > 1e-9) {
-        const double decay =
-            std::max(0.0, 1.0 - BallPhysicsSim3D::config().rolling_friction_per_s * dt_s);
+        const double decay = std::max(0.0, 1.0 - BallPhysicsSim3D::config().rolling_friction_per_s * dt_s);
         s.velocity_mps.x *= decay;
         s.velocity_mps.y *= decay;
         if (s.velocity_mps.planarSpeed() <= 1e-3) {
@@ -134,8 +129,7 @@ class Gamepiece : public BallPhysicsSim3D {
     // Default: airborne -> perform full ball physics step.
     BallPhysicsSim3D::step(dt_s);
     // If ball touches ground during step, transition to grounded state.
-    const double floor_z = BallPhysicsSim3D::config().ground_height_m +
-                           BallPhysicsSim3D::ballProperties().radius_m;
+    const double floor_z = BallPhysicsSim3D::config().ground_height_m + BallPhysicsSim3D::ballProperties().radius_m;
     if (BallPhysicsSim3D::state().position_m.z <= floor_z + 1e-6) {
       state_ = State::kGrounded;
     }
@@ -154,7 +148,8 @@ class Gamepiece : public BallPhysicsSim3D {
   const std::string& typeName() const { return type_name_; }
 
   /**
-   * @brief Returns true when this gamepiece should follow the ball physics path.
+   * @brief Returns true when this gamepiece should follow the ball physics
+   * path.
    *
    * Ball path is used when the type name is empty, contains "ball" or "sphere",
    * or starts with "generic_".
@@ -162,7 +157,7 @@ class Gamepiece : public BallPhysicsSim3D {
   bool isBall() const {
     if (type_name_.empty()) return true;
     std::string lower = type_name_;
-    std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c){ return std::tolower(c); });
+    std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
     if (lower.find("ball") != std::string::npos) return true;
     if (lower.find("sphere") != std::string::npos) return true;
     if (lower.rfind("generic_", 0) == 0) return true;

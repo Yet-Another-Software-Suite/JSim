@@ -7,19 +7,19 @@ This module provides templates and examples for quick season setup.
 """
 
 import json
-from typing import Dict, List, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from .field_2024_definition import Field2024Definition
-from .field_2025_definition import Field2025WeldedDefinition
 from .field_2025_andymark_definition import Field2025AndyMarkDefinition
-from .field_2026_definition import Field2026WeldedDefinition
+from .field_2025_definition import Field2025WeldedDefinition
 from .field_2026_andymark_definition import Field2026AndyMarkDefinition
+from .field_2026_definition import Field2026WeldedDefinition
 
 
 class FieldDefinitionManager:
     """Manages field definitions for different seasons."""
-    
+
     SEASONS = {
         2024: Field2024Definition,
         2025: Field2025WeldedDefinition,
@@ -34,7 +34,7 @@ class FieldDefinitionManager:
         2026: {
             "welded": Field2026WeldedDefinition,
             "andymark": Field2026AndyMarkDefinition,
-        }
+        },
     }
 
     @staticmethod
@@ -67,8 +67,12 @@ class FieldDefinitionManager:
 
         if "field_boundary" not in normalized:
             if length is None or width is None:
-                raise ValueError("field_dimensions must include length/width when field_boundary is omitted")
-            normalized["field_boundary"] = FieldDefinitionManager._default_rect_boundary(length, width)
+                raise ValueError(
+                    "field_dimensions must include length/width when field_boundary is omitted"
+                )
+            normalized["field_boundary"] = (
+                FieldDefinitionManager._default_rect_boundary(length, width)
+            )
 
         boundary = normalized.get("field_boundary", {})
         vertices = boundary.get("vertices", [])
@@ -99,7 +103,11 @@ class FieldDefinitionManager:
         raw_apriltags = field_def.get("apriltags", [])
         raw_tags = field_def.get("tags", [])
 
-        source = raw_apriltags if isinstance(raw_apriltags, list) and raw_apriltags else raw_tags
+        source = (
+            raw_apriltags
+            if isinstance(raw_apriltags, list) and raw_apriltags
+            else raw_tags
+        )
         normalized: List[Dict[str, Any]] = []
 
         for tag in source:
@@ -114,7 +122,9 @@ class FieldDefinitionManager:
 
             translation = pose.get("translation", {})
             rotation = pose.get("rotation", {})
-            quaternion = rotation.get("quaternion", {}) if isinstance(rotation, dict) else {}
+            quaternion = (
+                rotation.get("quaternion", {}) if isinstance(rotation, dict) else {}
+            )
 
             try:
                 normalized.append(
@@ -141,15 +151,17 @@ class FieldDefinitionManager:
                 continue
 
         return sorted(normalized, key=lambda t: t["id"])
-    
+
     @staticmethod
-    def get_field_definition(year: int, variant: Optional[str] = None) -> Dict[str, Any]:
+    def get_field_definition(
+        year: int, variant: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Get field definition for a given year.
-        
+
         Args:
             year: Competition year (e.g., 2024)
             variant: Optional field variant (e.g., "welded", "andymark")
-        
+
         Returns:
             Field definition dictionary
         """
@@ -170,7 +182,9 @@ class FieldDefinitionManager:
 
         field_def = season_class.get_field_definition()
         normalized_field = FieldDefinitionManager.ensure_field_boundary(field_def)
-        normalized_field["apriltags"] = FieldDefinitionManager._normalize_apriltags(normalized_field)
+        normalized_field["apriltags"] = FieldDefinitionManager._normalize_apriltags(
+            normalized_field
+        )
         return normalized_field
 
     @staticmethod
@@ -193,50 +207,50 @@ class FieldDefinitionManager:
         """Get available field variants for a season year."""
         variants = FieldDefinitionManager.FIELD_VARIANTS.get(year, {})
         return sorted(variants.keys())
-    
+
     @staticmethod
     def save_field_definition(year: int, output_path: str) -> bool:
         """Save field definition to JSON file.
-        
+
         Args:
             year: Competition year
             output_path: Path to save JSON
-        
+
         Returns:
             True if saved successfully
         """
         try:
             field_def = FieldDefinitionManager.get_field_definition(year)
-            
+
             output_file = Path(output_path)
             output_file.parent.mkdir(parents=True, exist_ok=True)
-            
-            with open(output_file, 'w') as f:
+
+            with open(output_file, "w") as f:
                 json.dump(field_def, f, indent=2)
-            
+
             print(f"✓ Saved 2024 field definition to {output_path}")
             return True
         except Exception as e:
             print(f"✗ Failed to save field definition: {e}")
             return False
-    
+
     @staticmethod
     def load_field_definition(path: str) -> Dict[str, Any]:
         """Load field definition from JSON file.
-        
+
         Args:
             path: Path to field definition JSON
-        
+
         Returns:
             Field definition dictionary
         """
         try:
-            with open(path, 'r') as f:
+            with open(path, "r") as f:
                 return json.load(f)
         except Exception as e:
             print(f"✗ Failed to load field definition: {e}")
             return {}
-    
+
     @staticmethod
     def list_available_years() -> List[int]:
         """Get list of years with available definitions."""

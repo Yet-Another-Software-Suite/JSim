@@ -4,7 +4,8 @@
 
 /**
  * @file physics_world.hpp
- * @brief Unified physics scene manager for rigid bodies, assemblies, gamepieces, and global forces.
+ * @brief Unified physics scene manager for rigid bodies, assemblies,
+ * gamepieces, and global forces.
  */
 
 #pragma once
@@ -27,14 +28,16 @@
 namespace frcsim {
 
 /**
- * @brief Global runtime settings for @ref PhysicsWorld dynamics and optional features.
+ * @brief Global runtime settings for @ref PhysicsWorld dynamics and optional
+ * features.
  *
  * This structure centralizes tunable simulation constants so callers can choose
  * between physically richer behavior and lighter-weight execution profiles.
  *
  * Design notes:
  * - All values use SI units.
- * - Values are consumed every world step; updating them affects subsequent steps.
+ * - Values are consumed every world step; updating them affects subsequent
+ * steps.
  * - Defaults favor stable behavior for FRC-style simulations.
  */
 struct PhysicsConfig {
@@ -49,9 +52,11 @@ struct PhysicsConfig {
   double fixed_dt_s{0.01};
 
   /**
-   * @brief Integration scheme used for rigid body translational/rotational updates.
+   * @brief Integration scheme used for rigid body translational/rotational
+   * updates.
    *
-   * See @ref IntegrationMethod for tradeoffs between speed and numerical behavior.
+   * See @ref IntegrationMethod for tradeoffs between speed and numerical
+   * behavior.
    */
   IntegrationMethod integration_method{IntegrationMethod::kSemiImplicitEuler};
 
@@ -140,11 +145,12 @@ struct PhysicsConfig {
 };
 
 /**
- * @brief Unified physics scene manager for rigid bodies, assemblies, ball simulators, and global forces.
+ * @brief Unified physics scene manager for rigid bodies, assemblies, ball
+ * simulators, and global forces.
  *
- * @ref PhysicsWorld is the central orchestration object for the native simulation
- * runtime. It owns all registered entities and advances them in lock-step using
- * a fixed timestep from @ref PhysicsConfig.
+ * @ref PhysicsWorld is the central orchestration object for the native
+ * simulation runtime. It owns all registered entities and advances them in
+ * lock-step using a fixed timestep from @ref PhysicsConfig.
  *
  * High-level responsibilities:
  * - Manage entity lifetimes (bodies, assemblies, ball simulators, boundaries).
@@ -157,7 +163,8 @@ struct PhysicsConfig {
  * Determinism and ordering:
  * - Simulation order is stable with respect to insertion order of entities.
  * - Calling code should avoid mutating world topology while stepping.
- * - Consistent inputs and step counts produce consistent outputs on the same build.
+ * - Consistent inputs and step counts produce consistent outputs on the same
+ * build.
  */
 class PhysicsWorld {
  public:
@@ -185,12 +192,12 @@ class PhysicsWorld {
    * @brief Constructs a world with an initial configuration snapshot.
    * @param config Initial world settings copied into internal storage.
    */
-  explicit PhysicsWorld(const PhysicsConfig& config = PhysicsConfig())
-      : config_(config) {}
+  explicit PhysicsWorld(const PhysicsConfig& config = PhysicsConfig()) : config_(config) {}
 
   /**
    * @brief Creates and registers a dynamic rigid body.
-   * @param mass_kg Body mass in kilograms. Non-positive values are sanitized by @ref RigidBody.
+   * @param mass_kg Body mass in kilograms. Non-positive values are sanitized by
+   * @ref RigidBody.
    * @return Reference to the newly added body owned by this world.
    */
   RigidBody& createBody(double mass_kg);
@@ -213,7 +220,8 @@ class PhysicsWorld {
   /**
    * @brief Mutable access to boundary storage.
    * @return Reference to the internal boundary vector.
-   * @warning Mutating the container while stepping is undefined at the API level.
+   * @warning Mutating the container while stepping is undefined at the API
+   * level.
    */
   std::vector<EnvironmentalBoundary>& boundaries() { return boundaries_; }
 
@@ -221,9 +229,7 @@ class PhysicsWorld {
    * @brief Immutable access to boundary storage.
    * @return Const reference to the internal boundary vector.
    */
-  const std::vector<EnvironmentalBoundary>& boundaries() const {
-    return boundaries_;
-  }
+  const std::vector<EnvironmentalBoundary>& boundaries() const { return boundaries_; }
 
   /**
    * @brief Registers a world-level force generator.
@@ -232,8 +238,7 @@ class PhysicsWorld {
    * Force generators are evaluated during @ref step and can apply additional
    * forces to bodies independent of per-body material settings.
    */
-  void addGlobalForceGenerator(
-      const std::shared_ptr<ForceGenerator>& generator);
+  void addGlobalForceGenerator(const std::shared_ptr<ForceGenerator>& generator);
 
   /**
    * @brief Registers or updates one material interaction override row.
@@ -249,50 +254,54 @@ class PhysicsWorld {
    */
   void clearMaterialInteractions();
 
-  /** @brief Mutable access to all rigid bodies currently registered in the world. */
+  /** @brief Mutable access to all rigid bodies currently registered in the
+   * world. */
   std::vector<RigidBody>& bodies() { return bodies_; }
 
-  /** @brief Immutable access to all rigid bodies currently registered in the world. */
+  /** @brief Immutable access to all rigid bodies currently registered in the
+   * world. */
   const std::vector<RigidBody>& bodies() const { return bodies_; }
 
-  /** @brief Mutable access to all rigid assemblies currently registered in the world. */
+  /** @brief Mutable access to all rigid assemblies currently registered in the
+   * world. */
   std::vector<RigidAssembly>& assemblies() { return assemblies_; }
 
-  /** @brief Immutable access to all rigid assemblies currently registered in the world. */
+  /** @brief Immutable access to all rigid assemblies currently registered in
+   * the world. */
   const std::vector<RigidAssembly>& assemblies() const { return assemblies_; }
 
-    /**
-     * @brief Creates and registers a generic gamepiece.
-     * @param config Environment and behavior configuration for the gamepiece when
-     * it uses spherical hitboxes. Future hitbox types may be added.
-     * @param properties Physical properties for the simulated gamepiece.
-     * @return Reference to the newly added gamepiece.
-     */
-    Gamepiece& createGamepiece(
-      const Gamepiece::Config& config = Gamepiece::Config(),
-      const Gamepiece::Properties& properties = Gamepiece::Properties());
+  /**
+   * @brief Creates and registers a generic gamepiece.
+   * @param config Environment and behavior configuration for the gamepiece when
+   * it uses spherical hitboxes. Future hitbox types may be added.
+   * @param properties Physical properties for the simulated gamepiece.
+   * @return Reference to the newly added gamepiece.
+   */
+  Gamepiece& createGamepiece(const Gamepiece::Config& config = Gamepiece::Config(),
+                             const Gamepiece::Properties& properties = Gamepiece::Properties());
 
-    /**
-     * @brief Backwards-compatible helper that creates a ball simulator.
-     *
-     * Internally this delegates to createGamepiece and returns a reference to the
-     * underlying BallPhysicsSim3D base so existing callers continue to function.
-     */
-    BallPhysicsSim3D& createBall(
-      const Gamepiece::Config& config = Gamepiece::Config(),
-      const Gamepiece::Properties& properties = Gamepiece::Properties());
+  /**
+   * @brief Backwards-compatible helper that creates a ball simulator.
+   *
+   * Internally this delegates to createGamepiece and returns a reference to the
+   * underlying BallPhysicsSim3D base so existing callers continue to function.
+   */
+  BallPhysicsSim3D& createBall(const Gamepiece::Config& config = Gamepiece::Config(),
+                               const Gamepiece::Properties& properties = Gamepiece::Properties());
 
-    /** @brief Mutable access to all registered gamepieces. */
-    std::vector<Gamepiece>& gamepieces() { return gamepieces_; }
+  /** @brief Mutable access to all registered gamepieces. */
+  std::vector<Gamepiece>& gamepieces() { return gamepieces_; }
 
-    /** @brief Immutable access to all registered gamepieces. */
-    const std::vector<Gamepiece>& gamepieces() const { return gamepieces_; }
+  /** @brief Immutable access to all registered gamepieces. */
+  const std::vector<Gamepiece>& gamepieces() const { return gamepieces_; }
 
-    /** @brief Backwards-compatible accessor name for registered balls (gamepieces). */
-    std::vector<Gamepiece>& balls() { return gamepieces_; }
+  /** @brief Backwards-compatible accessor name for registered balls
+   * (gamepieces). */
+  std::vector<Gamepiece>& balls() { return gamepieces_; }
 
-    /** @brief Backwards-compatible const accessor for registered balls (gamepieces). */
-    const std::vector<Gamepiece>& balls() const { return gamepieces_; }
+  /** @brief Backwards-compatible const accessor for registered balls
+   * (gamepieces). */
+  const std::vector<Gamepiece>& balls() const { return gamepieces_; }
 
   /**
    * @brief Advances simulation by exactly one fixed timestep.
@@ -304,7 +313,8 @@ class PhysicsWorld {
    */
   void step();
 
-  /** @brief Number of completed fixed-timestep iterations since construction/reset. */
+  /** @brief Number of completed fixed-timestep iterations since
+   * construction/reset. */
   std::size_t stepCount() const { return step_count_; }
 
   /** @brief Total accumulated simulation time in seconds. */
@@ -361,17 +371,16 @@ class PhysicsWorld {
    * @brief Evaluates symmetric layer/mask eligibility between two colliders.
    * @return True when both directions of the bitmask test pass.
    */
-  bool shouldInteract(std::uint32_t layer_a, std::uint32_t mask_a,
-                      std::uint32_t layer_b, std::uint32_t mask_b) const;
+  bool shouldInteract(std::uint32_t layer_a, std::uint32_t mask_a, std::uint32_t layer_b, std::uint32_t mask_b) const;
 
   /**
    * @brief Looks up a material interaction override for an unordered pair.
    * @param material_a_id First material id.
    * @param material_b_id Second material id.
-   * @return Pointer to matching override row when present and enabled; otherwise null.
+   * @return Pointer to matching override row when present and enabled;
+   * otherwise null.
    */
-  const MaterialInteraction* findMaterialInteraction(
-      std::int32_t material_a_id, std::int32_t material_b_id) const;
+  const MaterialInteraction* findMaterialInteraction(std::int32_t material_a_id, std::int32_t material_b_id) const;
 
   PhysicsConfig config_{};
 

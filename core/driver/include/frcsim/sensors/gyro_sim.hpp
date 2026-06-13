@@ -4,7 +4,8 @@
 
 /**
  * @file gyro_sim.hpp
- * @brief Abstract interface for simulating an IMU/gyroscope sensor with orientation and angular rate.
+ * @brief Abstract interface for simulating an IMU/gyroscope sensor with
+ * orientation and angular rate.
  */
 
 #pragma once
@@ -20,23 +21,23 @@ namespace frcsim {
  * @brief Simulates an IMU/Gyroscope, incorporating drift and noise models.
  */
 class GyroSim {
-public:
-    GyroSim() = default;
-    virtual ~GyroSim() = default;
+ public:
+  GyroSim() = default;
+  virtual ~GyroSim() = default;
 
-    /**
-     * @brief Gets simulated angular position (yaw, pitch, roll).
-     * @return Simulated Euler angles or rotation.
-     */
-    virtual Quaternion GetOrientation() const = 0;
+  /**
+   * @brief Gets simulated angular position (yaw, pitch, roll).
+   * @return Simulated Euler angles or rotation.
+   */
+  virtual Quaternion GetOrientation() const = 0;
 
-    /**
-     * @brief Gets rotational velocity vector.
-     * @return Radians per second for x, y, z axes.
-     */
-    virtual Vector3 GetAngularVelocity() const = 0;
+  /**
+   * @brief Gets rotational velocity vector.
+   * @return Radians per second for x, y, z axes.
+   */
+  virtual Vector3 GetAngularVelocity() const = 0;
 };
 
-} // namespace frcsim
+}  // namespace frcsim
 
 /** @} */

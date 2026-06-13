@@ -23,7 +23,7 @@
 int main() {
   // --- World Configuration ---
   frcsim::PhysicsConfig config;
-  config.fixed_dt_s = 0.01; // 100 Hz simulation rate
+  config.fixed_dt_s = 0.01;  // 100 Hz simulation rate
   config.integration_method = frcsim::IntegrationMethod::kSemiImplicitEuler;
   // Enable collision detection to allow interactions between objects.
   config.enable_collision_detection = true;
@@ -37,14 +37,14 @@ int main() {
 
   // --- Example 1: Standard Dynamic Body ---
   // This is a normal physics object that falls under gravity and collides.
-  frcsim::RigidBody& box1 = world.createBody(2.0); // 2.0 kg mass
-  box1.setPosition(frcsim::Vector3(0.0, 0.0, 5.0)); // Start 5m high
+  frcsim::RigidBody& box1 = world.createBody(2.0);   // 2.0 kg mass
+  box1.setPosition(frcsim::Vector3(0.0, 0.0, 5.0));  // Start 5m high
   box1.flags().enable_gravity = true;
   box1.flags().enable_friction = true;
 
   // Set a custom material to make the box bouncy.
   frcsim::Material bouncy_mat;
-  bouncy_mat.coefficient_of_restitution = 0.8; // 80% bouncy
+  bouncy_mat.coefficient_of_restitution = 0.8;  // 80% bouncy
   bouncy_mat.coefficient_of_friction_kinetic = 0.3;
   box1.setMaterial(bouncy_mat);
 
@@ -53,20 +53,21 @@ int main() {
   // --- Example 2: Kinematic Body ---
   // A kinematic body is not affected by forces (like gravity or collisions).
   // Instead, its position and velocity are set directly by user code.
-  // It can still push other dynamic objects around. Useful for moving platforms.
+  // It can still push other dynamic objects around. Useful for moving
+  // platforms.
   frcsim::RigidBody& platform = world.createBody(10.0);
   platform.setPosition(frcsim::Vector3(0.0, 0.0, 0.0));
-  platform.flags().is_kinematic = true; // Set the kinematic flag
+  platform.flags().is_kinematic = true;  // Set the kinematic flag
   platform.flags().enable_collisions = true;
 
   std::cout << "2. Created a 'kinematic platform' at ground level." << std::endl;
 
   // --- Example 3: Floating Body (Gravity Disabled) ---
   // This body will not be pulled down by gravity.
-  frcsim::RigidBody& balloon = world.createBody(0.1); // 0.1 kg mass
+  frcsim::RigidBody& balloon = world.createBody(0.1);  // 0.1 kg mass
   balloon.setPosition(frcsim::Vector3(2.0, 0.0, 2.0));
-  balloon.flags().enable_gravity = false; // The key flag for floating
-  balloon.setLinearVelocity(frcsim::Vector3(1.0, 0.0, 0.0)); // It will drift sideways
+  balloon.flags().enable_gravity = false;                     // The key flag for floating
+  balloon.setLinearVelocity(frcsim::Vector3(1.0, 0.0, 0.0));  // It will drift sideways
 
   std::cout << "3. Created a 'floating balloon' with gravity disabled." << std::endl;
 
@@ -83,7 +84,7 @@ int main() {
   std::cout << "4. Added a static boundary 'wall' at x=5.0m." << std::endl;
 
   // --- Simulation Loop ---
-  const int num_steps = 300; // Simulate for 3 seconds (300 steps * 0.01s/step)
+  const int num_steps = 300;  // Simulate for 3 seconds (300 steps * 0.01s/step)
   std::cout << "\nRunning simulation for " << num_steps << " steps..." << std::endl;
   for (int i = 0; i < num_steps; ++i) {
     // In a real application, you might update the kinematic platform's
@@ -104,15 +105,14 @@ int main() {
   // A deformable body is a special type that can bend and warp.
   // It is not added to the main physics world in this example but is shown
   // for API demonstration purposes.
-  frcsim::DeformableBody def_body(1.5); // 1.5 kg mass
+  frcsim::DeformableBody def_body(1.5);  // 1.5 kg mass
   def_body.enableDeformation(true);
-  def_body.setBendStiffness(50.0); // Resistance to bending
-  def_body.setWarpDamping(5.0);    // How quickly it returns to its original shape
+  def_body.setBendStiffness(50.0);  // Resistance to bending
+  def_body.setWarpDamping(5.0);     // How quickly it returns to its original shape
   def_body.rigidBase().setPosition(frcsim::Vector3(0.0, 5.0, 3.0));
 
   std::cout << "\n5. Deformable body API demo:\n";
-  std::cout << "  Deformation enabled: "
-            << (def_body.isDeformationEnabled() ? "true" : "false") << "\n";
+  std::cout << "  Deformation enabled: " << (def_body.isDeformationEnabled() ? "true" : "false") << "\n";
   std::cout << "  Bend stiffness: " << def_body.bendStiffness() << " N/m\n";
   std::cout << "  Warp damping: " << def_body.warpDamping() << " N·s/m\n";
 

@@ -15,7 +15,8 @@
 
 namespace frcsim::BallGamepiecePresets {
 
-/** @brief Returns BallProperties tuned for the FRC Infinite Recharge fuel cell. */
+/** @brief Returns BallProperties tuned for the FRC Infinite Recharge fuel cell.
+ */
 inline BallPhysicsSim3D::BallProperties fuelProperties() {
   BallPhysicsSim3D::BallProperties properties{};
   properties.mass_kg = 0.216;
@@ -26,7 +27,8 @@ inline BallPhysicsSim3D::BallProperties fuelProperties() {
   return properties;
 }
 
-/** @brief Returns physics Config tuned for the FRC Infinite Recharge fuel cell. */
+/** @brief Returns physics Config tuned for the FRC Infinite Recharge fuel cell.
+ */
 inline BallPhysicsSim3D::Config fuelConfig() {
   BallPhysicsSim3D::Config config = evergreenBallConfig();
   config.rolling_friction_per_s = 2.0;
@@ -34,7 +36,8 @@ inline BallPhysicsSim3D::Config fuelConfig() {
   return config;
 }
 
-/** @brief Returns a generic "evergreen" ball BallProperties suitable for any season. */
+/** @brief Returns a generic "evergreen" ball BallProperties suitable for any
+ * season. */
 inline BallPhysicsSim3D::BallProperties evergreenBallProperties() {
   BallPhysicsSim3D::BallProperties properties{};
   properties.mass_kg = 0.24;
@@ -45,7 +48,8 @@ inline BallPhysicsSim3D::BallProperties evergreenBallProperties() {
   return properties;
 }
 
-/** @brief Returns a generic "evergreen" physics Config with sensible defaults. */
+/** @brief Returns a generic "evergreen" physics Config with sensible defaults.
+ */
 inline BallPhysicsSim3D::Config evergreenBallConfig() {
   BallPhysicsSim3D::Config config{};
   config.gravity_mps2 = Vector3(0.0, 0.0, -9.81);
@@ -57,7 +61,8 @@ inline BallPhysicsSim3D::Config evergreenBallConfig() {
   return config;
 }
 
-/** @brief Returns a standard field config sized for a generic 16.54 x 8.21 m FRC field. */
+/** @brief Returns a standard field config sized for a generic 16.54 x 8.21 m
+ * FRC field. */
 inline BallGamepieceSim::FieldConfig evergreenFieldConfig() {
   BallGamepieceSim::FieldConfig config{};
   config.min_corner_m = Vector3(0.0, 0.0, 0.0);

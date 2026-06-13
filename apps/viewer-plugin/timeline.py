@@ -3,6 +3,7 @@ Playback timeline scrubber for the viewer plugin.
 Handles simulation recording, pausing, and playing back states.
 """
 
+
 class Timeline:
     def __init__(self):
         self.history = []

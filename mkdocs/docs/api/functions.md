@@ -7,4 +7,3 @@ Common function categories
 
 Examples
 - See `examples/python/simple_world_demo.py` to observe a complete flow: instantiate, configure, step, record.
-

@@ -4,13 +4,14 @@
 
 /**
  * @file integrators.hpp
- * @brief Time-integration helpers for translational and rotational rigid-body dynamics.
+ * @brief Time-integration helpers for translational and rotational rigid-body
+ * dynamics.
  */
 
 #pragma once
 
-#include "vector.hpp"
 #include "quaternion.hpp"
+#include "vector.hpp"
 
 /** @addtogroup math @{ */
 
@@ -41,9 +42,7 @@ struct Integrator {
    * @param acceleration Acceleration vector for this step.
    * @param dt Timestep duration in seconds.
    */
-  static inline void integrateLinear(Vector3& position, Vector3& velocity,
-                                     const Vector3& acceleration,
-                                     double dt) noexcept {
+  static inline void integrateLinear(Vector3& position, Vector3& velocity, const Vector3& acceleration, double dt) noexcept {
     velocity += acceleration * dt;
     position += velocity * dt;
   }
@@ -59,10 +58,7 @@ struct Integrator {
    * @param acceleration Acceleration vector for this step.
    * @param dt Timestep duration in seconds.
    */
-  static inline void integrateLinearExplicit(Vector3& position,
-                                             Vector3& velocity,
-                                             const Vector3& acceleration,
-                                             double dt) noexcept {
+  static inline void integrateLinearExplicit(Vector3& position, Vector3& velocity, const Vector3& acceleration, double dt) noexcept {
     position += velocity * dt;
     velocity += acceleration * dt;
   }
@@ -77,11 +73,8 @@ struct Integrator {
    * @param angularVelocity World-space angular velocity in radians per second.
    * @param dt Timestep duration in seconds.
    */
-  static inline void integrateAngular(Quaternion& orientation,
-                                      const Vector3& angularVelocity,
-                                      double dt) noexcept {
-    Quaternion omegaQuat(0.0, angularVelocity.x, angularVelocity.y,
-                         angularVelocity.z);
+  static inline void integrateAngular(Quaternion& orientation, const Vector3& angularVelocity, double dt) noexcept {
+    Quaternion omegaQuat(0.0, angularVelocity.x, angularVelocity.y, angularVelocity.z);
     Quaternion dq = omegaQuat * orientation * 0.5;
     orientation = orientation + dq * dt;
     orientation.normalizeIfNeeded();
@@ -94,9 +87,7 @@ struct Integrator {
    * @param angularAcceleration Angular acceleration for this step (rad/s^2).
    * @param dt Timestep duration in seconds.
    */
-  static inline void integrateAngularVelocity(
-      Vector3& angularVelocity, const Vector3& angularAcceleration,
-      double dt) noexcept {
+  static inline void integrateAngularVelocity(Vector3& angularVelocity, const Vector3& angularAcceleration, double dt) noexcept {
     angularVelocity += angularAcceleration * dt;
   }
 
@@ -111,9 +102,7 @@ struct Integrator {
    * @param acceleration Acceleration assumed constant over the step.
    * @param dt Timestep duration in seconds.
    */
-  static inline void integrateLinearRK2(Vector3& position, Vector3& velocity,
-                                        const Vector3& acceleration,
-                                        double dt) noexcept {
+  static inline void integrateLinearRK2(Vector3& position, Vector3& velocity, const Vector3& acceleration, double dt) noexcept {
     Vector3 halfVelocity = velocity + acceleration * (0.5 * dt);
 
     position += halfVelocity * dt;

@@ -5,4 +5,3 @@ Enumerations
 
 Best practice
 - Prefer using named enums from headers for clarity; avoid magic numbers in code.
-

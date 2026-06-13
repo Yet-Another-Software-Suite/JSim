@@ -16,4 +16,3 @@ How to use
 
 Notes
 - This page is a human-oriented summary; for API reference consult the implementation files in `core/src` and the example programs in `examples/` for concrete call patterns.
-

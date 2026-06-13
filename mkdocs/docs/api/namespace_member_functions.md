@@ -6,4 +6,3 @@ Common functions
 
 How to learn them
 - Inspect example usage in `examples/` and in `cad-import/examples`, then open the implementation files to review parameter lists and return types.
-

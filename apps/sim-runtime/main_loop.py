@@ -3,16 +3,17 @@ Main simulation runtime loop for JSim.
 Handles the fixed timestep update and NT4 synchronization.
 """
 
-import time
 import logging
+import time
 
 try:
     from jsim_core import PhysicsWorld
 except ImportError:
     PhysicsWorld = None
 
-from apps.sim_runtime.sensor_pipeline import SensorPipeline
 from apps.sim_runtime.robot_loader import RobotLoader
+from apps.sim_runtime.sensor_pipeline import SensorPipeline
+
 
 class SimLoop:
     def __init__(self, tick_rate_hz: float = 50.0, asset_path: str = None):
@@ -38,12 +39,12 @@ class SimLoop:
         if PhysicsWorld is None:
             logging.warning("jsim_core not available; physics will not run.")
             return
-        
+
         try:
             # Create default physics world with 0.01s timestep
             self.physics_world = PhysicsWorld(0.01, True)
             logging.info("Physics world initialized")
-            
+
             # Load robot if asset path provided
             if self.robot_loader:
                 self.robot_loader.load()
@@ -51,7 +52,7 @@ class SimLoop:
         except Exception as e:
             logging.error(f"Failed to initialize physics world: {e}")
             self.physics_world = None
-    
+
     def stop(self):
         """Stops the simulation gracefully."""
         self._running = False
@@ -79,12 +80,13 @@ class SimLoop:
             try:
                 # Step physics by one timestep
                 self.physics_world.step(1)
-                
+
                 # Update and publish sensor data
                 self.sensor_pipeline.update(self.dt)
                 self.sensor_pipeline.publish()
             except Exception as e:
                 logging.error(f"Physics step error: {e}")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

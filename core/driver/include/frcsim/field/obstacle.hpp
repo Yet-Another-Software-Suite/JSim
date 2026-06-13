@@ -4,7 +4,8 @@
 
 /**
  * @file obstacle.hpp
- * @brief Convenience wrappers for constructing EnvironmentalBoundary-based field obstacles.
+ * @brief Convenience wrappers for constructing EnvironmentalBoundary-based
+ * field obstacles.
  */
 
 #pragma once
@@ -42,10 +43,8 @@ struct FieldObstacle {
    * boundaries for custom contact logic, filtering, analytics, or game-specific
    * rules.
    */
-  static FieldObstacle makePlane(const Vector3& point_m,
-                                 const Quaternion& orientation,
-                                 double restitution = 0.3,
-                                 double friction = 0.6, int user_id = 0) {
+  static FieldObstacle makePlane(const Vector3& point_m, const Quaternion& orientation, double restitution = 0.3, double friction = 0.6,
+                                 int user_id = 0) {
     FieldObstacle obstacle{};
     obstacle.boundary.type = BoundaryType::kPlane;
     obstacle.boundary.position_m = point_m;
@@ -75,11 +74,8 @@ struct FieldObstacle {
    * Quaternion note: use Quaternion::fromEuler(roll, pitch, yaw) to rotate away
    * from axis alignment.
    */
-  static FieldObstacle makeBox(const Vector3& center_m,
-                               const Vector3& half_extents_m,
-                               const Quaternion& orientation = Quaternion(),
-                               double restitution = 0.3, double friction = 0.6,
-                               int user_id = 0) {
+  static FieldObstacle makeBox(const Vector3& center_m, const Vector3& half_extents_m, const Quaternion& orientation = Quaternion(),
+                               double restitution = 0.3, double friction = 0.6, int user_id = 0) {
     FieldObstacle obstacle{};
     obstacle.boundary.type = BoundaryType::kBox;
     obstacle.boundary.position_m = center_m;
@@ -114,10 +110,8 @@ struct FieldObstacle {
    * 0.15, 0.6, q);
    * \endcode
    */
-  static FieldObstacle makeCylinder(
-      const Vector3& center_m, double radius_m, double half_height_m,
-      const Quaternion& orientation = Quaternion(), double restitution = 0.3,
-      double friction = 0.6, int user_id = 0) {
+  static FieldObstacle makeCylinder(const Vector3& center_m, double radius_m, double half_height_m, const Quaternion& orientation = Quaternion(),
+                                    double restitution = 0.3, double friction = 0.6, int user_id = 0) {
     FieldObstacle obstacle{};
     obstacle.boundary.type = BoundaryType::kCylinder;
     obstacle.boundary.position_m = center_m;

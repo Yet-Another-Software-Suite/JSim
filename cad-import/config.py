@@ -6,16 +6,17 @@ Based on discussion #36: OnShape to glTF with multiple accuracy tiers.
 """
 
 from enum import Enum
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class AccuracyLevel(Enum):
     """Accuracy levels for CAD import.
-    
+
     HIGH: Most accurate, simulates grouped mechanisms with all details
     MEDIUM: Balanced accuracy/performance, simulates main mechanisms
     LOW: Fastest import, simulates only major grouped mechanisms
     """
+
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
@@ -74,22 +75,23 @@ DEFAULT_MATERIAL = "aluminum"
 # Model validation rules
 class ModelValidationRules:
     """Rules for validating imported CAD models."""
-    
+
     # Maximum triangle count for a single component
     MAX_TRIANGLES_PER_COMPONENT = 10000
-    
+
     # Minimum component scale (meters)
     MIN_COMPONENT_SCALE = 0.001
-    
+
     # Maximum component scale (meters)
     MAX_COMPONENT_SCALE = 10.0
-    
+
     # Warn if component mass seems unrealistic
     REALISTIC_MASS_RANGE = (0.001, 50.0)  # kg
 
 
 class ExportFormat(Enum):
     """Supported export formats."""
+
     GLTF = "gltf"
     JSON = "json"
     URDF = "urdf"

@@ -5,4 +5,3 @@ What they are
 
 Finding members
 - Use your editor's search to find symbols. The `tests/` and `examples/` directories demonstrate how many namespace members are intended to be used.
-

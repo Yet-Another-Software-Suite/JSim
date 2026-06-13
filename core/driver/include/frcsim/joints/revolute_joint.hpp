@@ -4,7 +4,8 @@
 
 /**
  * @file revolute_joint.hpp
- * @brief Hinge joint that permits one rotational degree of freedom between two bodies.
+ * @brief Hinge joint that permits one rotational degree of freedom between two
+ * bodies.
  */
 
 #pragma once
@@ -32,11 +33,11 @@ class RevoluteJoint : public JointBase {
    * @brief Constructs a revolute joint between two bodies.
    * @param body_a First (parent) rigid body.
    * @param body_b Second (child) rigid body.
-   * @param axis_local Hinge axis in body A's local frame; normalized internally.
+   * @param axis_local Hinge axis in body A's local frame; normalized
+   * internally.
    */
   RevoluteJoint(RigidBody* body_a, RigidBody* body_b, const Vector3& axis_local)
-      : JointBase(JointType::kRevolute, body_a, body_b),
-        axis_local_(axis_local.normalized()) {}
+      : JointBase(JointType::kRevolute, body_a, body_b), axis_local_(axis_local.normalized()) {}
 
   /// @brief Returns the hinge axis in body A's local frame (normalized).
   const Vector3& axisLocal() const { return axis_local_; }

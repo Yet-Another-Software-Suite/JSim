@@ -1,9 +1,10 @@
 """
-Simulated sensor pipeline for JSim runtime. 
+Simulated sensor pipeline for JSim runtime.
 Calculates and publishes sensor data such as encoders, gyros, and vision targets over NT4.
 """
 
 import logging
+
 
 class SensorPipeline:
     def __init__(self):
@@ -22,4 +23,3 @@ class SensorPipeline:
 
     def publish(self):
         """Publishes the updated sensor telemetry via NT4."""
-        pass

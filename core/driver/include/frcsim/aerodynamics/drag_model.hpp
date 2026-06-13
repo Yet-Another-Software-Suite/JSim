@@ -4,7 +4,8 @@
 
 /**
  * @file drag_model.hpp
- * @brief Quadratic and linear drag force model for rigid bodies and diagnostic comparison.
+ * @brief Quadratic and linear drag force model for rigid bodies and diagnostic
+ * comparison.
  */
 
 #pragma once
@@ -56,9 +57,7 @@ class DragModel {
    * @param linear_drag_coefficient_n_per_mps Optional linear drag term in
    * N/(m/s).
    */
-  DragModel(double drag_coefficient, double reference_area_m2,
-            double air_density_kgpm3 = 1.225,
-            double linear_drag_coefficient_n_per_mps = 0.0)
+  DragModel(double drag_coefficient, double reference_area_m2, double air_density_kgpm3 = 1.225, double linear_drag_coefficient_n_per_mps = 0.0)
       : drag_coefficient_(drag_coefficient),
         reference_area_m2_(reference_area_m2),
         air_density_kgpm3_(air_density_kgpm3),
@@ -70,11 +69,8 @@ class DragModel {
    * @param velocity_mps World-space velocity in m/s.
    * @return DragForceDetails with force, direction, and diagnostic fields.
    */
-  Vector3::DragForceDetails computeForceDetailed(
-      const Vector3& velocity_mps) const {
-    return Vector3::dragForceDetailed(velocity_mps, drag_coefficient_,
-                                      reference_area_m2_, air_density_kgpm3_,
-                                      linear_drag_coefficient_n_per_mps_);
+  Vector3::DragForceDetails computeForceDetailed(const Vector3& velocity_mps) const {
+    return Vector3::dragForceDetailed(velocity_mps, drag_coefficient_, reference_area_m2_, air_density_kgpm3_, linear_drag_coefficient_n_per_mps_);
   }
 
   /**
@@ -90,9 +86,7 @@ class DragModel {
       reference_area_m2 = reference_area_m2_;
     }
 
-    return Vector3::dragForceDetailed(velocity_mps, drag_coefficient_,
-                                      reference_area_m2, air_density_kgpm3_,
-                                      linear_drag_coefficient_n_per_mps_);
+    return Vector3::dragForceDetailed(velocity_mps, drag_coefficient_, reference_area_m2, air_density_kgpm3_, linear_drag_coefficient_n_per_mps_);
   }
 
   /**
@@ -122,26 +116,18 @@ class DragModel {
    * (e.g., gravity + Magnus).
    * @return Diagnostic comparison showing drag-to-gravity ratio.
    */
-  DragGravityComparison compareToEffectiveGravity(
-      const RigidBody& body, const Vector3& effective_gravity_mps2) const {
+  DragGravityComparison compareToEffectiveGravity(const RigidBody& body, const Vector3& effective_gravity_mps2) const {
     DragGravityComparison comparison{};
     comparison.body_mass_kg = body.massKg();
 
     const auto details = computeForceDetailed(body);
-    comparison.drag_force =
-        Vector3(details.force.x, details.force.y, details.force.z);
+    comparison.drag_force = Vector3(details.force.x, details.force.y, details.force.z);
     comparison.drag_force_magnitude_n = details.drag_force_magnitude_n;
-    comparison.drag_acceleration_mps2 =
-        (comparison.body_mass_kg > 0.0)
-            ? comparison.drag_force_magnitude_n / comparison.body_mass_kg
-            : 0.0;
-    comparison.effective_gravity_acceleration_mps2 =
-        effective_gravity_mps2.norm();
-    comparison.drag_to_gravity_ratio =
-        (comparison.effective_gravity_acceleration_mps2 > 0.0)
-            ? comparison.drag_acceleration_mps2 /
-                  comparison.effective_gravity_acceleration_mps2
-            : 0.0;
+    comparison.drag_acceleration_mps2 = (comparison.body_mass_kg > 0.0) ? comparison.drag_force_magnitude_n / comparison.body_mass_kg : 0.0;
+    comparison.effective_gravity_acceleration_mps2 = effective_gravity_mps2.norm();
+    comparison.drag_to_gravity_ratio = (comparison.effective_gravity_acceleration_mps2 > 0.0)
+                                           ? comparison.drag_acceleration_mps2 / comparison.effective_gravity_acceleration_mps2
+                                           : 0.0;
     comparison.valid = details.valid && comparison.body_mass_kg > 0.0;
     return comparison;
   }
@@ -152,8 +138,7 @@ class DragModel {
    * skipped.
    */
   void apply(RigidBody& body) const {
-    if (body.flags().is_kinematic)
-      return;
+    if (body.flags().is_kinematic) return;
     body.applyForce(computeForce(body.linearVelocity()));
   }
 

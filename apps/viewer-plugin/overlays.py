@@ -3,6 +3,7 @@ UI Overlays for the viewer plugin.
 Handles drawing trajectory splines, collision boxes, and text HUDs.
 """
 
+
 class OverlayManager:
     def __init__(self):
         self.overlays = []

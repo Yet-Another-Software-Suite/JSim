@@ -4,7 +4,8 @@
 
 /**
  * @file gravity.hpp
- * @brief ForceGenerator applying constant gravitational acceleration to a rigid body.
+ * @brief ForceGenerator applying constant gravitational acceleration to a rigid
+ * body.
  */
 
 #pragma once
@@ -27,10 +28,10 @@ class GravityForce : public ForceGenerator {
  public:
   /**
    * @brief Constructs gravity force generator.
-   * @param gravity_mps2 Acceleration vector in m/s^2 (typically pointing downward).
+   * @param gravity_mps2 Acceleration vector in m/s^2 (typically pointing
+   * downward).
    */
-  explicit GravityForce(const Vector3& gravity_mps2)
-      : gravity_mps2_(gravity_mps2) {}
+  explicit GravityForce(const Vector3& gravity_mps2) : gravity_mps2_(gravity_mps2) {}
 
   /**
    * @brief Applies gravitational force to a rigid body (mass × gravity).
@@ -38,8 +39,7 @@ class GravityForce : public ForceGenerator {
    * @param dt_s Timestep duration (unused).
    */
   void apply(RigidBody& body, [[maybe_unused]] double dt_s) const override {
-    if (body.flags().is_kinematic)
-      return;
+    if (body.flags().is_kinematic) return;
     body.applyForce(gravity_mps2_ * body.massKg());
   }
 

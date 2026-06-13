@@ -4,7 +4,8 @@
 
 /**
  * @file season_2025_gamepiece_presets.hpp
- * @brief Factory functions for 2025 season ball properties and field configuration.
+ * @brief Factory functions for 2025 season ball properties and field
+ * configuration.
  */
 
 #pragma once
@@ -44,7 +45,8 @@ inline BallPhysicsSim3D::Config season2025BallConfig() {
 }
 
 /**
- * @brief Applies the 2025 field config to a simulator, clearing previous obstacles and goals.
+ * @brief Applies the 2025 field config to a simulator, clearing previous
+ * obstacles and goals.
  * @param sim Simulator to configure.
  */
 inline void configureSeason2025Field(BallGamepieceSim& sim) {

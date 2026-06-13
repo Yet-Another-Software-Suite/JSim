@@ -59,25 +59,27 @@ class JointBase {
   const Vector3& anchorA() const { return anchor_a_; }
   /// @brief Returns anchor point in body B's local frame (meters).
   const Vector3& anchorB() const { return anchor_b_; }
-  /// @brief Sets anchor point in body A's local frame. @param anchor Local anchor in meters.
+  /// @brief Sets anchor point in body A's local frame. @param anchor Local
+  /// anchor in meters.
   void setAnchorA(const Vector3& anchor) { anchor_a_ = anchor; }
-  /// @brief Sets anchor point in body B's local frame. @param anchor Local anchor in meters.
+  /// @brief Sets anchor point in body B's local frame. @param anchor Local
+  /// anchor in meters.
   void setAnchorB(const Vector3& anchor) { anchor_b_ = anchor; }
 
   /// @brief Returns true when this joint participates in constraint solving.
   bool isEnabled() const { return is_enabled_; }
-  /// @brief Enables or disables constraint solving for this joint. @param enabled New state.
+  /// @brief Enables or disables constraint solving for this joint. @param
+  /// enabled New state.
   void setEnabled(bool enabled) { is_enabled_ = enabled; }
 
-  /// @brief Returns impulse magnitude threshold above which the joint breaks (N).
+  /// @brief Returns impulse magnitude threshold above which the joint breaks
+  /// (N).
   double breakForceThreshold() const { return break_force_threshold_; }
   /**
    * @brief Sets the impulse magnitude above which the joint permanently breaks.
    * @param force_n Break threshold in newtons.
    */
-  void setBreakForceThreshold(double force_n) {
-    break_force_threshold_ = force_n;
-  }
+  void setBreakForceThreshold(double force_n) { break_force_threshold_ = force_n; }
 
   /// @brief Returns true after the joint has been broken by excess force.
   bool isBroken() const { return is_broken_; }
@@ -104,8 +106,7 @@ class JointBase {
   virtual double constraintError() const = 0;
 
  protected:
-  explicit JointBase(JointType type, RigidBody* body_a, RigidBody* body_b)
-      : type_(type), body_a_(body_a), body_b_(body_b) {}
+  explicit JointBase(JointType type, RigidBody* body_a, RigidBody* body_b) : type_(type), body_a_(body_a), body_b_(body_b) {}
 
   JointType type_;
   RigidBody* body_a_{nullptr};

@@ -4,7 +4,8 @@
 
 /**
  * @file body_flags.hpp
- * @brief Per-body boolean feature flags controlling physics simulation behavior.
+ * @brief Per-body boolean feature flags controlling physics simulation
+ * behavior.
  */
 
 #pragma once
@@ -15,10 +16,11 @@
 namespace frcsim {
 
 /**
- * @brief Per-body feature flags controlling which physics sub-systems affect a body.
+ * @brief Per-body feature flags controlling which physics sub-systems affect a
+ * body.
  *
- * Each flag can be toggled independently to customize behavior on a per-body basis
- * without changing world-level configuration.
+ * Each flag can be toggled independently to customize behavior on a per-body
+ * basis without changing world-level configuration.
  */
 struct BodyFlags {
   /// @brief Apply gravity to this body each integration step.
@@ -37,10 +39,13 @@ struct BodyFlags {
   bool enable_deformation{false};
 
   /**
-   * @brief When true, the body is kinematic and not integrated by the physics solver.
+   * @brief When true, the body is kinematic and not integrated by the physics
+   * solver.
    *
-   * Kinematic bodies ignore accumulated forces and are moved by external code only.
-   * @note Setting this flag prevents @ref RigidBody::integrate from updating state.
+   * Kinematic bodies ignore accumulated forces and are moved by external code
+   * only.
+   * @note Setting this flag prevents @ref RigidBody::integrate from updating
+   * state.
    */
   bool is_kinematic{false};
 };

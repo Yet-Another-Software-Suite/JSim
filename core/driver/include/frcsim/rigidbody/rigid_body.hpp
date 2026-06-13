@@ -4,7 +4,8 @@
 
 /**
  * @file rigid_body.hpp
- * @brief Simulated rigid body with translational/angular dynamics and optional aero metadata.
+ * @brief Simulated rigid body with translational/angular dynamics and optional
+ * aero metadata.
  */
 
 #pragma once
@@ -36,7 +37,8 @@ enum class IntegrationMethod {
 };
 
 /**
- * @brief Simulated rigid body with translational/angular dynamics and optional aero metadata.
+ * @brief Simulated rigid body with translational/angular dynamics and optional
+ * aero metadata.
  *
  * This type stores canonical rigid-body state (pose, linear velocity, angular
  * velocity, mass, inertia) and supports force/torque accumulation followed by
@@ -63,9 +65,9 @@ class RigidBody {
   /**
    * @brief Geometric metadata used to estimate drag reference area.
    *
-   * Area estimation can be explicit (via @ref reference_area_m2) or inferred from
-   * a primitive shape. Inferred area depends on velocity direction and orientation
-   * for non-spherical shapes.
+   * Area estimation can be explicit (via @ref reference_area_m2) or inferred
+   * from a primitive shape. Inferred area depends on velocity direction and
+   * orientation for non-spherical shapes.
    */
   struct AerodynamicGeometry {
     /** @brief Primitive shape model used for reference-area estimation. */
@@ -135,9 +137,7 @@ class RigidBody {
    * @param y_m World-space y position in meters.
    * @param z_m World-space z position in meters.
    */
-  void setPosition(double x_m, double y_m, double z_m) {
-    setPosition(Vector3{x_m, y_m, z_m});
-  }
+  void setPosition(double x_m, double y_m, double z_m) { setPosition(Vector3{x_m, y_m, z_m}); }
   /**
    * @brief Gets world-space position in meters via scalar output pointers.
    * @param x_m Optional output pointer for world-space x position in meters.
@@ -162,9 +162,7 @@ class RigidBody {
    * @brief Sets body orientation quaternion.
    * @param orientation New world-space body orientation quaternion.
    */
-  void setOrientation(const Quaternion& orientation) {
-    orientation_ = orientation;
-  }
+  void setOrientation(const Quaternion& orientation) { orientation_ = orientation; }
 
   /** @brief Returns world linear velocity in meters per second. */
   const Vector3& linearVelocity() const { return linear_velocity_mps_; }
@@ -172,18 +170,14 @@ class RigidBody {
    * @brief Sets world linear velocity in meters per second.
    * @param velocity_mps World-space linear velocity in meters per second.
    */
-  void setLinearVelocity(const Vector3& velocity_mps) {
-    linear_velocity_mps_ = velocity_mps;
-  }
+  void setLinearVelocity(const Vector3& velocity_mps) { linear_velocity_mps_ = velocity_mps; }
   /**
    * @brief Sets world linear velocity in meters per second from scalars.
    * @param vx_mps World-space x velocity in meters per second.
    * @param vy_mps World-space y velocity in meters per second.
    * @param vz_mps World-space z velocity in meters per second.
    */
-  void setLinearVelocity(double vx_mps, double vy_mps, double vz_mps) {
-    setLinearVelocity(Vector3{vx_mps, vy_mps, vz_mps});
-  }
+  void setLinearVelocity(double vx_mps, double vy_mps, double vz_mps) { setLinearVelocity(Vector3{vx_mps, vy_mps, vz_mps}); }
   /**
    * @brief Gets world linear velocity in meters per second via pointers.
    * @param vx_mps Optional output pointer for world-space x velocity in m/s.
@@ -209,18 +203,14 @@ class RigidBody {
    * @param angular_velocity_radps World-space angular velocity in radians per
    * second.
    */
-  void setAngularVelocity(const Vector3& angular_velocity_radps) {
-    angular_velocity_radps_ = angular_velocity_radps;
-  }
+  void setAngularVelocity(const Vector3& angular_velocity_radps) { angular_velocity_radps_ = angular_velocity_radps; }
   /**
    * @brief Sets world angular velocity in radians per second from scalars.
    * @param wx_radps World-space angular velocity x in radians per second.
    * @param wy_radps World-space angular velocity y in radians per second.
    * @param wz_radps World-space angular velocity z in radians per second.
    */
-  void setAngularVelocity(double wx_radps, double wy_radps, double wz_radps) {
-    setAngularVelocity(Vector3{wx_radps, wy_radps, wz_radps});
-  }
+  void setAngularVelocity(double wx_radps, double wy_radps, double wz_radps) { setAngularVelocity(Vector3{wx_radps, wy_radps, wz_radps}); }
   /**
    * @brief Gets world angular velocity in radians per second via pointers.
    * @param wx_radps Optional output pointer for world-space angular velocity x.
@@ -255,9 +245,7 @@ class RigidBody {
   /** @brief Sets optional physical material properties. */
   void setMaterial(const Material& material) { material_ = material; }
   /** @brief Gets material if configured, otherwise returns null. */
-  const Material* material() const {
-    return material_ ? &(*material_) : nullptr;
-  }
+  const Material* material() const { return material_ ? &(*material_) : nullptr; }
 
   /**
    * @brief Sets numeric material identifier used by world interaction tables.
@@ -296,13 +284,9 @@ class RigidBody {
   std::uint32_t collisionMask() const { return collision_mask_bits_; }
 
   /** @brief Sets optional aerodynamic geometry metadata. */
-  void setAerodynamicGeometry(const AerodynamicGeometry& geometry) {
-    aerodynamic_geometry_ = geometry;
-  }
+  void setAerodynamicGeometry(const AerodynamicGeometry& geometry) { aerodynamic_geometry_ = geometry; }
   /** @brief Gets aerodynamic geometry if configured, otherwise returns null. */
-  const AerodynamicGeometry* aerodynamicGeometry() const {
-    return aerodynamic_geometry_ ? &(*aerodynamic_geometry_) : nullptr;
-  }
+  const AerodynamicGeometry* aerodynamicGeometry() const { return aerodynamic_geometry_ ? &(*aerodynamic_geometry_) : nullptr; }
 
   /**
    * @brief Sets cylinder axis in local coordinates via canonical enum axis.
@@ -352,32 +336,31 @@ class RigidBody {
    * @param y World-space y direction component.
    * @param z World-space z direction component.
    */
-  void setCylinderAxisWorld(double x, double y, double z) {
-    setCylinderAxisWorld(Vector3{x, y, z});
-  }
+  void setCylinderAxisWorld(double x, double y, double z) { setCylinderAxisWorld(Vector3{x, y, z}); }
 
   /**
-   * @brief Computes effective drag reference area for current geometry and motion direction.
-   * @param velocity_world World-space velocity vector used to infer projected area.
+   * @brief Computes effective drag reference area for current geometry and
+   * motion direction.
+   * @param velocity_world World-space velocity vector used to infer projected
+   * area.
    * @return Effective reference area in square meters.
    *
    * Behavior by geometry mode:
    * - No geometry configured: returns 0.
    * - Explicit reference area > 0: returns explicit value.
    * - Sphere: returns pi * r^2.
-   * - Box: estimates projected area from local velocity direction and face areas.
+   * - Box: estimates projected area from local velocity direction and face
+   * areas.
    * - Cylinder: blends end-cap and side projected areas using axis alignment.
    *
    * For zero velocity vectors, a stable fallback direction is used to avoid NaN
    * behavior during normalization.
    */
   double dragReferenceAreaM2(const Vector3& velocity_world) const {
-    if (!aerodynamic_geometry_)
-      return 0.0;
+    if (!aerodynamic_geometry_) return 0.0;
 
     const AerodynamicGeometry& geometry = *aerodynamic_geometry_;
-    if (geometry.reference_area_m2 > 0.0)
-      return geometry.reference_area_m2;
+    if (geometry.reference_area_m2 > 0.0) return geometry.reference_area_m2;
 
     switch (geometry.shape) {
       case AerodynamicGeometry::Shape::kSphere: {
@@ -385,20 +368,15 @@ class RigidBody {
         return 3.14159265358979323846 * radius_m * radius_m;
       }
       case AerodynamicGeometry::Shape::kBox: {
-        if (geometry.box_dimensions_m.x <= 0.0 ||
-            geometry.box_dimensions_m.y <= 0.0 ||
-            geometry.box_dimensions_m.z <= 0.0) {
+        if (geometry.box_dimensions_m.x <= 0.0 || geometry.box_dimensions_m.y <= 0.0 || geometry.box_dimensions_m.z <= 0.0) {
           return 0.0;
         }
 
-        Vector3 velocity_direction = velocity_world.isZero()
-                                         ? Vector3::unitX()
-                                         : velocity_world.normalized();
+        Vector3 velocity_direction = velocity_world.isZero() ? Vector3::unitX() : velocity_world.normalized();
         velocity_direction = orientation_.inverse().rotate(velocity_direction);
 
         const Vector3 dims = geometry.box_dimensions_m;
-        return std::abs(velocity_direction.x) * dims.y * dims.z +
-               std::abs(velocity_direction.y) * dims.x * dims.z +
+        return std::abs(velocity_direction.x) * dims.y * dims.z + std::abs(velocity_direction.y) * dims.x * dims.z +
                std::abs(velocity_direction.z) * dims.x * dims.y;
       }
       case AerodynamicGeometry::Shape::kCylinder: {
@@ -408,23 +386,17 @@ class RigidBody {
           return 0.0;
         }
 
-        const Vector3 velocity_direction_world =
-            velocity_world.isZero() ? Vector3::unitX()
-                                    : velocity_world.normalized();
+        const Vector3 velocity_direction_world = velocity_world.isZero() ? Vector3::unitX() : velocity_world.normalized();
         Vector3 cylinder_axis_local = geometry.cylinder_axis_local.normalized();
         if (cylinder_axis_local.isZero()) {
           cylinder_axis_local = Vector3::unitZ();
         }
 
-        const Vector3 velocity_direction_local =
-            orientation_.inverse().rotate(velocity_direction_world);
-        const double axis_alignment =
-            std::abs(velocity_direction_local.dot(cylinder_axis_local));
-        const double side_alignment =
-            std::sqrt(std::max(0.0, 1.0 - axis_alignment * axis_alignment));
+        const Vector3 velocity_direction_local = orientation_.inverse().rotate(velocity_direction_world);
+        const double axis_alignment = std::abs(velocity_direction_local.dot(cylinder_axis_local));
+        const double side_alignment = std::sqrt(std::max(0.0, 1.0 - axis_alignment * axis_alignment));
 
-        const double endcap_area_m2 =
-            3.14159265358979323846 * radius_m * radius_m * axis_alignment;
+        const double endcap_area_m2 = 3.14159265358979323846 * radius_m * radius_m * axis_alignment;
         const double side_area_m2 = 2.0 * radius_m * length_m * side_alignment;
         return endcap_area_m2 + side_area_m2;
       }
@@ -442,9 +414,7 @@ class RigidBody {
    * @param fy_n World-space y force in newtons.
    * @param fz_n World-space z force in newtons.
    */
-  void applyForce(double fx_n, double fy_n, double fz_n) {
-    applyForce(Vector3{fx_n, fy_n, fz_n});
-  }
+  void applyForce(double fx_n, double fy_n, double fz_n) { applyForce(Vector3{fx_n, fy_n, fz_n}); }
 
   /**
    * @brief Adds force at world-space point, accumulating both force and torque.
@@ -459,15 +429,14 @@ class RigidBody {
 
   /**
    * @brief Adds force at world-space point from scalar components.
-    * @param fx_n World-space x force in newtons.
-    * @param fy_n World-space y force in newtons.
-    * @param fz_n World-space z force in newtons.
-    * @param px_m World-space x application point in meters.
-    * @param py_m World-space y application point in meters.
-    * @param pz_m World-space z application point in meters.
+   * @param fx_n World-space x force in newtons.
+   * @param fy_n World-space y force in newtons.
+   * @param fz_n World-space z force in newtons.
+   * @param px_m World-space x application point in meters.
+   * @param py_m World-space y application point in meters.
+   * @param pz_m World-space z application point in meters.
    */
-  void applyForceAtPoint(double fx_n, double fy_n, double fz_n, double px_m,
-                         double py_m, double pz_m) {
+  void applyForceAtPoint(double fx_n, double fy_n, double fz_n, double px_m, double py_m, double pz_m) {
     applyForceAtPoint(Vector3{fx_n, fy_n, fz_n}, Vector3{px_m, py_m, pz_m});
   }
 
@@ -494,9 +463,7 @@ class RigidBody {
    * 6. Apply angular damping attenuation.
    * 7. Clear accumulated force/torque buffers.
    */
-  void integrate(double dt_s, IntegrationMethod method,
-                 const Vector3& gravity_mps2, double linear_damping_per_s,
-                 double angular_damping_per_s) {
+  void integrate(double dt_s, IntegrationMethod method, const Vector3& gravity_mps2, double linear_damping_per_s, double angular_damping_per_s) {
     if (flags_.is_kinematic) {
       clearAccumulators();
       return;
@@ -510,31 +477,25 @@ class RigidBody {
     const Vector3 linear_accel = total_force * inv_mass_;
     switch (method) {
       case IntegrationMethod::kExplicitEuler:
-        Integrator::integrateLinearExplicit(position_m_, linear_velocity_mps_,
-                                            linear_accel, dt_s);
+        Integrator::integrateLinearExplicit(position_m_, linear_velocity_mps_, linear_accel, dt_s);
         break;
       case IntegrationMethod::kRK2:
-        Integrator::integrateLinearRK2(position_m_, linear_velocity_mps_,
-                                       linear_accel, dt_s);
+        Integrator::integrateLinearRK2(position_m_, linear_velocity_mps_, linear_accel, dt_s);
         break;
       case IntegrationMethod::kSemiImplicitEuler:
       default:
-        Integrator::integrateLinear(position_m_, linear_velocity_mps_,
-                                    linear_accel, dt_s);
+        Integrator::integrateLinear(position_m_, linear_velocity_mps_, linear_accel, dt_s);
         break;
     }
 
     const double linear_damp = std::max(0.0, 1.0 - linear_damping_per_s * dt_s);
     linear_velocity_mps_ *= linear_damp;
 
-    const Vector3 angular_accel =
-        inv_body_inertia_tensor_ * accumulated_torque_nm_;
-    Integrator::integrateAngularVelocity(angular_velocity_radps_, angular_accel,
-                                         dt_s);
+    const Vector3 angular_accel = inv_body_inertia_tensor_ * accumulated_torque_nm_;
+    Integrator::integrateAngularVelocity(angular_velocity_radps_, angular_accel, dt_s);
     Integrator::integrateAngular(orientation_, angular_velocity_radps_, dt_s);
 
-    const double angular_damp =
-        std::max(0.0, 1.0 - angular_damping_per_s * dt_s);
+    const double angular_damp = std::max(0.0, 1.0 - angular_damping_per_s * dt_s);
     angular_velocity_radps_ *= angular_damp;
 
     clearAccumulators();

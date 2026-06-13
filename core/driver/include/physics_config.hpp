@@ -4,13 +4,14 @@
 
 /**
  * @file physics_config.hpp
- * @brief Top-level simulation configuration aggregating integration, aerodynamics, and contact settings.
+ * @brief Top-level simulation configuration aggregating integration,
+ * aerodynamics, and contact settings.
  */
 
 #pragma once
 
-#include "frcsim/math/vector.hpp"
 #include "frcsim/math/quaternion.hpp"
+#include "frcsim/math/vector.hpp"
 
 /** @addtogroup world @{ */
 
@@ -28,14 +29,16 @@ struct PhysicsConfig {
 
   /// @brief Global linear velocity damping coefficient applied each step (1/s).
   double linear_damping_per_s{0.0};
-  /// @brief Global angular velocity damping coefficient applied each step (1/s).
+  /// @brief Global angular velocity damping coefficient applied each step
+  /// (1/s).
   double angular_damping_per_s{0.0};
 
   /** @brief Selects the numerical integration algorithm for all bodies. */
   enum class IntegrationMethod {
-    kSemiImplicitEuler, ///< Velocity updated first, then position — symplectic, energy-conserving.
-    kExplicitEuler,     ///< Forward Euler — simple but energy-drifting.
-    kRK2,               ///< Midpoint/Runge-Kutta 2 — second-order accurate.
+    kSemiImplicitEuler,  ///< Velocity updated first, then position —
+                         ///< symplectic, energy-conserving.
+    kExplicitEuler,      ///< Forward Euler — simple but energy-drifting.
+    kRK2,                ///< Midpoint/Runge-Kutta 2 — second-order accurate.
   } integration_method{IntegrationMethod::kSemiImplicitEuler};
 
   /// @brief Enables narrow-phase collision detection between bodies.
@@ -47,10 +50,12 @@ struct PhysicsConfig {
   /// @brief Enables aerodynamic drag and Magnus lift forces on bodies.
   bool enable_aerodynamics{false};
 
-  /// @brief Default dimensionless drag coefficient (Cd) when per-body value is unset.
+  /// @brief Default dimensionless drag coefficient (Cd) when per-body value is
+  /// unset.
   double default_drag_coefficient{0.47};
 
-  /// @brief Default frontal reference area for drag in m^2 when per-body geometry is unset.
+  /// @brief Default frontal reference area for drag in m^2 when per-body
+  /// geometry is unset.
   double default_drag_reference_area_m2{0.01};
 
   /// @brief Air density used in aerodynamic force calculations in kg/m^3.
@@ -59,7 +64,8 @@ struct PhysicsConfig {
   /// @brief Scalar coefficient for Magnus spin-induced lift.
   double magnus_coefficient{1.0e-4};
 
-  /// @brief World Z height of the flat ground plane used for ball contact in meters.
+  /// @brief World Z height of the flat ground plane used for ball contact in
+  /// meters.
   double ground_height_m{0.0};
 
   /// @brief Exponential rolling friction decay rate on the ground plane in 1/s.
@@ -68,10 +74,12 @@ struct PhysicsConfig {
   /// @brief Minimum downward impact speed that triggers a bounce in m/s.
   double min_bounce_speed_mps{0.06};
 
-  /// @brief Baumgarte position stabilization factor; fraction of error corrected per step.
+  /// @brief Baumgarte position stabilization factor; fraction of error
+  /// corrected per step.
   double baumgarte_beta{0.2};
 
-  /// @brief Allowed penetration before Baumgarte stabilization activates, in meters.
+  /// @brief Allowed penetration before Baumgarte stabilization activates, in
+  /// meters.
   double baumgarte_slop_m{0.005};
 };
 

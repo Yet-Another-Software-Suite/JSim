@@ -5,4 +5,3 @@ Overview
 
 Best practices
 - Prefer accessor methods instead of exposing mutable public fields.
-

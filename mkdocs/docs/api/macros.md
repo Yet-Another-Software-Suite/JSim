@@ -5,4 +5,3 @@ Where macros are used
 
 Advice
 - Prefer functions or inline templates for functionality; reserve macros for preprocessor-level concerns.
-

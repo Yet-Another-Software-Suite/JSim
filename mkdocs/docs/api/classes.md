@@ -5,4 +5,3 @@ Core concepts
 
 Learning by example
 - The `examples/` folders show how to instantiate and use classes across languages. Use `examples/python/simple_world_demo.py` as a quick reference for typical usage.
-

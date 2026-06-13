@@ -1,12 +1,13 @@
-import pytest
 from apps.sim_runtime.main_loop import SimLoop
 from viewer_plugin.camera import Camera
+
 
 def test_sim_loop_init():
     loop = SimLoop(tick_rate_hz=100.0)
     assert loop.tick_rate_hz == 100.0
     assert loop.dt == 0.01
     assert loop._running is False
+
 
 def test_camera_matrices():
     cam = Camera()

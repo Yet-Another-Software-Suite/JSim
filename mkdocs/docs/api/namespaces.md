@@ -10,4 +10,3 @@ Where to look
 
 Practical tip
 - Search for the symbol you need (class or function name) in the source tree to find the namespace and the header/source pair to inspect implementation and usage.
-

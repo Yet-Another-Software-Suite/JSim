@@ -1,9 +1,15 @@
+// Copyright (c) JSim contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the LGPLv3 license file in the root directory of this project.
+
 /**
  * @file api.h
- * @brief Minimal C++ extern "C" API for creating worlds, bodies, and gamepieces via pointer handles.
+ * @brief Minimal C++ extern "C" API for creating worlds, bodies, and gamepieces
+ * via pointer handles.
  *
  * This header exposes a thin C++ ABI using raw pointers to JSim types.
- * It is suitable for lightweight embedding where the caller controls object lifetime.
+ * It is suitable for lightweight embedding where the caller controls object
+ * lifetime.
  *
  * @note Prefer driverheader.h for a fully C-compatible opaque-handle API.
  */
@@ -18,8 +24,9 @@ using PhysicsWorld_t = frcsim::PhysicsWorld;
 using RigidBody_t = frcsim::RigidBody;
 using Gamepiece_t = frcsim::Gamepiece;
 
-/** @brief Allocates and returns a new PhysicsWorld using default configuration. */
-PhysicsWorld_t* frcsim_create_world();
+/** @brief Allocates and returns a new PhysicsWorld using default configuration.
+ */
+PhysicsWorld_t* frcsim_create_world(void);
 
 /**
  * @brief Destroys a PhysicsWorld and releases all associated memory.
@@ -46,9 +53,7 @@ RigidBody_t* frcsim_create_body(PhysicsWorld_t* w, double mass_kg);
  * @param props Ball physical properties; may be nullptr for defaults.
  * @return Pointer to the new Gamepiece owned by the world.
  */
-Gamepiece_t* frcsim_create_gamepiece(PhysicsWorld_t* w,
-                                    const frcsim::Gamepiece::Config* config,
-                                    const frcsim::Gamepiece::Properties* props);
+Gamepiece_t* frcsim_create_gamepiece(PhysicsWorld_t* w, const frcsim::Gamepiece::Config* config, const frcsim::Gamepiece::Properties* props);
 
 /**
  * @brief Advances the world by dt_s seconds.
@@ -64,8 +69,7 @@ void frcsim_step_world(PhysicsWorld_t* w, double dt_s);
  * @param dim_y Full extent along local Y in meters.
  * @param dim_z Full extent along local Z in meters.
  */
-void frcsim_set_body_box_geometry(RigidBody_t* body, double dim_x, double dim_y,
-                                  double dim_z);
+void frcsim_set_body_box_geometry(RigidBody_t* body, double dim_x, double dim_y, double dim_z);
 
 /**
  * @brief Sets sphere collision geometry on a body.
@@ -93,8 +97,7 @@ void frcsim_set_body_position(RigidBody_t* body, double x, double y, double z);
  * @param vy Output Y velocity in m/s.
  * @param vz Output Z velocity in m/s.
  */
-void frcsim_get_gamepiece_state(Gamepiece_t* gamepiece, double* px, double* py, double* pz,
-                                double* vx, double* vy, double* vz);
+void frcsim_get_gamepiece_state(Gamepiece_t* gamepiece, double* px, double* py, double* pz, double* vx, double* vy, double* vz);
 
 /**
  * @brief Launches a gamepiece from a muzzle pose into free flight.
@@ -106,7 +109,6 @@ void frcsim_get_gamepiece_state(Gamepiece_t* gamepiece, double* px, double* py, 
  * @param vy Launch velocity Y in m/s.
  * @param vz Launch velocity Z in m/s.
  */
-void frcsim_gamepiece_outtake(Gamepiece_t* gamepiece, double px, double py, double pz,
-                              double vx, double vy, double vz);
+void frcsim_gamepiece_outtake(Gamepiece_t* gamepiece, double px, double py, double pz, double vx, double vy, double vz);
 
-}
+}  // extern "C"

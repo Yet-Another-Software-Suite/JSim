@@ -5,7 +5,7 @@ Welcome to JSim! This guide outlines the conventions and rules to follow when ma
 ## Codebase Organization Conventions
 
 ### Core Physics & C++ Driver (`core/driver/`)
-- **Headers & Implementations:** All `.hpp` files belong in `include/` and `.cpp` files in `src/`. 
+- **Headers & Implementations:** All `.hpp` files belong in `include/` and `.cpp` files in `src/`.
 - **Doxygen Documentation:** Every class, struct, and method MUST be fully documented using standard Doxygen tags (`@brief`, `@param`, `@return`).
 - **Bindings:** Any new feature (bodies, joint constraints, simulation ticks) must be exposed cleanly in both `core/python/bindings.cpp` (PyBind11) and `vendordep/src/` (Java JNI).
 
@@ -22,4 +22,4 @@ Welcome to JSim! This guide outlines the conventions and rules to follow when ma
 - FRC C++ logic matches standard `googletest` syntax. Add tests for all new mechanisms (`drivetrain`, `collision`).
 - All code must pass the GitHub Actions CI pipelines (Windows, Linux, macOS).
 - Use `./scripts/run-tests.sh` to validate locally before making a PR.
-- Before being merged PR must be approved by a code owner with merge permissions. 
+- Before being merged PR must be approved by a code owner with merge permissions.

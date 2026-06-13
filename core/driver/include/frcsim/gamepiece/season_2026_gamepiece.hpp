@@ -4,7 +4,8 @@
 
 /**
  * @file season_2026_gamepiece.hpp
- * @brief Season-2026 convenience gamepiece class pre-configured with 2026 presets.
+ * @brief Season-2026 convenience gamepiece class pre-configured with 2026
+ * presets.
  */
 
 #pragma once
@@ -23,32 +24,23 @@ namespace frcsim {
  */
 class Season2026Gamepiece : public Gamepiece {
  public:
-  Season2026Gamepiece()
-      : Gamepiece(BallGamepiecePresets::season2026BallConfig(),
-                  BallGamepiecePresets::season2026BallProperties()) {
+  Season2026Gamepiece() : Gamepiece(BallGamepiecePresets::season2026BallConfig(), BallGamepiecePresets::season2026BallProperties()) {
     setTypeName("Ball2026");
   }
 
   /**
-   * @brief Constructs with explicit config and properties, still sets type name.
+   * @brief Constructs with explicit config and properties, still sets type
+   * name.
    * @param cfg Physics environment config.
    * @param props Ball physical properties.
    */
-  Season2026Gamepiece(const Gamepiece::Config& cfg,
-                      const Gamepiece::Properties& props)
-      : Gamepiece(cfg, props) {
-    setTypeName("Ball2026");
-  }
+  Season2026Gamepiece(const Gamepiece::Config& cfg, const Gamepiece::Properties& props) : Gamepiece(cfg, props) { setTypeName("Ball2026"); }
 
   /** @brief Returns default 2026 ball properties. */
-  static Gamepiece::Properties defaultProperties() {
-    return BallGamepiecePresets::season2026BallProperties();
-  }
+  static Gamepiece::Properties defaultProperties() { return BallGamepiecePresets::season2026BallProperties(); }
 
   /** @brief Returns default 2026 physics config. */
-  static Gamepiece::Config defaultConfig() {
-    return BallGamepiecePresets::season2026BallConfig();
-  }
+  static Gamepiece::Config defaultConfig() { return BallGamepiecePresets::season2026BallConfig(); }
 };
 
 }  // namespace frcsim

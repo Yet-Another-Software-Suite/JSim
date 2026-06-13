@@ -12,4 +12,6 @@ modifiableFileExclude {
    .styleguide
    .styleguide-license
    .clang-format
+   JSimJNI.cpp
+   math_jni.cpp
 }

@@ -4,7 +4,8 @@
 
 /**
  * @file motor_force.hpp
- * @brief ForceGenerator simulating an electric motor's rotational or linear output.
+ * @brief ForceGenerator simulating an electric motor's rotational or linear
+ * output.
  */
 
 #pragma once
@@ -19,34 +20,32 @@ namespace frcsim {
  * @brief Applies rotational or linear force simulating an electric motor.
  */
 class MotorForce : public ForceGenerator {
-public:
-    MotorForce() = default;
-    virtual ~MotorForce() = default;
+ public:
+  MotorForce() = default;
+  virtual ~MotorForce() = default;
 
-    /**
-     * @brief Applies simulated motor force to the registered object.
-     * @param duration Timestep length.
-     */
-    void UpdateForce(double duration) override;
+  /**
+   * @brief Applies simulated motor force to the registered object.
+   * @param duration Timestep length.
+   */
+  void UpdateForce(double duration) override;
 
-    /**
-     * @brief Sets the input voltage or current.
-     * @param voltage The input level.
-     */
-    void SetInput(double voltage);
+  /**
+   * @brief Sets the input voltage or current.
+   * @param voltage The input level.
+   */
+  void SetInput(double voltage);
 
-private:
-    double m_inputVoltage = 0.0;
+ private:
+  double m_inputVoltage = 0.0;
 };
 
 inline void MotorForce::UpdateForce(double duration) {
-    // Basic implementation override
+  // Basic implementation override
 }
 
-inline void MotorForce::SetInput(double voltage) {
-    m_inputVoltage = voltage;
-}
+inline void MotorForce::SetInput(double voltage) { m_inputVoltage = voltage; }
 
-} // namespace frcsim
+}  // namespace frcsim
 
 /** @} */

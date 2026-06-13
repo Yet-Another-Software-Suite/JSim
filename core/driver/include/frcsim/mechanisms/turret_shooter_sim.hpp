@@ -4,7 +4,8 @@
 
 /**
  * @file turret_shooter_sim.hpp
- * @brief Integrated turret, flywheel, and carried-ball simulator for aiming and firing.
+ * @brief Integrated turret, flywheel, and carried-ball simulator for aiming and
+ * firing.
  */
 
 #pragma once
@@ -25,7 +26,8 @@ namespace frcsim {
  * pickup, and firing flows. */
 class TurretFlywheelSim {
  public:
-  /** @brief Configuration for differential kinematics, ball model, and local mount geometry. */
+  /** @brief Configuration for differential kinematics, ball model, and local
+   * mount geometry. */
   struct Config {
     /** @brief Double-differential (yaw/pitch) leg kinematics. */
     DoubleDifferentialMechanism::Config differential{};
@@ -37,15 +39,19 @@ class TurretFlywheelSim {
     /** @brief Position of the differential pivot in world frame (meters). */
     Vector3 turret_mount_position_m{};
 
-    /** @brief Muzzle origin offset in local turret frame (meters, before yaw/pitch rotation). */
+    /** @brief Muzzle origin offset in local turret frame (meters, before
+     * yaw/pitch rotation). */
     Vector3 muzzle_offset_local_m{0.35, 0.0, 0.18};
 
-    /** @brief Intake center offset from the turret rotation origin in local turret frame (meters). */
+    /** @brief Intake center offset from the turret rotation origin in local
+     * turret frame (meters). */
     Vector3 intake_offset_local_m{0.15, 0.0, -0.06};
 
-    /** @brief Radius around intake center for successful ball pickup (meters). */
+    /** @brief Radius around intake center for successful ball pickup (meters).
+     */
     double intake_capture_radius_m{0.22};
-    /** @brief Offset from intake to carried ball rest position in local frame (meters). */
+    /** @brief Offset from intake to carried ball rest position in local frame
+     * (meters). */
     Vector3 carry_offset_local_m{0.05, 0.0, -0.02};
   };
 
@@ -56,9 +62,7 @@ class TurretFlywheelSim {
    * @param config Initial turret/flywheel/ball configuration.
    */
   explicit TurretFlywheelSim(const Config& config)
-      : config_(config),
-        differential_(config.differential),
-        ball_(config.ball_config, config.ball_properties) {}
+      : config_(config), differential_(config.differential), ball_(config.ball_config, config.ball_properties) {}
 
   /** @brief Returns current simulator configuration. @return Immutable config
    * reference. */
@@ -66,28 +70,19 @@ class TurretFlywheelSim {
 
   /** @brief Updates turret mount origin in world frame. @param mount_position_m
    * Mount position in meters. */
-  void setTurretMountPosition(const Vector3& mount_position_m) {
-    config_.turret_mount_position_m = mount_position_m;
-  }
+  void setTurretMountPosition(const Vector3& mount_position_m) { config_.turret_mount_position_m = mount_position_m; }
 
   /** @brief Sets base/chassis linear velocity used during carry and shot
    * composition. @param base_velocity_mps World velocity. */
-  void setBaseVelocity(const Vector3& base_velocity_mps) {
-    base_velocity_mps_ = base_velocity_mps;
-  }
+  void setBaseVelocity(const Vector3& base_velocity_mps) { base_velocity_mps_ = base_velocity_mps; }
 
   /** @brief Sets differential motor state directly. @param motor_state Motor
    * positions/velocities. */
-  void setMotorState(
-      const DoubleDifferentialMechanism::MotorState& motor_state) {
-    motor_state_ = motor_state;
-  }
+  void setMotorState(const DoubleDifferentialMechanism::MotorState& motor_state) { motor_state_ = motor_state; }
 
   /** @brief Returns current differential motor state. @return Immutable motor
    * state reference. */
-  const DoubleDifferentialMechanism::MotorState& motorState() const {
-    return motor_state_;
-  }
+  const DoubleDifferentialMechanism::MotorState& motorState() const { return motor_state_; }
 
   /**
    * @brief Solves inverse differential mapping for desired aim state.
@@ -97,9 +92,8 @@ class TurretFlywheelSim {
    * @param pitch_velocity_radps Desired pitch rate in rad/s.
    * @return InverseResult containing motor command and validity flag.
    */
-  DoubleDifferentialMechanism::InverseResult solveMotorStateForAim(
-      double yaw_rad, double pitch_rad, double yaw_velocity_radps = 0.0,
-      double pitch_velocity_radps = 0.0) const {
+  DoubleDifferentialMechanism::InverseResult solveMotorStateForAim(double yaw_rad, double pitch_rad, double yaw_velocity_radps = 0.0,
+                                                                   double pitch_velocity_radps = 0.0) const {
     DoubleDifferentialMechanism::JointState desired{};
     desired.yaw_rad = yaw_rad;
     desired.pitch_rad = pitch_rad;
@@ -116,11 +110,8 @@ class TurretFlywheelSim {
    * @param pitch_velocity_radps Desired pitch rate in rad/s.
    * @return True when inverse solve succeeded.
    */
-  bool applyAim(double yaw_rad, double pitch_rad,
-                double yaw_velocity_radps = 0.0,
-                double pitch_velocity_radps = 0.0) {
-    const auto solved = solveMotorStateForAim(
-        yaw_rad, pitch_rad, yaw_velocity_radps, pitch_velocity_radps);
+  bool applyAim(double yaw_rad, double pitch_rad, double yaw_velocity_radps = 0.0, double pitch_velocity_radps = 0.0) {
+    const auto solved = solveMotorStateForAim(yaw_rad, pitch_rad, yaw_velocity_radps, pitch_velocity_radps);
     if (!solved.valid) {
       return false;
     }
@@ -130,35 +121,25 @@ class TurretFlywheelSim {
 
   /** @brief Computes current turret joint state from motor state. @return
    * JointState with yaw/pitch and rates. */
-  DoubleDifferentialMechanism::JointState jointState() const {
-    return differential_.forward(motor_state_);
-  }
+  DoubleDifferentialMechanism::JointState jointState() const { return differential_.forward(motor_state_); }
 
   /**
    * @brief Computes current muzzle origin in world coordinates.
    * @return World position of the muzzle in meters.
    */
-  Vector3 muzzlePositionWorld() const {
-    return config_.turret_mount_position_m +
-           turretOrientationWorld().rotate(config_.muzzle_offset_local_m);
-  }
+  Vector3 muzzlePositionWorld() const { return config_.turret_mount_position_m + turretOrientationWorld().rotate(config_.muzzle_offset_local_m); }
 
   /**
    * @brief Computes current intake center position in world coordinates.
    * @return World position of the intake center in meters.
    */
-  Vector3 intakePositionWorld() const {
-    return config_.turret_mount_position_m +
-           turretOrientationWorld().rotate(config_.intake_offset_local_m);
-  }
+  Vector3 intakePositionWorld() const { return config_.turret_mount_position_m + turretOrientationWorld().rotate(config_.intake_offset_local_m); }
 
   /**
    * @brief Computes the muzzle forward firing direction in world frame.
    * @return Normalized unit direction vector for projectile launch.
    */
-  Vector3 muzzleDirectionWorld() const {
-    return turretOrientationWorld().rotate(Vector3::unitX()).normalized();
-  }
+  Vector3 muzzleDirectionWorld() const { return turretOrientationWorld().rotate(Vector3::unitX()).normalized(); }
 
   /** @brief Attempts to pick up the internal ball if near intake location.
    * @return True if pickup succeeds. */
@@ -166,8 +147,7 @@ class TurretFlywheelSim {
     BallPhysicsSim3D::PickupRequest request{};
     request.intake_position_m = intakePositionWorld();
     request.capture_radius_m = config_.intake_capture_radius_m;
-    request.carry_offset_m =
-        turretOrientationWorld().rotate(config_.carry_offset_local_m);
+    request.carry_offset_m = turretOrientationWorld().rotate(config_.carry_offset_local_m);
     return ball_.requestPickup(request);
   }
 
@@ -176,12 +156,9 @@ class TurretFlywheelSim {
    * @param muzzle_speed_mps Launch speed in m/s.
    * @param spin_radps Launch spin vector in rad/s.
    */
-  void shoot(double muzzle_speed_mps,
-             const Vector3& spin_radps = Vector3::zero()) {
+  void shoot(double muzzle_speed_mps, const Vector3& spin_radps = Vector3::zero()) {
     const Vector3 muzzle_position = muzzlePositionWorld();
-    const Vector3 shot_velocity =
-        base_velocity_mps_ +
-        muzzleDirectionWorld() * std::max(0.0, muzzle_speed_mps);
+    const Vector3 shot_velocity = base_velocity_mps_ + muzzleDirectionWorld() * std::max(0.0, muzzle_speed_mps);
     ball_.shoot(muzzle_position, shot_velocity, spin_radps);
   }
 
@@ -190,8 +167,7 @@ class TurretFlywheelSim {
    * @param wheel Flywheel wheel model used for speed estimate.
    * @param spin_radps Launch spin vector in rad/s.
    */
-  void shootWithWheel(const FlywheelWheelSim& wheel,
-                      const Vector3& spin_radps = Vector3::zero()) {
+  void shootWithWheel(const FlywheelWheelSim& wheel, const Vector3& spin_radps = Vector3::zero()) {
     shoot(wheel.estimatedExitVelocityMps(), spin_radps);
   }
 
@@ -213,10 +189,8 @@ class TurretFlywheelSim {
  private:
   Quaternion turretOrientationWorld() const {
     const auto joints = jointState();
-    const Quaternion yaw =
-        Quaternion::fromAxisAngle(Vector3::unitZ(), joints.yaw_rad);
-    const Quaternion pitch =
-        Quaternion::fromAxisAngle(Vector3::unitY(), joints.pitch_rad);
+    const Quaternion yaw = Quaternion::fromAxisAngle(Vector3::unitZ(), joints.yaw_rad);
+    const Quaternion pitch = Quaternion::fromAxisAngle(Vector3::unitY(), joints.pitch_rad);
     return yaw * pitch;
   }
 

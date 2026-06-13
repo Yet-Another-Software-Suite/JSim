@@ -8,14 +8,14 @@
  */
 
 #pragma once
-#include <cmath>
 #include <cassert>
-#include <limits>
-#include <iostream>
+#include <cmath>
 #include <iomanip>
+#include <iostream>
+#include <limits>
 
-#include "vector.hpp"
 #include "quaternion.hpp"
+#include "vector.hpp"
 
 /** @addtogroup math @{ */
 
@@ -52,17 +52,14 @@ struct alignas(16) Matrix3 {
    * @param m21 Row 2, column 1.
    * @param m22 Row 2, column 2.
    */
-  constexpr Matrix3(double m00, double m01, double m02, double m10, double m11,
-                    double m12, double m20, double m21, double m22) noexcept
+  constexpr Matrix3(double m00, double m01, double m02, double m10, double m11, double m12, double m20, double m21, double m22) noexcept
       : m{{m00, m01, m02}, {m10, m11, m12}, {m20, m21, m22}} {}
 
   /// @brief Returns the 3×3 identity matrix.
   static constexpr Matrix3 identity() noexcept { return Matrix3(); }
 
   /// @brief Returns the 3×3 zero matrix.
-  static constexpr Matrix3 zero() noexcept {
-    return Matrix3(0, 0, 0, 0, 0, 0, 0, 0, 0);
-  }
+  static constexpr Matrix3 zero() noexcept { return Matrix3(0, 0, 0, 0, 0, 0, 0, 0, 0); }
 
   /* Element access */
 
@@ -91,8 +88,7 @@ struct alignas(16) Matrix3 {
     Matrix3 r = zero();
 
     for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++)
-        r.m[i][j] = m[i][j] + o.m[i][j];
+      for (int j = 0; j < 3; j++) r.m[i][j] = m[i][j] + o.m[i][j];
 
     return r;
   }
@@ -102,8 +98,7 @@ struct alignas(16) Matrix3 {
     Matrix3 r = zero();
 
     for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++)
-        r.m[i][j] = m[i][j] - o.m[i][j];
+      for (int j = 0; j < 3; j++) r.m[i][j] = m[i][j] - o.m[i][j];
 
     return r;
   }
@@ -113,8 +108,7 @@ struct alignas(16) Matrix3 {
     Matrix3 r = zero();
 
     for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++)
-        r.m[i][j] = m[i][j] * s;
+      for (int j = 0; j < 3; j++) r.m[i][j] = m[i][j] * s;
 
     return r;
   }
@@ -127,8 +121,7 @@ struct alignas(16) Matrix3 {
    * @return Transformed vector.
    */
   Vector3 operator*(const Vector3& v) const noexcept {
-    return Vector3(m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z,
-                   m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z,
+    return Vector3(m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z, m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z,
                    m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z);
   }
 
@@ -144,8 +137,7 @@ struct alignas(16) Matrix3 {
 
     for (int i = 0; i < 3; i++)
       for (int j = 0; j < 3; j++)
-        for (int k = 0; k < 3; k++)
-          r.m[i][j] += m[i][k] * o.m[k][j];
+        for (int k = 0; k < 3; k++) r.m[i][j] += m[i][k] * o.m[k][j];
 
     return r;
   }
@@ -153,17 +145,13 @@ struct alignas(16) Matrix3 {
   /* Transpose */
 
   /// @brief Returns the transpose of this matrix.
-  Matrix3 transpose() const noexcept {
-    return Matrix3(m[0][0], m[1][0], m[2][0], m[0][1], m[1][1], m[2][1],
-                   m[0][2], m[1][2], m[2][2]);
-  }
+  Matrix3 transpose() const noexcept { return Matrix3(m[0][0], m[1][0], m[2][0], m[0][1], m[1][1], m[2][1], m[0][2], m[1][2], m[2][2]); }
 
   /* Determinant */
 
   /// @brief Returns the scalar determinant of this matrix.
   double determinant() const noexcept {
-    return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
-           m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+    return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
            m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
   }
 
@@ -172,16 +160,14 @@ struct alignas(16) Matrix3 {
   /**
    * @brief Attempts to compute the matrix inverse.
    * @param out Output matrix set to the inverse when the function returns true.
-   * @param eps Minimum absolute determinant below which the matrix is considered singular.
+   * @param eps Minimum absolute determinant below which the matrix is
+   * considered singular.
    * @return True on success; false when the determinant is below `eps`.
    */
-  bool tryInverse(
-      Matrix3& out,
-      double eps = std::numeric_limits<double>::epsilon()) const noexcept {
+  bool tryInverse(Matrix3& out, double eps = std::numeric_limits<double>::epsilon()) const noexcept {
     double det = determinant();
 
-    if (std::abs(det) < eps)
-      return false;
+    if (std::abs(det) < eps) return false;
 
     double invDet = 1.0 / det;
 
@@ -210,8 +196,7 @@ struct alignas(16) Matrix3 {
    */
   Matrix3 inverse() const noexcept {
     Matrix3 r;
-    if (!tryInverse(r))
-      return identity();  // safe fallback for legacy callers
+    if (!tryInverse(r)) return identity();  // safe fallback for legacy callers
 
     return r;
   }
@@ -237,8 +222,7 @@ struct alignas(16) Matrix3 {
   bool operator==(const Matrix3& o) const noexcept {
     for (int i = 0; i < 3; i++)
       for (int j = 0; j < 3; j++)
-        if (m[i][j] != o.m[i][j])
-          return false;
+        if (m[i][j] != o.m[i][j]) return false;
 
     return true;
   }
@@ -252,18 +236,14 @@ struct alignas(16) Matrix3 {
   friend std::ostream& operator<<(std::ostream& os, const Matrix3& mat) {
     os << std::fixed << std::setprecision(4);
 
-    for (int i = 0; i < 3; i++)
-      os << "[" << mat.m[i][0] << " " << mat.m[i][1] << " " << mat.m[i][2]
-         << "]\n";
+    for (int i = 0; i < 3; i++) os << "[" << mat.m[i][0] << " " << mat.m[i][1] << " " << mat.m[i][2] << "]\n";
 
     return os;
   }
 };
 
 /// @brief Left scalar multiplication helper (`s * M`).
-inline Matrix3 operator*(double s, const Matrix3& m) noexcept {
-  return m * s;
-}
+inline Matrix3 operator*(double s, const Matrix3& m) noexcept { return m * s; }
 
 }  // namespace frcsim
 

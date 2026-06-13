@@ -5,4 +5,3 @@ What to expect
 
 Inspecting implementations
 - Find definitions in `core/src` and corresponding headers in `core/include` to understand parameter semantics and lifetime expectations.
-

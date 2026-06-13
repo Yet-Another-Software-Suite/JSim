@@ -54,30 +54,27 @@ class DeformableBody {
    * @brief Sets the bending stiffness for deformation resistance.
    * @param stiffness_npm Stiffness in newtons per meter.
    */
-  void setBendStiffness(double stiffness_npm) {
-    bend_stiffness_npm_ = stiffness_npm;
-  }
+  void setBendStiffness(double stiffness_npm) { bend_stiffness_npm_ = stiffness_npm; }
   /** @brief Returns bending stiffness in newtons per meter. */
   double bendStiffness() const { return bend_stiffness_npm_; }
 
   /**
-   * @brief Sets the warp damping coefficient for deformation energy dissipation.
+   * @brief Sets the warp damping coefficient for deformation energy
+   * dissipation.
    * @param damping_nspm Damping in newton-seconds per meter.
    */
-  void setWarpDamping(double damping_nspm) {
-    warp_damping_nspm_ = damping_nspm;
-  }
+  void setWarpDamping(double damping_nspm) { warp_damping_nspm_ = damping_nspm; }
   /** @brief Returns warp damping in newton-seconds per meter. */
   double warpDamping() const { return warp_damping_nspm_; }
 
   /**
    * @brief Immutable access to local-frame deformation node positions.
-   * @return Const reference to vector of node positions in body-local coordinates.
-   * @note TODO: Populate with actual deformation mesh nodes during application setup.
+   * @return Const reference to vector of node positions in body-local
+   * coordinates.
+   * @note TODO: Populate with actual deformation mesh nodes during application
+   * setup.
    */
-  const std::vector<Vector3>& deformationNodes() const {
-    return deformation_nodes_local_;
-  }
+  const std::vector<Vector3>& deformationNodes() const { return deformation_nodes_local_; }
   /**
    * @brief Mutable access to local-frame deformation node positions.
    * @return Reference to vector of node positions in body-local coordinates.
@@ -88,16 +85,12 @@ class DeformableBody {
    * @brief Immutable access to deformation node velocities.
    * @return Const reference to velocity vector for bending dynamics.
    */
-  const std::vector<Vector3>& deformationVelocities() const {
-    return deformation_velocities_;
-  }
+  const std::vector<Vector3>& deformationVelocities() const { return deformation_velocities_; }
   /**
    * @brief Mutable access to deformation node velocities.
    * @return Reference to velocity vector for bending dynamics.
    */
-  std::vector<Vector3>& deformationVelocities() {
-    return deformation_velocities_;
-  }
+  std::vector<Vector3>& deformationVelocities() { return deformation_velocities_; }
 
  private:
   RigidBody rigid_base_;

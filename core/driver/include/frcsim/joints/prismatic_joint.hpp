@@ -4,7 +4,8 @@
 
 /**
  * @file prismatic_joint.hpp
- * @brief Slider joint that permits one translational degree of freedom between two bodies.
+ * @brief Slider joint that permits one translational degree of freedom between
+ * two bodies.
  */
 
 #pragma once
@@ -32,12 +33,11 @@ class PrismaticJoint : public JointBase {
    * @brief Constructs a prismatic joint between two bodies.
    * @param body_a First (parent) rigid body.
    * @param body_b Second (child) rigid body.
-   * @param axis_local Slide axis in body A's local frame; normalized internally.
+   * @param axis_local Slide axis in body A's local frame; normalized
+   * internally.
    */
-  PrismaticJoint(RigidBody* body_a, RigidBody* body_b,
-                 const Vector3& axis_local)
-      : JointBase(JointType::kPrismatic, body_a, body_b),
-        axis_local_(axis_local.normalized()) {}
+  PrismaticJoint(RigidBody* body_a, RigidBody* body_b, const Vector3& axis_local)
+      : JointBase(JointType::kPrismatic, body_a, body_b), axis_local_(axis_local.normalized()) {}
 
   /// @brief Returns the slide axis in body A's local frame (normalized).
   const Vector3& axisLocal() const { return axis_local_; }

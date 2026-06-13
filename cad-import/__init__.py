@@ -11,18 +11,18 @@ Example Usage:
 
     # Create importer with medium accuracy
     importer = OnShapeCADImporter(AccuracyLevel.MEDIUM)
-    
+
     # Recommended: export STEP from Onshape, convert to glTF, then import
     # Import CAD from converted glTF (.gltf/.glb)
     importer.import_gltf("robot.gltf")
-    
+
     # Import mechanism metadata
     importer.import_from_onshape_metadata("mechanisms.json")
-    
+
     # Get summary
     summary = importer.get_import_summary()
     print(f"Imported {summary['total_mechanisms']} mechanisms")
-    
+
     # Export to JSON
     mechanisms = importer.get_mechanisms_to_export()
     exporter = UniversalCADExporter()
@@ -30,47 +30,44 @@ Example Usage:
 """
 
 from .config import (
-    AccuracyLevel,
-    IMPORT_ACCURACY_PROFILES,
     ACCURACY_CONFIGS,
-    MATERIALS,
     DEFAULT_MATERIAL,
-    ModelValidationRules,
+    IMPORT_ACCURACY_PROFILES,
+    MATERIALS,
+    AccuracyLevel,
     ExportFormat,
+    ModelValidationRules,
 )
-
-from .materials import MaterialSystem
-
-from .mechanisms import (
-    MechanismType,
-    Component,
-    Joint,
-    GroupedMechanism,
-    MechanismExtractor,
-)
-
-from .importer import (
-    OnShapeCADImporter,
-    FieldCADImporter,
-)
-
 from .exporter import (
     CADExporter,
     UniversalCADExporter,
 )
-
 from .field_definitions import (
-    FieldDefinitionManager,
     Field2024Definition,
-    Field2025WeldedDefinition,
     Field2025AndyMarkDefinition,
-    Field2026WeldedDefinition,
+    Field2025WeldedDefinition,
     Field2026AndyMarkDefinition,
+    Field2026WeldedDefinition,
+    FieldDefinitionManager,
 )
+from .importer import (
+    FieldCADImporter,
+    OnShapeCADImporter,
+)
+from .materials import MaterialSystem
+from .mechanisms import (
+    Component,
+    GroupedMechanism,
+    Joint,
+    MechanismExtractor,
+    MechanismType,
+)
+
 
 def get_apriltag_layout(year: int, variant: str = None):
     """Convenience helper to fetch normalized AprilTag layout by year."""
     return FieldDefinitionManager.get_apriltag_layout(year, variant=variant)
+
 
 __version__ = "0.2.0"
 __author__ = "JSim"

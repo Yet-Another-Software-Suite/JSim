@@ -4,7 +4,8 @@
 
 /**
  * @file encoder_sim.hpp
- * @brief Abstract interface for simulating an encoder returning position and rate.
+ * @brief Abstract interface for simulating an encoder returning position and
+ * rate.
  */
 
 #pragma once
@@ -20,23 +21,23 @@ namespace frcsim {
  * @brief Simulates an absolute or relative encoder mapping to mechanical state.
  */
 class EncoderSim {
-public:
-    EncoderSim() = default;
-    virtual ~EncoderSim() = default;
+ public:
+  EncoderSim() = default;
+  virtual ~EncoderSim() = default;
 
-    /**
-     * @brief Returns the simulated raw position or tick count.
-     * @return Simulated position.
-     */
-    virtual double GetPosition() const = 0;
+  /**
+   * @brief Returns the simulated raw position or tick count.
+   * @return Simulated position.
+   */
+  virtual double GetPosition() const = 0;
 
-    /**
-     * @brief Returns the simulated velocity/rate.
-     * @return Simulated rate.
-     */
-    virtual double GetRate() const = 0;
+  /**
+   * @brief Returns the simulated velocity/rate.
+   * @return Simulated rate.
+   */
+  virtual double GetRate() const = 0;
 };
 
-} // namespace frcsim
+}  // namespace frcsim
 
 /** @} */

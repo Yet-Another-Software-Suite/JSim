@@ -4,7 +4,8 @@
 
 /**
  * @file gamepiece_sim.hpp
- * @brief Convenience alias selecting the active gamepiece simulator implementation.
+ * @brief Convenience alias selecting the active gamepiece simulator
+ * implementation.
  */
 
 #pragma once

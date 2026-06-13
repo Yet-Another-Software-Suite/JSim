@@ -4,7 +4,8 @@
 
 /**
  * @file boundary.hpp
- * @brief Environmental boundary primitives used by @ref frcsim::PhysicsWorld for field walls and obstacles.
+ * @brief Environmental boundary primitives used by @ref frcsim::PhysicsWorld
+ * for field walls and obstacles.
  */
 
 #pragma once
@@ -50,7 +51,8 @@ enum class BoundaryBehavior {
 };
 
 /**
- * @brief Collision or constraint boundary definition used by @ref frcsim::PhysicsWorld.
+ * @brief Collision or constraint boundary definition used by @ref
+ * frcsim::PhysicsWorld.
  *
  * This structure captures geometry, transform, contact coefficients, and broad
  * filtering metadata for world boundaries. It is intentionally POD-like to keep

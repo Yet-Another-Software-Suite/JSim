@@ -5,6 +5,7 @@ Handles reading robot configuration and instantiating physics bodies.
 
 import logging
 
+
 class RobotLoader:
     def __init__(self, asset_path: str):
         self.asset_path = asset_path

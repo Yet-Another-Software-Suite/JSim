@@ -3,6 +3,7 @@ Viewer camera module.
 Handles viewpoints, movement, and perspective matrices.
 """
 
+
 class Camera:
     def __init__(self):
         self.position = [0.0, 0.0, -5.0]

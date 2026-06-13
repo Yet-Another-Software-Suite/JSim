@@ -4,7 +4,8 @@
 
 /**
  * @file ball_gamepiece_sim.hpp
- * @brief Arena-level simulator managing multiple balls, robots, projectiles, and scoring zones.
+ * @brief Arena-level simulator managing multiple balls, robots, projectiles,
+ * and scoring zones.
  */
 
 #pragma once
@@ -29,11 +30,12 @@
 namespace frcsim {
 
 /**
- * @brief Arena-level simulator managing multiple balls, robots, projectiles, and scoring zones.
+ * @brief Arena-level simulator managing multiple balls, robots, projectiles,
+ * and scoring zones.
  *
- * BallGamepieceSim is the high-level game-logic layer above BallPhysicsSim3D. It owns
- * collections of grounded balls, in-flight projectiles, robots, and goal zones, and
- * resolves all interactions each step.
+ * BallGamepieceSim is the high-level game-logic layer above BallPhysicsSim3D.
+ * It owns collections of grounded balls, in-flight projectiles, robots, and
+ * goal zones, and resolves all interactions each step.
  *
  * Key behavior:
  * - All public state accessors and mutators are thread-safe via an internal
@@ -43,12 +45,14 @@ namespace frcsim {
  * - Seasonal field/gamepiece presets are defined outside this class to keep it
  *   reusable for custom games and offseason variants.
  *
- * @note The step() method must not be called concurrently with world-mutating calls.
+ * @note The step() method must not be called concurrently with world-mutating
+ * calls.
  */
 class BallGamepieceSim {
  public:
   /**
-   * @brief Built-in gamepiece type identifiers used by launch, projectile, and registration APIs.
+   * @brief Built-in gamepiece type identifiers used by launch, projectile, and
+   * registration APIs.
    */
   enum class GamePieceType {
     /// @brief Default generic ball type.
@@ -153,10 +157,11 @@ class BallGamepieceSim {
   };
 
   /**
-   * @brief Per-robot state used by game piece interaction and collision routines.
+   * @brief Per-robot state used by game piece interaction and collision
+   * routines.
    *
-   * Robots are treated as upright cylinders centered at position_m for collision
-   * and intake proximity purposes.
+   * Robots are treated as upright cylinders centered at position_m for
+   * collision and intake proximity purposes.
    */
   struct RobotState {
     /// @brief Robot center position in world coordinates (meters).
@@ -300,8 +305,7 @@ class BallGamepieceSim {
   }
 
   /** @brief Callback type invoked when a robot is added to this simulator. */
-  using RobotAddedCallback =
-      std::function<void(std::size_t robot_index, const RobotState& robot)>;
+  using RobotAddedCallback = std::function<void(std::size_t robot_index, const RobotState& robot)>;
 
   /**
    * @brief Adds a robot and returns its index.
@@ -322,9 +326,7 @@ class BallGamepieceSim {
    * @brief Sets a callback invoked whenever addRobot inserts a robot.
    * @param callback Callback invoked after insertion.
    */
-  void setRobotAddedCallback(const RobotAddedCallback& callback) {
-    robot_added_callback_ = callback;
-  }
+  void setRobotAddedCallback(const RobotAddedCallback& callback) { robot_added_callback_ = callback; }
 
   /**
    * @brief Adds a grounded ball with explicit physics configuration.
@@ -333,8 +335,7 @@ class BallGamepieceSim {
    * @param properties Ball physical properties.
    * @return Index of the inserted ball entity.
    */
-  std::size_t addBall(const BallPhysicsSim3D::BallState& state,
-                      const BallPhysicsSim3D::Config& config,
+  std::size_t addBall(const BallPhysicsSim3D::BallState& state, const BallPhysicsSim3D::Config& config,
                       const BallPhysicsSim3D::BallProperties& properties) {
     std::lock_guard<std::mutex> lock(state_mutex_);
     BallEntity entity{};
@@ -396,8 +397,7 @@ class BallGamepieceSim {
    * @param boundary Boundary to append.
    * @return Mutable reference to stored boundary.
    */
-  EnvironmentalBoundary& addFieldElement(
-      const EnvironmentalBoundary& boundary) {
+  EnvironmentalBoundary& addFieldElement(const EnvironmentalBoundary& boundary) {
     std::lock_guard<std::mutex> lock(state_mutex_);
     field_elements_.push_back(boundary);
     return field_elements_.back();
@@ -501,8 +501,7 @@ class BallGamepieceSim {
     }
 
     balls_.erase(balls_.begin() + static_cast<std::ptrdiff_t>(ball_index));
-    ball_types_.erase(ball_types_.begin() +
-                      static_cast<std::ptrdiff_t>(ball_index));
+    ball_types_.erase(ball_types_.begin() + static_cast<std::ptrdiff_t>(ball_index));
     return true;
   }
 
@@ -511,9 +510,7 @@ class BallGamepieceSim {
   std::vector<ProjectileEntity>& projectiles() { return projectiles_; }
   /** @brief Immutable projectile list. @return Const projectile vector
    * reference. */
-  const std::vector<ProjectileEntity>& projectiles() const {
-    return projectiles_;
-  }
+  const std::vector<ProjectileEntity>& projectiles() const { return projectiles_; }
 
   /** @brief Mutable goal-zone list. @return Mutable goal vector reference. */
   std::vector<GoalZone>& goals() { return goals_; }
@@ -522,14 +519,10 @@ class BallGamepieceSim {
 
   /** @brief Mutable field-element list. @return Mutable boundary vector
    * reference. */
-  std::vector<EnvironmentalBoundary>& fieldElements() {
-    return field_elements_;
-  }
+  std::vector<EnvironmentalBoundary>& fieldElements() { return field_elements_; }
   /** @brief Immutable field-element list. @return Const boundary vector
    * reference. */
-  const std::vector<EnvironmentalBoundary>& fieldElements() const {
-    return field_elements_;
-  }
+  const std::vector<EnvironmentalBoundary>& fieldElements() const { return field_elements_; }
 
   /** @brief Returns total grounded ball count (including scored-in-net balls).
    * @return Grounded ball count. */
@@ -573,10 +566,8 @@ class BallGamepieceSim {
    * @param hit_target_callback Callback fired on goal hit.
    * @return Projectile index, or kNoBall when robot index is invalid.
    */
-  std::size_t fireProjectile(
-      std::size_t robot_index, const ExitTrajectoryParameters& command,
-      bool spawn_on_ground_after_touch = true,
-      const std::function<void()>& hit_target_callback = {}) {
+  std::size_t fireProjectile(std::size_t robot_index, const ExitTrajectoryParameters& command, bool spawn_on_ground_after_touch = true,
+                             const std::function<void()>& hit_target_callback = {}) {
     std::lock_guard<std::mutex> lock(state_mutex_);
     if (robot_index >= robots_.size()) {
       return kNoBall;
@@ -584,25 +575,18 @@ class BallGamepieceSim {
 
     const RobotState& robot = robots_[robot_index];
     const double launch_speed =
-        command.estimated_exit_velocity_mps > 0.0
-            ? command.estimated_exit_velocity_mps
-            : std::max(0.0, command.mechanism_speed_mps);
+        command.estimated_exit_velocity_mps > 0.0 ? command.estimated_exit_velocity_mps : std::max(0.0, command.mechanism_speed_mps);
 
     const double yaw_world = robot.yaw_rad + command.yaw_offset_rad;
     const double cos_pitch = std::cos(command.pitch_rad);
-    const Vector3 direction_world(std::cos(yaw_world) * cos_pitch,
-                                  std::sin(yaw_world) * cos_pitch,
-                                  std::sin(command.pitch_rad));
+    const Vector3 direction_world(std::cos(yaw_world) * cos_pitch, std::sin(yaw_world) * cos_pitch, std::sin(command.pitch_rad));
 
     ProjectileEntity projectile{};
     projectile.type = command.gamepiece_type;
-    projectile.position_m =
-        robot.position_m + rotateYaw(command.launch_offset_m, robot.yaw_rad);
-    projectile.velocity_mps =
-        robot.velocity_mps + direction_world * launch_speed;
+    projectile.position_m = robot.position_m + rotateYaw(command.launch_offset_m, robot.yaw_rad);
+    projectile.velocity_mps = robot.velocity_mps + direction_world * launch_speed;
     projectile.spin_radps = command.spin_radps;
-    projectile.gravity_mps2 =
-        std::max(0.0, -fallbackBallConfig().gravity_mps2.z);
+    projectile.gravity_mps2 = std::max(0.0, -fallbackBallConfig().gravity_mps2.z);
     projectile.spawn_on_ground_after_touch = spawn_on_ground_after_touch;
     projectile.hit_target_callback = hit_target_callback;
 
@@ -620,7 +604,7 @@ class BallGamepieceSim {
     }
 
     std::lock_guard<std::mutex> lock(state_mutex_);
-    
+
     const int substeps = std::max(1, simulation_substeps_);
     const double dt_substep_s = dt_s / static_cast<double>(substeps);
 
@@ -634,9 +618,7 @@ class BallGamepieceSim {
    * to 1.
    * @param simulation_substeps Requested substep count.
    */
-  void setSimulationSubsteps(int simulation_substeps) {
-    simulation_substeps_ = std::max(1, simulation_substeps);
-  }
+  void setSimulationSubsteps(int simulation_substeps) { simulation_substeps_ = std::max(1, simulation_substeps); }
 
   /** @brief Returns current simulation substeps-per-step value. @return Substep
    * count. */
@@ -665,15 +647,13 @@ class BallGamepieceSim {
       BallEntity& ball = balls_[i];
 
       const Vector3 pre_step_position = ball.sim.state().position_m;
-      const bool skip_integration =
-          field_.sleeping_enabled && ball.sleeping;
+      const bool skip_integration = field_.sleeping_enabled && ball.sleeping;
       if (!skip_integration) {
         ball.sim.step(dt_s);
       }
 
       auto state = ball.sim.state();
-      const double spin_decay =
-          std::max(0.0, 1.0 - field_.free_ball_spin_decay_per_s * dt_s);
+      const double spin_decay = std::max(0.0, 1.0 - field_.free_ball_spin_decay_per_s * dt_s);
       state.spin_radps *= spin_decay;
       ball.sim.setState(state);
 
@@ -719,16 +699,11 @@ class BallGamepieceSim {
       if (projectile.position_m.z <= floor_z) {
         if (projectile.spawn_on_ground_after_touch) {
           const GamePieceInfo* info = findGamePieceInfo(projectile.type);
-          const auto& physics_cfg =
-              (info != nullptr) ? info->physics_config : fallbackBallConfig();
-          const auto& physics_props = (info != nullptr)
-                                          ? info->ball_properties
-                                          : fallbackBallProperties();
+          const auto& physics_cfg = (info != nullptr) ? info->physics_config : fallbackBallConfig();
+          const auto& physics_props = (info != nullptr) ? info->ball_properties : fallbackBallProperties();
 
           BallPhysicsSim3D::BallState state{};
-          state.position_m = Vector3(
-              projectile.position_m.x, projectile.position_m.y,
-              std::max(physics_props.radius_m, physics_cfg.ground_height_m));
+          state.position_m = Vector3(projectile.position_m.x, projectile.position_m.y, std::max(physics_props.radius_m, physics_cfg.ground_height_m));
           state.velocity_mps = projectile.velocity_mps;
           state.spin_radps = projectile.spin_radps;
           addBall(state, physics_cfg, physics_props);
@@ -751,20 +726,16 @@ class BallGamepieceSim {
       if (!goal.accept_any_type && goal.accepted_type != projectile.type) {
         continue;
       }
-      if (goal.require_positive_vertical_velocity &&
-          projectile.velocity_mps.z <= 0.0) {
+      if (goal.require_positive_vertical_velocity && projectile.velocity_mps.z <= 0.0) {
         continue;
       }
-      if (goal.custom_velocity_validator &&
-          !goal.custom_velocity_validator(projectile.velocity_mps)) {
+      if (goal.custom_velocity_validator && !goal.custom_velocity_validator(projectile.velocity_mps)) {
         continue;
       }
 
       if (goal.shape == GoalZone::Shape::kBox) {
         const Vector3 delta = projectile.position_m - goal.center_m;
-        if (std::abs(delta.x) <= goal.half_extents_m.x &&
-            std::abs(delta.y) <= goal.half_extents_m.y &&
-            std::abs(delta.z) <= goal.half_extents_m.z) {
+        if (std::abs(delta.x) <= goal.half_extents_m.x && std::abs(delta.y) <= goal.half_extents_m.y && std::abs(delta.z) <= goal.half_extents_m.z) {
           return true;
         }
       } else {
@@ -778,10 +749,8 @@ class BallGamepieceSim {
 
   bool isProjectileOutOfField(const ProjectileEntity& projectile) const {
     const double tolerance_m = 2.0;
-    return projectile.position_m.x < field_.min_corner_m.x - tolerance_m ||
-           projectile.position_m.x > field_.max_corner_m.x + tolerance_m ||
-           projectile.position_m.y < field_.min_corner_m.y - tolerance_m ||
-           projectile.position_m.y > field_.max_corner_m.y + tolerance_m;
+    return projectile.position_m.x < field_.min_corner_m.x - tolerance_m || projectile.position_m.x > field_.max_corner_m.x + tolerance_m ||
+           projectile.position_m.y < field_.min_corner_m.y - tolerance_m || projectile.position_m.y > field_.max_corner_m.y + tolerance_m;
   }
 
   const GamePieceInfo* findGamePieceInfo(GamePieceType type) const {
@@ -810,8 +779,7 @@ class BallGamepieceSim {
     }
   }
 
-  static bool tryParseGamePieceType(const std::string& type_name,
-                                    GamePieceType& out_type) {
+  static bool tryParseGamePieceType(const std::string& type_name, GamePieceType& out_type) {
     if (type_name == "Ball") {
       out_type = GamePieceType::kBall;
       return true;
@@ -840,8 +808,7 @@ class BallGamepieceSim {
     properties.mass_kg = 0.24;
     properties.radius_m = 0.09;
     properties.drag_coefficient = 0.50;
-    properties.reference_area_m2 =
-        3.14159265358979323846 * properties.radius_m * properties.radius_m;
+    properties.reference_area_m2 = 3.14159265358979323846 * properties.radius_m * properties.radius_m;
     properties.restitution = 0.48;
     return properties;
   }
@@ -866,8 +833,7 @@ class BallGamepieceSim {
   static Vector3 rotateYaw(const Vector3& local, double yaw_rad) {
     const double c = std::cos(yaw_rad);
     const double s = std::sin(yaw_rad);
-    return Vector3(local.x * c - local.y * s, local.x * s + local.y * c,
-                   local.z);
+    return Vector3(local.x * c - local.y * s, local.x * s + local.y * c, local.z);
   }
 
   /**
@@ -875,9 +841,7 @@ class BallGamepieceSim {
    * @param boundary Boundary definition whose orientation sets local +Z.
    * @return Unit-length outward normal in world coordinates.
    */
-  static Vector3 boundaryNormalWorld(const EnvironmentalBoundary& boundary) {
-    return boundary.orientation.rotate(Vector3::unitZ()).normalized();
-  }
+  static Vector3 boundaryNormalWorld(const EnvironmentalBoundary& boundary) { return boundary.orientation.rotate(Vector3::unitZ()).normalized(); }
 
   /**
    * @brief Applies a normal+friction impulse to a velocity vector.
@@ -886,8 +850,7 @@ class BallGamepieceSim {
    * @param restitution Coefficient of restitution in [0, 1].
    * @param friction Tangential damping factor in [0, 1].
    */
-  static void applyContactImpulse(Vector3& velocity, const Vector3& normal,
-                                  double restitution, double friction) {
+  static void applyContactImpulse(Vector3& velocity, const Vector3& normal, double restitution, double friction) {
     const double vn = velocity.dot(normal);
     if (vn >= 0.0) {
       return;
@@ -902,35 +865,23 @@ class BallGamepieceSim {
    * @brief Scales restitution as impact speed rises beyond a reference speed.
    * @return Effective restitution in [0, 1].
    */
-  static double velocityScaledRestitution(
-      double base_restitution, double impact_speed_mps,
-      double reference_speed_mps, double speed_exponent,
-      double min_scale) {
+  static double velocityScaledRestitution(double base_restitution, double impact_speed_mps, double reference_speed_mps, double speed_exponent,
+                                          double min_scale) {
     const double base = std::clamp(base_restitution, 0.0, 1.0);
     if (!std::isfinite(impact_speed_mps) || impact_speed_mps <= 0.0) {
       return base;
     }
 
-    const double reference_speed = std::max(
-      1e-6,
-      (std::isfinite(reference_speed_mps) && reference_speed_mps >= 0.0)
-        ? reference_speed_mps
-        : 3.0);
-    const double exponent =
-      (std::isfinite(speed_exponent) && speed_exponent >= 0.0)
-        ? speed_exponent
-        : 0.15;
-    const double clamped_min_scale = std::clamp(
-        std::isfinite(min_scale) ? min_scale : 0.55, 0.0, 1.0);
+    const double reference_speed = std::max(1e-6, (std::isfinite(reference_speed_mps) && reference_speed_mps >= 0.0) ? reference_speed_mps : 3.0);
+    const double exponent = (std::isfinite(speed_exponent) && speed_exponent >= 0.0) ? speed_exponent : 0.15;
+    const double clamped_min_scale = std::clamp(std::isfinite(min_scale) ? min_scale : 0.55, 0.0, 1.0);
 
     if (impact_speed_mps <= reference_speed || exponent <= 0.0) {
       return base;
     }
 
-    const double speed_scale =
-        std::pow(reference_speed / impact_speed_mps, exponent);
-    const double restitution_scale =
-        std::clamp(speed_scale, clamped_min_scale, 1.0);
+    const double speed_scale = std::pow(reference_speed / impact_speed_mps, exponent);
+    const double restitution_scale = std::clamp(speed_scale, clamped_min_scale, 1.0);
     return base * restitution_scale;
   }
 
@@ -960,12 +911,9 @@ class BallGamepieceSim {
         continue;
       }
 
-      const double floor_z =
-          ball.sim.config().ground_height_m + ball.sim.ballProperties().radius_m;
+      const double floor_z = ball.sim.config().ground_height_m + ball.sim.ballProperties().radius_m;
       const bool near_ground = state.position_m.z <= floor_z + 0.01;
-      const bool sleep_candidate = near_ground &&
-                                   state.velocity_mps.norm() <= velocity_threshold &&
-                                   state.spin_radps.norm() <= spin_threshold;
+      const bool sleep_candidate = near_ground && state.velocity_mps.norm() <= velocity_threshold && state.spin_radps.norm() <= spin_threshold;
 
       if (!sleep_candidate) {
         wakeBall(ball);
@@ -990,16 +938,13 @@ class BallGamepieceSim {
    * @param previous_position Position before integration.
    * @param dt_s Substep delta time.
    */
-  void resolveContinuousCollision(BallEntity& ball,
-                                  const Vector3& previous_position,
-                                  double dt_s) const {
+  void resolveContinuousCollision(BallEntity& ball, const Vector3& previous_position, double dt_s) const {
     if (!field_.ccd_enabled || dt_s <= 0.0 || ball.sim.state().held) {
       return;
     }
 
     auto state = ball.sim.state();
-    const double speed_mps =
-        (state.position_m - previous_position).norm() / std::max(1e-9, dt_s);
+    const double speed_mps = (state.position_m - previous_position).norm() / std::max(1e-9, dt_s);
     if (speed_mps < std::max(0.0, field_.ccd_speed_threshold_mps)) {
       return;
     }
@@ -1029,9 +974,7 @@ class BallGamepieceSim {
   }
 
   /** @brief Resolves swept collisions against outer XY field bounds. */
-  void resolveSweptFieldBounds(BallPhysicsSim3D::BallState& state,
-                               const Vector3& previous_position,
-                               double radius) const {
+  void resolveSweptFieldBounds(BallPhysicsSim3D::BallState& state, const Vector3& previous_position, double radius) const {
     const double min_x = field_.min_corner_m.x + radius;
     const double max_x = field_.max_corner_m.x - radius;
     const double min_y = field_.min_corner_m.y + radius;
@@ -1039,52 +982,36 @@ class BallGamepieceSim {
 
     if (previous_position.x >= min_x && state.position_m.x < min_x) {
       state.position_m.x = min_x;
-      state.velocity_mps.x = std::abs(state.velocity_mps.x) *
-                             scaledWallRestitution(
-                                 field_.wall_restitution,
-                                 std::abs(state.velocity_mps.x));
+      state.velocity_mps.x = std::abs(state.velocity_mps.x) * scaledWallRestitution(field_.wall_restitution, std::abs(state.velocity_mps.x));
       state.velocity_mps.y *= (1.0 - field_.wall_friction);
     }
     if (previous_position.x <= max_x && state.position_m.x > max_x) {
       state.position_m.x = max_x;
-      state.velocity_mps.x = -std::abs(state.velocity_mps.x) *
-                             scaledWallRestitution(
-                                 field_.wall_restitution,
-                                 std::abs(state.velocity_mps.x));
+      state.velocity_mps.x = -std::abs(state.velocity_mps.x) * scaledWallRestitution(field_.wall_restitution, std::abs(state.velocity_mps.x));
       state.velocity_mps.y *= (1.0 - field_.wall_friction);
     }
     if (previous_position.y >= min_y && state.position_m.y < min_y) {
       state.position_m.y = min_y;
-      state.velocity_mps.y = std::abs(state.velocity_mps.y) *
-                             scaledWallRestitution(
-                                 field_.wall_restitution,
-                                 std::abs(state.velocity_mps.y));
+      state.velocity_mps.y = std::abs(state.velocity_mps.y) * scaledWallRestitution(field_.wall_restitution, std::abs(state.velocity_mps.y));
       state.velocity_mps.x *= (1.0 - field_.wall_friction);
     }
     if (previous_position.y <= max_y && state.position_m.y > max_y) {
       state.position_m.y = max_y;
-      state.velocity_mps.y = -std::abs(state.velocity_mps.y) *
-                             scaledWallRestitution(
-                                 field_.wall_restitution,
-                                 std::abs(state.velocity_mps.y));
+      state.velocity_mps.y = -std::abs(state.velocity_mps.y) * scaledWallRestitution(field_.wall_restitution, std::abs(state.velocity_mps.y));
       state.velocity_mps.x *= (1.0 - field_.wall_friction);
     }
   }
 
   /** @brief Resolves swept collision against an infinite plane boundary. */
-  void resolveSweptPlaneBoundary(BallPhysicsSim3D::BallState& state,
-                                 const Vector3& previous_position,
-                                 const EnvironmentalBoundary& boundary,
+  void resolveSweptPlaneBoundary(BallPhysicsSim3D::BallState& state, const Vector3& previous_position, const EnvironmentalBoundary& boundary,
                                  double ball_radius) const {
     Vector3 normal = boundaryNormalWorld(boundary);
     if (normal.isZero()) {
       normal = Vector3::unitZ();
     }
 
-    const double prev_distance =
-        (previous_position - boundary.position_m).dot(normal);
-    const double curr_distance =
-        (state.position_m - boundary.position_m).dot(normal);
+    const double prev_distance = (previous_position - boundary.position_m).dot(normal);
+    const double curr_distance = (state.position_m - boundary.position_m).dot(normal);
 
     if (!(prev_distance >= ball_radius && curr_distance < ball_radius)) {
       return;
@@ -1092,35 +1019,25 @@ class BallGamepieceSim {
 
     state.position_m += normal * (ball_radius - curr_distance);
     const double impact_speed = std::max(0.0, -state.velocity_mps.dot(normal));
-    applyContactImpulse(state.velocity_mps, normal,
-                        scaledWallRestitution(boundary.restitution,
-                                              impact_speed),
-                        boundary.friction_coefficient);
+    applyContactImpulse(state.velocity_mps, normal, scaledWallRestitution(boundary.restitution, impact_speed), boundary.friction_coefficient);
   }
 
   /** @brief Resolves swept collision against an oriented box boundary. */
-  void resolveSweptBoxBoundary(BallPhysicsSim3D::BallState& state,
-                               const Vector3& previous_position,
-                               const EnvironmentalBoundary& boundary,
+  void resolveSweptBoxBoundary(BallPhysicsSim3D::BallState& state, const Vector3& previous_position, const EnvironmentalBoundary& boundary,
                                double ball_radius) const {
     const Quaternion inverse = boundary.orientation.inverse();
-    const Vector3 prev_local =
-        inverse.rotate(previous_position - boundary.position_m);
-    const Vector3 curr_local =
-        inverse.rotate(state.position_m - boundary.position_m);
+    const Vector3 prev_local = inverse.rotate(previous_position - boundary.position_m);
+    const Vector3 curr_local = inverse.rotate(state.position_m - boundary.position_m);
     const Vector3 delta_local = curr_local - prev_local;
 
-    const Vector3 expanded_min(-boundary.half_extents_m.x - ball_radius,
-                               -boundary.half_extents_m.y - ball_radius,
+    const Vector3 expanded_min(-boundary.half_extents_m.x - ball_radius, -boundary.half_extents_m.y - ball_radius,
                                -boundary.half_extents_m.z - ball_radius);
-    const Vector3 expanded_max(boundary.half_extents_m.x + ball_radius,
-                               boundary.half_extents_m.y + ball_radius,
+    const Vector3 expanded_max(boundary.half_extents_m.x + ball_radius, boundary.half_extents_m.y + ball_radius,
                                boundary.half_extents_m.z + ball_radius);
 
     auto inside_expanded = [&](const Vector3& p) {
-      return p.x >= expanded_min.x && p.x <= expanded_max.x &&
-             p.y >= expanded_min.y && p.y <= expanded_max.y &&
-             p.z >= expanded_min.z && p.z <= expanded_max.z;
+      return p.x >= expanded_min.x && p.x <= expanded_max.x && p.y >= expanded_min.y && p.y <= expanded_max.y && p.z >= expanded_min.z &&
+             p.z <= expanded_max.z;
     };
 
     if (inside_expanded(curr_local)) {
@@ -1131,9 +1048,7 @@ class BallGamepieceSim {
     double t_exit = 1.0;
     Vector3 local_normal = Vector3::zero();
 
-    auto process_axis = [&](double p0, double d, double min_b, double max_b,
-                            const Vector3& min_normal,
-                            const Vector3& max_normal) -> bool {
+    auto process_axis = [&](double p0, double d, double min_b, double max_b, const Vector3& min_normal, const Vector3& max_normal) -> bool {
       if (std::abs(d) < 1e-9) {
         return p0 >= min_b && p0 <= max_b;
       }
@@ -1155,16 +1070,13 @@ class BallGamepieceSim {
       return t_enter <= t_exit;
     };
 
-    if (!process_axis(prev_local.x, delta_local.x, expanded_min.x, expanded_max.x,
-                      Vector3(-1.0, 0.0, 0.0), Vector3(1.0, 0.0, 0.0))) {
+    if (!process_axis(prev_local.x, delta_local.x, expanded_min.x, expanded_max.x, Vector3(-1.0, 0.0, 0.0), Vector3(1.0, 0.0, 0.0))) {
       return;
     }
-    if (!process_axis(prev_local.y, delta_local.y, expanded_min.y, expanded_max.y,
-                      Vector3(0.0, -1.0, 0.0), Vector3(0.0, 1.0, 0.0))) {
+    if (!process_axis(prev_local.y, delta_local.y, expanded_min.y, expanded_max.y, Vector3(0.0, -1.0, 0.0), Vector3(0.0, 1.0, 0.0))) {
       return;
     }
-    if (!process_axis(prev_local.z, delta_local.z, expanded_min.z, expanded_max.z,
-                      Vector3(0.0, 0.0, -1.0), Vector3(0.0, 0.0, 1.0))) {
+    if (!process_axis(prev_local.z, delta_local.z, expanded_min.z, expanded_max.z, Vector3(0.0, 0.0, -1.0), Vector3(0.0, 0.0, 1.0))) {
       return;
     }
 
@@ -1174,34 +1086,23 @@ class BallGamepieceSim {
 
     const Vector3 hit_local = prev_local + delta_local * t_enter;
     const Vector3 corrected_local = hit_local + local_normal * 1e-4;
-    const Vector3 world_normal =
-        boundary.orientation.rotate(local_normal).normalized();
+    const Vector3 world_normal = boundary.orientation.rotate(local_normal).normalized();
 
     state.position_m = boundary.position_m + boundary.orientation.rotate(corrected_local);
     const double impact_speed = std::max(0.0, -state.velocity_mps.dot(world_normal));
-    applyContactImpulse(state.velocity_mps, world_normal,
-                        scaledWallRestitution(boundary.restitution,
-                                              impact_speed),
-                        boundary.friction_coefficient);
+    applyContactImpulse(state.velocity_mps, world_normal, scaledWallRestitution(boundary.restitution, impact_speed), boundary.friction_coefficient);
   }
 
   /** @brief Computes speed-dependent restitution for wall/field contacts. */
-  double scaledWallRestitution(double base_restitution,
-                               double impact_speed_mps) const {
-    return velocityScaledRestitution(
-        base_restitution, impact_speed_mps,
-        field_.wall_restitution_reference_speed_mps,
-        field_.wall_restitution_speed_exponent,
-        field_.wall_restitution_min_scale);
+  double scaledWallRestitution(double base_restitution, double impact_speed_mps) const {
+    return velocityScaledRestitution(base_restitution, impact_speed_mps, field_.wall_restitution_reference_speed_mps,
+                                     field_.wall_restitution_speed_exponent, field_.wall_restitution_min_scale);
   }
 
   /** @brief Computes speed-dependent restitution for robot-ball contacts. */
   double scaledRobotBallRestitution(double impact_speed_mps) const {
-    return velocityScaledRestitution(
-        field_.robot_ball_contact_restitution, impact_speed_mps,
-        field_.robot_ball_restitution_reference_speed_mps,
-        field_.robot_ball_restitution_speed_exponent,
-        field_.robot_ball_restitution_min_scale);
+    return velocityScaledRestitution(field_.robot_ball_contact_restitution, impact_speed_mps, field_.robot_ball_restitution_reference_speed_mps,
+                                     field_.robot_ball_restitution_speed_exponent, field_.robot_ball_restitution_min_scale);
   }
 
   /** @brief Integrates robot kinematics and clamps robot centers to field
@@ -1241,7 +1142,8 @@ class BallGamepieceSim {
     }
   }
 
-  /** @brief Resolves planar robot-robot overlap and relative normal velocity. */
+  /** @brief Resolves planar robot-robot overlap and relative normal velocity.
+   */
   void resolveRobotRobotImpedance() {
     for (std::size_t i = 0; i < robots_.size(); ++i) {
       for (std::size_t j = i + 1; j < robots_.size(); ++j) {
@@ -1261,8 +1163,7 @@ class BallGamepieceSim {
         a.position_m -= normal * (0.5 * overlap);
         b.position_m += normal * (0.5 * overlap);
 
-        const double relative_speed =
-            (a.velocity_mps - b.velocity_mps).dot(normal);
+        const double relative_speed = (a.velocity_mps - b.velocity_mps).dot(normal);
         if (relative_speed > 0.0) {
           continue;
         }
@@ -1277,9 +1178,9 @@ class BallGamepieceSim {
   /**
    * @brief Resolves robot-ball contact response.
    * @param ball Ball entity updated in place when contact occurs.
-  * @note Thread-safe. This method acquires an internal lock before accessing
-  *       shared simulator state (robot list and field parameters) to ensure
-  *       safe concurrent access from any thread.
+   * @note Thread-safe. This method acquires an internal lock before accessing
+   *       shared simulator state (robot list and field parameters) to ensure
+   *       safe concurrent access from any thread.
    */
   void resolveRobotBallContacts(BallEntity& ball) {
     std::lock_guard<std::recursive_mutex> lock(state_mutex_);
@@ -1297,17 +1198,13 @@ class BallGamepieceSim {
 
       wakeBall(ball);
 
-      const Vector3 normal =
-          distance > 1e-9 ? robot_to_ball / distance : Vector3::unitX();
-        const double penetration = contact_distance - distance;
-        state.position_m +=
-          normal * std::max(0.0, penetration - field_.baumgarte_slop_m);
+      const Vector3 normal = distance > 1e-9 ? robot_to_ball / distance : Vector3::unitX();
+      const double penetration = contact_distance - distance;
+      state.position_m += normal * std::max(0.0, penetration - field_.baumgarte_slop_m);
 
       Vector3 relative_velocity = state.velocity_mps - robot.velocity_mps;
       const double normal_impact_speed = -relative_velocity.dot(normal);
-      applyContactImpulse(relative_velocity, normal,
-              scaledRobotBallRestitution(normal_impact_speed),
-              field_.robot_ball_contact_friction);
+      applyContactImpulse(relative_velocity, normal, scaledRobotBallRestitution(normal_impact_speed), field_.robot_ball_contact_friction);
       state.velocity_mps = robot.velocity_mps + relative_velocity;
       state.spin_radps = Vector3::zero();
     }
@@ -1347,8 +1244,7 @@ class BallGamepieceSim {
       }
 
       const double radius_a = balls_[i].sim.ballProperties().radius_m;
-      const double mass_a =
-          std::max(1e-9, balls_[i].sim.ballProperties().mass_kg);
+      const double mass_a = std::max(1e-9, balls_[i].sim.ballProperties().mass_kg);
 
       for (std::size_t j = i + 1; j < balls_.size(); ++j) {
         const auto& state_b = balls_[j].sim.state();
@@ -1357,8 +1253,7 @@ class BallGamepieceSim {
         }
 
         const double radius_b = balls_[j].sim.ballProperties().radius_m;
-        const double mass_b =
-            std::max(1e-9, balls_[j].sim.ballProperties().mass_kg);
+        const double mass_b = std::max(1e-9, balls_[j].sim.ballProperties().mass_kg);
 
         const Vector3 delta = state_b.position_m - state_a.position_m;
         const double distance = delta.norm();
@@ -1378,13 +1273,10 @@ class BallGamepieceSim {
         contact.mass_b = mass_b;
         contact.radius_a = radius_a;
         contact.radius_b = radius_b;
-        const double approach_speed =
-            std::max(0.0, (state_a.velocity_mps - state_b.velocity_mps).dot(contact.normal));
-        contact.restitution = velocityScaledRestitution(
-            field_.ball_ball_contact_restitution, approach_speed,
-            field_.ball_ball_restitution_reference_speed_mps,
-            field_.ball_ball_restitution_speed_exponent,
-            field_.ball_ball_restitution_min_scale);
+        const double approach_speed = std::max(0.0, (state_a.velocity_mps - state_b.velocity_mps).dot(contact.normal));
+        contact.restitution =
+            velocityScaledRestitution(field_.ball_ball_contact_restitution, approach_speed, field_.ball_ball_restitution_reference_speed_mps,
+                                      field_.ball_ball_restitution_speed_exponent, field_.ball_ball_restitution_min_scale);
         contact.friction = std::clamp(field_.ball_ball_contact_friction, 0.0, 1.0);
         contacts.push_back(contact);
         wakeBall(balls_[i]);
@@ -1407,8 +1299,7 @@ class BallGamepieceSim {
         Vector3 relative_velocity = state_b.velocity_mps - state_a.velocity_mps;
         const double normal_speed = relative_velocity.dot(contact.normal);
         const double position_bias =
-            std::max(0.0, contact.penetration - field_.baumgarte_slop_m) *
-            std::clamp(field_.baumgarte_beta, 0.0, 1.0) * inv_dt;
+            std::max(0.0, contact.penetration - field_.baumgarte_slop_m) * std::clamp(field_.baumgarte_beta, 0.0, 1.0) * inv_dt;
 
         if (normal_speed < 0.0 || position_bias > 0.0) {
           const double inv_mass_sum = contact.inv_mass_a + contact.inv_mass_b;
@@ -1416,54 +1307,37 @@ class BallGamepieceSim {
             continue;
           }
 
-          const double desired_normal_impulse =
-              -((1.0 + contact.restitution) * normal_speed + position_bias) /
-              inv_mass_sum;
+          const double desired_normal_impulse = -((1.0 + contact.restitution) * normal_speed + position_bias) / inv_mass_sum;
           const double old_normal_accum = contact.normal_impulse_accum;
-          contact.normal_impulse_accum = std::max(
-              0.0, contact.normal_impulse_accum + desired_normal_impulse);
-          const double applied_normal_impulse =
-              contact.normal_impulse_accum - old_normal_accum;
+          contact.normal_impulse_accum = std::max(0.0, contact.normal_impulse_accum + desired_normal_impulse);
+          const double applied_normal_impulse = contact.normal_impulse_accum - old_normal_accum;
           const Vector3 normal_impulse_vec = contact.normal * applied_normal_impulse;
 
           state_a.velocity_mps -= normal_impulse_vec * contact.inv_mass_a;
           state_b.velocity_mps += normal_impulse_vec * contact.inv_mass_b;
 
           relative_velocity = state_b.velocity_mps - state_a.velocity_mps;
-          const Vector3 tangential_velocity =
-              relative_velocity - contact.normal *
-                  relative_velocity.dot(contact.normal);
+          const Vector3 tangential_velocity = relative_velocity - contact.normal * relative_velocity.dot(contact.normal);
           const double tangential_speed = tangential_velocity.norm();
           if (tangential_speed > 1e-9 && contact.friction > 0.0) {
             const Vector3 tangent = tangential_velocity / tangential_speed;
-            const double desired_tangent_impulse =
-                -tangential_speed / inv_mass_sum;
-            const double max_friction_impulse =
-                contact.friction * contact.normal_impulse_accum;
+            const double desired_tangent_impulse = -tangential_speed / inv_mass_sum;
+            const double max_friction_impulse = contact.friction * contact.normal_impulse_accum;
             const double old_tangent_accum = contact.tangent_impulse_accum;
-            contact.tangent_impulse_accum = std::clamp(
-                contact.tangent_impulse_accum + desired_tangent_impulse,
-                -max_friction_impulse, max_friction_impulse);
-            const double applied_tangent_impulse =
-                contact.tangent_impulse_accum - old_tangent_accum;
+            contact.tangent_impulse_accum =
+                std::clamp(contact.tangent_impulse_accum + desired_tangent_impulse, -max_friction_impulse, max_friction_impulse);
+            const double applied_tangent_impulse = contact.tangent_impulse_accum - old_tangent_accum;
             const Vector3 friction_impulse = tangent * applied_tangent_impulse;
 
             state_a.velocity_mps += friction_impulse * contact.inv_mass_a;
             state_b.velocity_mps -= friction_impulse * contact.inv_mass_b;
 
-            const double spin_transfer_gain =
-                std::max(0.0, field_.ball_ball_spin_transfer_gain);
+            const double spin_transfer_gain = std::max(0.0, field_.ball_ball_spin_transfer_gain);
             if (spin_transfer_gain > 0.0) {
-              const double inertia_a =
-                  std::max(1e-9, 0.4 * contact.mass_a * contact.radius_a * contact.radius_a);
-              const double inertia_b =
-                  std::max(1e-9, 0.4 * contact.mass_b * contact.radius_b * contact.radius_b);
-              state_a.spin_radps +=
-                  contact.normal.cross(friction_impulse) *
-                  (spin_transfer_gain / inertia_a) * contact.radius_a;
-              state_b.spin_radps +=
-                  (-contact.normal).cross(-friction_impulse) *
-                  (spin_transfer_gain / inertia_b) * contact.radius_b;
+              const double inertia_a = std::max(1e-9, 0.4 * contact.mass_a * contact.radius_a * contact.radius_a);
+              const double inertia_b = std::max(1e-9, 0.4 * contact.mass_b * contact.radius_b * contact.radius_b);
+              state_a.spin_radps += contact.normal.cross(friction_impulse) * (spin_transfer_gain / inertia_a) * contact.radius_a;
+              state_b.spin_radps += (-contact.normal).cross(-friction_impulse) * (spin_transfer_gain / inertia_b) * contact.radius_b;
             }
           }
 
@@ -1486,34 +1360,22 @@ class BallGamepieceSim {
 
     if (state.position_m.x < min_x) {
       state.position_m.x = min_x + field_.baumgarte_slop_m;
-      state.velocity_mps.x = std::abs(state.velocity_mps.x) *
-                             scaledWallRestitution(
-                                 field_.wall_restitution,
-                                 std::abs(state.velocity_mps.x));
+      state.velocity_mps.x = std::abs(state.velocity_mps.x) * scaledWallRestitution(field_.wall_restitution, std::abs(state.velocity_mps.x));
       state.velocity_mps.y *= (1.0 - field_.wall_friction);
     }
     if (state.position_m.x > max_x) {
       state.position_m.x = max_x - field_.baumgarte_slop_m;
-      state.velocity_mps.x = -std::abs(state.velocity_mps.x) *
-                             scaledWallRestitution(
-                                 field_.wall_restitution,
-                                 std::abs(state.velocity_mps.x));
+      state.velocity_mps.x = -std::abs(state.velocity_mps.x) * scaledWallRestitution(field_.wall_restitution, std::abs(state.velocity_mps.x));
       state.velocity_mps.y *= (1.0 - field_.wall_friction);
     }
     if (state.position_m.y < min_y) {
       state.position_m.y = min_y + field_.baumgarte_slop_m;
-      state.velocity_mps.y = std::abs(state.velocity_mps.y) *
-                             scaledWallRestitution(
-                                 field_.wall_restitution,
-                                 std::abs(state.velocity_mps.y));
+      state.velocity_mps.y = std::abs(state.velocity_mps.y) * scaledWallRestitution(field_.wall_restitution, std::abs(state.velocity_mps.y));
       state.velocity_mps.x *= (1.0 - field_.wall_friction);
     }
     if (state.position_m.y > max_y) {
       state.position_m.y = max_y - field_.baumgarte_slop_m;
-      state.velocity_mps.y = -std::abs(state.velocity_mps.y) *
-                             scaledWallRestitution(
-                                 field_.wall_restitution,
-                                 std::abs(state.velocity_mps.y));
+      state.velocity_mps.y = -std::abs(state.velocity_mps.y) * scaledWallRestitution(field_.wall_restitution, std::abs(state.velocity_mps.y));
       state.velocity_mps.x *= (1.0 - field_.wall_friction);
     }
 
@@ -1533,39 +1395,35 @@ class BallGamepieceSim {
       auto state = ball.sim.state();
       const double radius = ball.sim.ballProperties().radius_m;
 
-     // Check for pick-and-place snapping to goal zones
-     if (field_.scoring_element_snapping_enabled) {
-       for (const auto& goal : goals_) {
-         Vector3 displacement = goal.center_m - state.position_m;
-         double distance = displacement.norm();
-         if (distance < field_.snap_distance_m) {
-           // Snap element to scoring zone
-           state.position_m = goal.center_m;
-           state.velocity_mps = Vector3(0.0, 0.0, 0.0);
-           state.spin_radps = Vector3(0.0, 0.0, 0.0);
-           ball.sim.setState(state);
-           return;  // Ball is scored, stop processing
-         }
-       }
-     }
+      // Check for pick-and-place snapping to goal zones
+      if (field_.scoring_element_snapping_enabled) {
+        for (const auto& goal : goals_) {
+          Vector3 displacement = goal.center_m - state.position_m;
+          double distance = displacement.norm();
+          if (distance < field_.snap_distance_m) {
+            // Snap element to scoring zone
+            state.position_m = goal.center_m;
+            state.velocity_mps = Vector3(0.0, 0.0, 0.0);
+            state.spin_radps = Vector3(0.0, 0.0, 0.0);
+            ball.sim.setState(state);
+            return;  // Ball is scored, stop processing
+          }
+        }
+      }
 
       for (const auto& boundary : field_elements_) {
         if (!boundary.is_active) {
           continue;
         }
 
-        if (field_.net_boundary_user_id >= 0 &&
-            boundary.user_id == field_.net_boundary_user_id &&
-            boundary.type == BoundaryType::kBox) {
-          if (isInsideBoxBoundary(state.position_m, boundary,
-                                  radius * field_.net_entry_slack_scale)) {
+        if (field_.net_boundary_user_id >= 0 && boundary.user_id == field_.net_boundary_user_id && boundary.type == BoundaryType::kBox) {
+          if (isInsideBoxBoundary(state.position_m, boundary, radius * field_.net_entry_slack_scale)) {
             ball.scored_in_net = true;
             state.velocity_mps.x *= field_.net_velocity_decay;
             state.velocity_mps.y *= field_.net_velocity_decay;
             state.velocity_mps.z = std::min(state.velocity_mps.z, 0.0);
             state.spin_radps *= field_.net_spin_decay;
-            state.velocity_mps +=
-                Vector3(0.0, 0.0, -field_.net_downward_bias_mps2 * dt_s);
+            state.velocity_mps += Vector3(0.0, 0.0, -field_.net_downward_bias_mps2 * dt_s);
           }
           continue;
         }
@@ -1592,61 +1450,44 @@ class BallGamepieceSim {
 
   /** @brief Returns true when a point lies inside an oriented box boundary
    * with slack. */
-  static bool isInsideBoxBoundary(const Vector3& world_point,
-                                  const EnvironmentalBoundary& boundary,
-                                  double slack) {
+  static bool isInsideBoxBoundary(const Vector3& world_point, const EnvironmentalBoundary& boundary, double slack) {
     const Quaternion inverse = boundary.orientation.inverse();
     const Vector3 local = inverse.rotate(world_point - boundary.position_m);
-    return std::abs(local.x) <= boundary.half_extents_m.x + slack &&
-           std::abs(local.y) <= boundary.half_extents_m.y + slack &&
+    return std::abs(local.x) <= boundary.half_extents_m.x + slack && std::abs(local.y) <= boundary.half_extents_m.y + slack &&
            std::abs(local.z) <= boundary.half_extents_m.z + slack;
   }
 
   /** @brief Resolves penetration and impulse response for plane boundaries. */
-  void resolvePlaneBoundary(BallPhysicsSim3D::BallState& state,
-                            const EnvironmentalBoundary& boundary,
-                            double ball_radius) const {
+  void resolvePlaneBoundary(BallPhysicsSim3D::BallState& state, const EnvironmentalBoundary& boundary, double ball_radius) const {
     Vector3 normal = boundaryNormalWorld(boundary);
     if (normal.isZero()) {
       normal = Vector3::unitZ();
     }
 
-    const double signed_distance =
-        (state.position_m - boundary.position_m).dot(normal);
+    const double signed_distance = (state.position_m - boundary.position_m).dot(normal);
     if (signed_distance >= ball_radius) {
       return;
     }
 
-    state.position_m += normal *
-              std::max(0.0, ball_radius - signed_distance - field_.baumgarte_slop_m);
+    state.position_m += normal * std::max(0.0, ball_radius - signed_distance - field_.baumgarte_slop_m);
     const double impact_speed = std::max(0.0, -state.velocity_mps.dot(normal));
-    applyContactImpulse(state.velocity_mps, normal,
-              scaledWallRestitution(boundary.restitution,
-                          impact_speed),
-              boundary.friction_coefficient);
+    applyContactImpulse(state.velocity_mps, normal, scaledWallRestitution(boundary.restitution, impact_speed), boundary.friction_coefficient);
     state.spin_radps = Vector3::zero();
   }
 
   /** @brief Resolves penetration and impulse response for oriented box
    * boundaries. */
-  void resolveBoxBoundary(BallPhysicsSim3D::BallState& state,
-                          const EnvironmentalBoundary& boundary,
-                          double ball_radius) const {
+  void resolveBoxBoundary(BallPhysicsSim3D::BallState& state, const EnvironmentalBoundary& boundary, double ball_radius) const {
     const Quaternion inverse = boundary.orientation.inverse();
-    const Vector3 local =
-        inverse.rotate(state.position_m - boundary.position_m);
+    const Vector3 local = inverse.rotate(state.position_m - boundary.position_m);
 
-    const Vector3 closest(std::clamp(local.x, -boundary.half_extents_m.x,
-                                     boundary.half_extents_m.x),
-                          std::clamp(local.y, -boundary.half_extents_m.y,
-                                     boundary.half_extents_m.y),
-                          std::clamp(local.z, -boundary.half_extents_m.z,
-                                     boundary.half_extents_m.z));
+    const Vector3 closest(std::clamp(local.x, -boundary.half_extents_m.x, boundary.half_extents_m.x),
+                          std::clamp(local.y, -boundary.half_extents_m.y, boundary.half_extents_m.y),
+                          std::clamp(local.z, -boundary.half_extents_m.z, boundary.half_extents_m.z));
 
     Vector3 delta = local - closest;
     double distance = delta.norm();
-    Vector3 local_normal =
-        distance > 1e-9 ? delta / distance : Vector3::unitZ();
+    Vector3 local_normal = distance > 1e-9 ? delta / distance : Vector3::unitZ();
 
     if (distance >= ball_radius) {
       return;
@@ -1669,26 +1510,18 @@ class BallGamepieceSim {
       }
     }
 
-    const Vector3 world_normal =
-        boundary.orientation.rotate(local_normal).normalized();
-    state.position_m += world_normal *
-              std::max(0.0, ball_radius - distance - field_.baumgarte_slop_m);
+    const Vector3 world_normal = boundary.orientation.rotate(local_normal).normalized();
+    state.position_m += world_normal * std::max(0.0, ball_radius - distance - field_.baumgarte_slop_m);
     const double impact_speed = std::max(0.0, -state.velocity_mps.dot(world_normal));
-    applyContactImpulse(state.velocity_mps, world_normal,
-              scaledWallRestitution(boundary.restitution,
-                          impact_speed),
-              boundary.friction_coefficient);
+    applyContactImpulse(state.velocity_mps, world_normal, scaledWallRestitution(boundary.restitution, impact_speed), boundary.friction_coefficient);
     state.spin_radps = Vector3::zero();
   }
 
   /** @brief Resolves penetration and impulse response for cylinder
    * boundaries. */
-  void resolveCylinderBoundary(BallPhysicsSim3D::BallState& state,
-                               const EnvironmentalBoundary& boundary,
-                               double ball_radius) const {
+  void resolveCylinderBoundary(BallPhysicsSim3D::BallState& state, const EnvironmentalBoundary& boundary, double ball_radius) const {
     const Quaternion inverse = boundary.orientation.inverse();
-    const Vector3 local =
-        inverse.rotate(state.position_m - boundary.position_m);
+    const Vector3 local = inverse.rotate(state.position_m - boundary.position_m);
 
     const double half_height = std::max(0.0, boundary.half_extents_m.z);
     if (std::abs(local.z) > half_height + ball_radius) {
@@ -1697,24 +1530,17 @@ class BallGamepieceSim {
 
     const Vector3 radial(local.x, local.y, 0.0);
     const double radial_distance = radial.norm();
-    const double contact_distance =
-        std::max(0.0, boundary.radius_m) + ball_radius;
+    const double contact_distance = std::max(0.0, boundary.radius_m) + ball_radius;
     if (radial_distance >= contact_distance) {
       return;
     }
 
-    const Vector3 radial_normal_local =
-        radial_distance > 1e-9 ? radial / radial_distance : Vector3::unitX();
-    const Vector3 radial_normal_world =
-        boundary.orientation.rotate(radial_normal_local).normalized();
-    state.position_m += radial_normal_world *
-              std::max(0.0, contact_distance - radial_distance - field_.baumgarte_slop_m);
-    const double impact_speed =
-      std::max(0.0, -state.velocity_mps.dot(radial_normal_world));
-    applyContactImpulse(state.velocity_mps, radial_normal_world,
-              scaledWallRestitution(boundary.restitution,
-                          impact_speed),
-              boundary.friction_coefficient);
+    const Vector3 radial_normal_local = radial_distance > 1e-9 ? radial / radial_distance : Vector3::unitX();
+    const Vector3 radial_normal_world = boundary.orientation.rotate(radial_normal_local).normalized();
+    state.position_m += radial_normal_world * std::max(0.0, contact_distance - radial_distance - field_.baumgarte_slop_m);
+    const double impact_speed = std::max(0.0, -state.velocity_mps.dot(radial_normal_world));
+    applyContactImpulse(state.velocity_mps, radial_normal_world, scaledWallRestitution(boundary.restitution, impact_speed),
+                        boundary.friction_coefficient);
     state.spin_radps = Vector3::zero();
   }
 

@@ -1,8 +1,7 @@
-import pytest
-import math
-from geometry_utils import euler_from_quaternion, normalize_vector, apply_scale
-from urdf_parser import URDFParser
+from geometry_utils import apply_scale, euler_from_quaternion, normalize_vector
 from stl_loader import STLLoader
+from urdf_parser import URDFParser
+
 
 def test_quaternion_to_euler():
     # Identity quaternion
@@ -11,19 +10,23 @@ def test_quaternion_to_euler():
     assert p == 0.0
     assert y == 0.0
 
+
 def test_normalize_vector():
     v = normalize_vector([3.0, 0.0, 4.0])
     assert v == [0.6, 0.0, 0.8]
+
 
 def test_apply_scale():
     verts = [[1.0, 2.0, 3.0], [0.0, 0.0, 0.0]]
     scaled = apply_scale(verts, 2.0)
     assert scaled == [[2.0, 4.0, 6.0], [0.0, 0.0, 0.0]]
 
+
 def test_urdf_parser_missing_file():
     parser = URDFParser()
     result = parser.parse("nonexistent_file.urdf")
     assert result is False
+
 
 def test_stl_loader_missing_file():
     loader = STLLoader()

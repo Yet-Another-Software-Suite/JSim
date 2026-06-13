@@ -50,14 +50,14 @@ class RigidAssembly {
   const std::vector<RigidBody>& bodies() const { return bodies_; }
 
   /**
-   * @brief Creates a revolute (hinge) joint between two bodies in this assembly.
+   * @brief Creates a revolute (hinge) joint between two bodies in this
+   * assembly.
    * @param body_a_idx Index of the first body.
    * @param body_b_idx Index of the second body.
    * @param axis_local Rotation axis in the local frame of body A.
    * @return Pointer to the new joint owned by this assembly.
    */
-  RevoluteJoint* addRevoluteJoint(size_t body_a_idx, size_t body_b_idx,
-                                  const Vector3& axis_local);
+  RevoluteJoint* addRevoluteJoint(size_t body_a_idx, size_t body_b_idx, const Vector3& axis_local);
   /**
    * @brief Creates a prismatic (slider) joint between two bodies.
    * @param body_a_idx Index of the first body.
@@ -65,8 +65,7 @@ class RigidAssembly {
    * @param axis_local Slide axis in the local frame of body A.
    * @return Pointer to the new joint owned by this assembly.
    */
-  PrismaticJoint* addPrismaticJoint(size_t body_a_idx, size_t body_b_idx,
-                                    const Vector3& axis_local);
+  PrismaticJoint* addPrismaticJoint(size_t body_a_idx, size_t body_b_idx, const Vector3& axis_local);
   /**
    * @brief Creates a fixed (weld) joint between two bodies.
    * @param body_a_idx Index of the first body.
@@ -78,9 +77,7 @@ class RigidAssembly {
   /// @brief Mutable access to the assembly joint list.
   std::vector<std::shared_ptr<JointBase>>& joints() { return joints_; }
   /// @brief Immutable access to the assembly joint list.
-  const std::vector<std::shared_ptr<JointBase>>& joints() const {
-    return joints_;
-  }
+  const std::vector<std::shared_ptr<JointBase>>& joints() const { return joints_; }
 
   /**
    * @brief Marks one body as the root (reference origin) of the assembly.

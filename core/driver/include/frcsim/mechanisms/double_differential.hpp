@@ -60,7 +60,8 @@ class DoubleDifferentialMechanism {
     double pitch_scale{1.0};
     /// @brief Joint soft limits applied after matrix mapping.
     Limits limits{};
-    /// @brief Determinant threshold below which the matrix is treated as singular.
+    /// @brief Determinant threshold below which the matrix is treated as
+    /// singular.
     double singularity_epsilon{1e-9};
   };
 
@@ -92,14 +93,14 @@ class DoubleDifferentialMechanism {
   struct InverseResult {
     /// @brief Computed motor state (valid only when valid == true).
     MotorState motor_state{};
-    /// @brief False when the mapping matrix is singular within configured epsilon.
+    /// @brief False when the mapping matrix is singular within configured
+    /// epsilon.
     bool valid{true};
   };
 
   DoubleDifferentialMechanism() = default;
 
-  explicit DoubleDifferentialMechanism(const Config& config)
-      : config_(config) {}
+  explicit DoubleDifferentialMechanism(const Config& config) : config_(config) {}
 
   /** @brief Returns current mapping configuration. @return Immutable Config
    * reference. */
@@ -115,20 +116,13 @@ class DoubleDifferentialMechanism {
    */
   JointState forward(const MotorState& motor_state) const {
     JointState out{};
-    out.yaw_rad =
-        config_.yaw_scale * (config_.m00 * motor_state.motor_a_position_rad +
-                             config_.m01 * motor_state.motor_b_position_rad);
-    out.pitch_rad =
-        config_.pitch_scale * (config_.m10 * motor_state.motor_a_position_rad +
-                               config_.m11 * motor_state.motor_b_position_rad);
+    out.yaw_rad = config_.yaw_scale * (config_.m00 * motor_state.motor_a_position_rad + config_.m01 * motor_state.motor_b_position_rad);
+    out.pitch_rad = config_.pitch_scale * (config_.m10 * motor_state.motor_a_position_rad + config_.m11 * motor_state.motor_b_position_rad);
 
     out.yaw_velocity_radps =
-        config_.yaw_scale * (config_.m00 * motor_state.motor_a_velocity_radps +
-                             config_.m01 * motor_state.motor_b_velocity_radps);
+        config_.yaw_scale * (config_.m00 * motor_state.motor_a_velocity_radps + config_.m01 * motor_state.motor_b_velocity_radps);
     out.pitch_velocity_radps =
-        config_.pitch_scale *
-        (config_.m10 * motor_state.motor_a_velocity_radps +
-         config_.m11 * motor_state.motor_b_velocity_radps);
+        config_.pitch_scale * (config_.m10 * motor_state.motor_a_velocity_radps + config_.m11 * motor_state.motor_b_velocity_radps);
 
     applyLimits(out);
     return out;
@@ -160,17 +154,11 @@ class DoubleDifferentialMechanism {
 
     const JointState clamped = clampedToLimits(desired_joint_state);
 
-    result.motor_state.motor_a_position_rad =
-        inv11 * clamped.yaw_rad + inv12 * clamped.pitch_rad;
-    result.motor_state.motor_b_position_rad =
-        inv21 * clamped.yaw_rad + inv22 * clamped.pitch_rad;
+    result.motor_state.motor_a_position_rad = inv11 * clamped.yaw_rad + inv12 * clamped.pitch_rad;
+    result.motor_state.motor_b_position_rad = inv21 * clamped.yaw_rad + inv22 * clamped.pitch_rad;
 
-    result.motor_state.motor_a_velocity_radps =
-        inv11 * clamped.yaw_velocity_radps +
-        inv12 * clamped.pitch_velocity_radps;
-    result.motor_state.motor_b_velocity_radps =
-        inv21 * clamped.yaw_velocity_radps +
-        inv22 * clamped.pitch_velocity_radps;
+    result.motor_state.motor_a_velocity_radps = inv11 * clamped.yaw_velocity_radps + inv12 * clamped.pitch_velocity_radps;
+    result.motor_state.motor_b_velocity_radps = inv21 * clamped.yaw_velocity_radps + inv22 * clamped.pitch_velocity_radps;
 
     return result;
   }
@@ -188,10 +176,8 @@ class DoubleDifferentialMechanism {
 
  private:
   void applyLimits(JointState& state) const {
-    state.yaw_rad = std::clamp(state.yaw_rad, config_.limits.min_yaw_rad,
-                               config_.limits.max_yaw_rad);
-    state.pitch_rad = std::clamp(state.pitch_rad, config_.limits.min_pitch_rad,
-                                 config_.limits.max_pitch_rad);
+    state.yaw_rad = std::clamp(state.yaw_rad, config_.limits.min_yaw_rad, config_.limits.max_yaw_rad);
+    state.pitch_rad = std::clamp(state.pitch_rad, config_.limits.min_pitch_rad, config_.limits.max_pitch_rad);
   }
 
   Config config_{};

@@ -4,7 +4,8 @@
 
 /**
  * @file fixed_joint.hpp
- * @brief Rigid weld joint that constrains all relative translation and rotation.
+ * @brief Rigid weld joint that constrains all relative translation and
+ * rotation.
  */
 
 #pragma once
@@ -31,10 +32,10 @@ class FixedJoint : public JointBase {
   /**
    * @brief Constructs a fixed (weld) joint between two bodies.
    * @param body_a First rigid body.
-   * @param body_b Second rigid body; welded relative to body_a at construction time.
+   * @param body_b Second rigid body; welded relative to body_a at construction
+   * time.
    */
-  FixedJoint(RigidBody* body_a, RigidBody* body_b)
-      : JointBase(JointType::kFixed, body_a, body_b) {}
+  FixedJoint(RigidBody* body_a, RigidBody* body_b) : JointBase(JointType::kFixed, body_a, body_b) {}
 
   void solveConstraint(double dt_s, int iterations) override;
   double constraintError() const override;

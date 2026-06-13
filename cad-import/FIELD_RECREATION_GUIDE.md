@@ -151,12 +151,12 @@ Add seasonal field class to `field_definitions.py`:
 ```python
 class Field2026WeldedDefinition:
     """EVERGREEN 2026 field definition."""
-    
+
     # Keep length/width as a bounding box for quick checks.
     # Use field_boundary vertices for angled or non-rectangular edges.
     FIELD_LENGTH = 16.54
     FIELD_WIDTH = 8.21
-    
+
     @staticmethod
     def get_field_definition() -> Dict[str, Any]:
         return {
@@ -192,10 +192,10 @@ import json
 
 def generate_2026_field_json():
     """Create a runtime-consumable field JSON for 2026 season."""
-    
+
     # Load field definition
     field_def = FieldDefinitionManager.get_field_definition(2026)
-    
+
     with open("field_2026.json", "w") as f:
         json.dump(field_def, f, indent=2)
 
@@ -302,7 +302,7 @@ for step in range(1000):
 # Bad: Lookup every iteration
 for _ in range(1000):
     x = config["field"]["length"]  # Expensive
-    
+
 # Good: Cache
 field_length = config["field"]["length"]
 for _ in range(1000):
@@ -367,7 +367,7 @@ state13 = [0.0] * (max_bodies * 13)
 
 **Issue:** Visualizer lag in your chosen viewer
 
-**Solution:** 
+**Solution:**
 1. Reduce update frequency (20ms minimum)
 2. Batch runtime publishes
 3. Reduce number of game pieces being tracked
@@ -387,26 +387,26 @@ if frame_count % (50 / 20) == 0:
 
 ### April 2026 (Post-Game Announcement)
 
-✓ Get official 2026 field dimensions and CAD  
-✓ Review rebuilt field layout and unique elements  
-✓ Create JSON field definition  
-✓ Add Field2026WeldedDefinition class with actual specs  
-✓ Define material properties for new field elements  
+✓ Get official 2026 field dimensions and CAD
+✓ Review rebuilt field layout and unique elements
+✓ Create JSON field definition
+✓ Add Field2026WeldedDefinition class with actual specs
+✓ Define material properties for new field elements
 
 ### May 2026 (Pre-Season)
 
-✓ Test field setup with example teams  
-✓ Generate optional visualization adapters as needed  
-✓ Create season-specific documentation  
+✓ Test field setup with example teams
+✓ Generate optional visualization adapters as needed
+✓ Create season-specific documentation
 
 ### June 2026 (Build Season)
 
-✓ Teams import their robot CAD  
-✓ Validate robot CAD in field context  
-✓ Run physics simulations with 2026 field  
+✓ Teams import their robot CAD
+✓ Validate robot CAD in field context
+✓ Run physics simulations with 2026 field
 
 ### Competition Season
 
-✓ Teams use JSim for match prediction on 2026 field  
-✓ Live visualization in AdvantageScope  
-✓ Real-time physics validation with unique field elements  
+✓ Teams use JSim for match prediction on 2026 field
+✓ Live visualization in AdvantageScope
+✓ Real-time physics validation with unique field elements

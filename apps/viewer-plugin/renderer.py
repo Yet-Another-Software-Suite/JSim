@@ -5,6 +5,7 @@ Handles graphics window lifecycle and frame rendering.
 
 import logging
 
+
 class Renderer:
     def __init__(self, width: int = 1280, height: int = 720):
         self.width = width
@@ -13,7 +14,9 @@ class Renderer:
 
     def initialize(self):
         """Initializes the graphics context."""
-        logging.info(f"Initializing renderer with window size {self.width}x{self.height}")
+        logging.info(
+            f"Initializing renderer with window size {self.width}x{self.height}"
+        )
         self._running = True
 
     def render_frame(self):
@@ -21,7 +24,6 @@ class Renderer:
         if not self._running:
             return
         # Placeholder for OpenGL/Vulkan drawing operations
-        pass
 
     def close(self):
         """Shuts down the renderer and frees context."""

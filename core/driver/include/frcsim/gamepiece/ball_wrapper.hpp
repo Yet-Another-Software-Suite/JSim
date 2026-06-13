@@ -18,9 +18,9 @@ namespace frcsim {
 /**
  * @brief Thin, backwards-friendly ball wrapper around the generic `Gamepiece`.
  *
- * This type exists to make call sites that previously relied on `BallPhysicsSim3D`
- * or `Ball` compile with minimal changes while encouraging new code to use
- * the generic `Gamepiece` abstraction.
+ * This type exists to make call sites that previously relied on
+ * `BallPhysicsSim3D` or `Ball` compile with minimal changes while encouraging
+ * new code to use the generic `Gamepiece` abstraction.
  */
 class Ball : public Gamepiece {
  public:
@@ -28,11 +28,11 @@ class Ball : public Gamepiece {
 
   Ball() = default;
 
-  Ball(const Gamepiece::Config& cfg, const Gamepiece::Properties& props)
-      : Gamepiece(cfg, props) {}
+  Ball(const Gamepiece::Config& cfg, const Gamepiece::Properties& props) : Gamepiece(cfg, props) {}
 
   /**
-   * @brief Convenience factory returning a ball pre-configured with evergreen defaults.
+   * @brief Convenience factory returning a ball pre-configured with evergreen
+   * defaults.
    * @return Ball instance using default Config and Properties.
    */
   static Ball defaultEvergreen() {

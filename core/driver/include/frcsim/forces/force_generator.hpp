@@ -4,7 +4,8 @@
 
 /**
  * @file force_generator.hpp
- * @brief Abstract base class for physics force laws applied by the world integrator.
+ * @brief Abstract base class for physics force laws applied by the world
+ * integrator.
  */
 
 #pragma once

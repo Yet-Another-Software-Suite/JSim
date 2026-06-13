@@ -2,40 +2,25 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the LGPLv3 license file in the root directory of this project.
 
-/**
- * @file JSimJNI.cpp
- * @brief JNI bridge exposing the jsim_jni.JSimJNI Java class to the native driver.
- *
- * Each function is a one-to-one forward to the corresponding c_rs* function in
- * driversource.cpp. Array-based bulk accessors (getBodyPose7Array, etc.) use
- * GetDoubleArrayElements/ReleaseDoubleArrayElements to avoid per-element JNI
- * overhead when reading many bodies at once.
- */
-
-#include "jni.h"
-#include "jsim_jni_JSimJNI.h"
-
-#include <cstdint>
+#include <jni.h>
 
 #include "driverheader.h"
 
 extern "C" {
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
-  // Check to ensure the JNI version is valid
-
+  (void)reserved;
   JNIEnv* env;
-  if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK)
+  if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
     return JNI_ERR;
-
-  // NOTE: This library has no cached class/method globals today. The version
-  // check is retained so future additions have the correct pattern to follow
-  // and so the library explicitly declares its minimum JNI requirement.
-
+  }
   return JNI_VERSION_1_6;
 }
 
-JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved) {}
+JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved) {
+  (void)vm;
+  (void)reserved;
+}
 
 /*
  * Class:     jsim_jni_JSimJNI
@@ -59,8 +44,7 @@ JNIEXPORT jlong JNICALL
 Java_jsim_jni_JSimJNI_createWorld
   (JNIEnv*, jclass, jdouble fixed_dt_seconds, jboolean enable_gravity)
 {
-  return static_cast<jlong>(
-      c_rsCreateWorld(fixed_dt_seconds, enable_gravity ? 1 : 0));
+  return static_cast<jlong>(c_rsCreateWorld(fixed_dt_seconds, enable_gravity ? 1 : 0));
 }
 /*
  * Class:     jsim_jni_JSimJNI
@@ -69,12 +53,11 @@ Java_jsim_jni_JSimJNI_createWorld
  */
 JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_setBodyOrientation
-  (JNIEnv*, jclass, jlong world_handle, jint body_index, jdouble qw,
-   jdouble qx, jdouble qy, jdouble qz)
+  (JNIEnv*, jclass, jlong world_handle, jint body_index, jdouble qw, jdouble qx,
+   jdouble qy, jdouble qz)
 {
   return static_cast<jint>(
-      c_rsSetBodyOrientation(static_cast<uint64_t>(world_handle), body_index,
-                             qw, qx, qy, qz));
+      c_rsSetBodyOrientation(static_cast<uint64_t>(world_handle), body_index, qw, qx, qy, qz));
 }
 /*
  * Class:     jsim_jni_JSimJNI
@@ -97,11 +80,8 @@ JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_createBody
   (JNIEnv*, jclass, jlong world_handle, jdouble mass_kg)
 {
-  return static_cast<jint>(
-      c_rsCreateBody(static_cast<uint64_t>(world_handle), mass_kg));
+  return static_cast<jint>(c_rsCreateBody(static_cast<uint64_t>(world_handle), mass_kg));
 }
-
-/* Deprecated: legacy ball-named JNI methods removed; use gamepiece equivalents. */
 
 /*
  * Class:     jsim_jni_JSimJNI
@@ -123,8 +103,8 @@ Java_jsim_jni_JSimJNI_createGamepiece__J
  */
 JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_createGamepiece__JDDD
-  (JNIEnv*, jclass, jlong world_handle, jdouble radius_m,
-   jdouble mass_kg, jdouble restitution)
+  (JNIEnv*, jclass, jlong world_handle, jdouble radius_m, jdouble mass_kg,
+   jdouble restitution)
 {
   return static_cast<jint>(
       c_rsCreateGamepiece(static_cast<uint64_t>(world_handle), radius_m, mass_kg, restitution));
@@ -140,9 +120,8 @@ Java_jsim_jni_JSimJNI_createGamepieceWithType
   (JNIEnv*, jclass, jlong world_handle, jint type, jdouble radius_m,
    jdouble mass_kg, jdouble restitution)
 {
-  return static_cast<jint>(
-      c_rsCreateGamepieceWithType(static_cast<uint64_t>(world_handle),
-                                  static_cast<int>(type), radius_m, mass_kg, restitution));
+  return static_cast<jint>(c_rsCreateGamepieceWithType(
+      static_cast<uint64_t>(world_handle), static_cast<int>(type), radius_m, mass_kg, restitution));
 }
 
 /*
@@ -152,19 +131,18 @@ Java_jsim_jni_JSimJNI_createGamepieceWithType
  */
 JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_createGamepieceWithTypeName
-  (JNIEnv* env, jclass, jlong world_handle, jstring typeName,
-   jdouble radius_m, jdouble mass_kg, jdouble restitution)
+  (JNIEnv* env, jclass, jlong world_handle, jstring typeName, jdouble radius_m,
+   jdouble mass_kg, jdouble restitution)
 {
   const char* cname = nullptr;
   if (typeName != nullptr) {
     cname = env->GetStringUTFChars(typeName, nullptr);
   }
   // NOTE: GetStringUTFChars/ReleaseStringUTFChars bracket the native call so
-  // the C string remains valid for the duration of c_rsCreateGamepieceWithTypeName
-  // without requiring a copy.
-  jint rc = static_cast<jint>(
-      c_rsCreateGamepieceWithTypeName(static_cast<uint64_t>(world_handle),
-                                      cname, radius_m, mass_kg, restitution));
+  // the C string remains valid for the duration of
+  // c_rsCreateGamepieceWithTypeName without requiring a copy.
+  jint rc = static_cast<jint>(c_rsCreateGamepieceWithTypeName(
+      static_cast<uint64_t>(world_handle), cname, radius_m, mass_kg, restitution));
   if (cname) env->ReleaseStringUTFChars(typeName, cname);
   return rc;
 }
@@ -178,8 +156,8 @@ JNIEXPORT jstring JNICALL
 Java_jsim_jni_JSimJNI_getGamepieceTypeName
   (JNIEnv* env, jclass, jlong world_handle, jint gamepiece_index)
 {
-  const char* type_name = c_rsGetGamepieceTypeName(
-      static_cast<uint64_t>(world_handle), gamepiece_index);
+  const char* type_name =
+      c_rsGetGamepieceTypeName(static_cast<uint64_t>(world_handle), gamepiece_index);
   if (!type_name) {
     return nullptr;
   }
@@ -197,8 +175,7 @@ Java_jsim_jni_JSimJNI_setBodyPosition
    jdouble y_m, jdouble z_m)
 {
   return static_cast<jint>(
-      c_rsSetBodyPosition(static_cast<uint64_t>(world_handle),
-                          body_index, x_m, y_m, z_m));
+      c_rsSetBodyPosition(static_cast<uint64_t>(world_handle), body_index, x_m, y_m, z_m));
 }
 
 /*
@@ -211,9 +188,8 @@ Java_jsim_jni_JSimJNI_setBodyLinearVelocity
   (JNIEnv*, jclass, jlong world_handle, jint body_index, jdouble vx_mps,
    jdouble vy_mps, jdouble vz_mps)
 {
-  return static_cast<jint>(
-      c_rsSetBodyLinearVelocity(static_cast<uint64_t>(world_handle),
-                                body_index, vx_mps, vy_mps, vz_mps));
+  return static_cast<jint>(c_rsSetBodyLinearVelocity(static_cast<uint64_t>(world_handle),
+                                                     body_index, vx_mps, vy_mps, vz_mps));
 }
 
 /*
@@ -226,8 +202,7 @@ Java_jsim_jni_JSimJNI_setBodyGravityEnabled
   (JNIEnv*, jclass, jlong world_handle, jint body_index, jboolean enabled)
 {
   return static_cast<jint>(
-      c_rsSetBodyGravityEnabled(static_cast<uint64_t>(world_handle),
-                                body_index, enabled ? 1 : 0));
+      c_rsSetBodyGravityEnabled(static_cast<uint64_t>(world_handle), body_index, enabled ? 1 : 0));
 }
 
 /*
@@ -237,14 +212,12 @@ Java_jsim_jni_JSimJNI_setBodyGravityEnabled
  */
 JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_setBodyMaterial
-  (JNIEnv*, jclass, jlong world_handle, jint body_index,
-   jdouble restitution, jdouble friction_kinetic, jdouble friction_static,
-   jdouble collision_damping)
+  (JNIEnv*, jclass, jlong world_handle, jint body_index, jdouble restitution,
+   jdouble friction_kinetic, jdouble friction_static, jdouble collision_damping)
 {
-  return static_cast<jint>(
-      c_rsSetBodyMaterial(static_cast<uint64_t>(world_handle), body_index,
-                          restitution, friction_kinetic, friction_static,
-                          collision_damping));
+  return static_cast<jint>(c_rsSetBodyMaterial(static_cast<uint64_t>(world_handle), body_index,
+                                               restitution, friction_kinetic, friction_static,
+                                               collision_damping));
 }
 
 /*
@@ -256,9 +229,8 @@ JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_setBodyMaterialId
   (JNIEnv*, jclass, jlong world_handle, jint body_index, jint material_id)
 {
-  return static_cast<jint>(
-      c_rsSetBodyMaterialId(static_cast<uint64_t>(world_handle), body_index,
-                            static_cast<int32_t>(material_id)));
+  return static_cast<jint>(c_rsSetBodyMaterialId(static_cast<uint64_t>(world_handle), body_index,
+                                                 static_cast<int32_t>(material_id)));
 }
 
 /*
@@ -271,11 +243,9 @@ Java_jsim_jni_JSimJNI_setBodyCollisionFilter
   (JNIEnv*, jclass, jlong world_handle, jint body_index,
    jint collision_layer_bits, jint collision_mask_bits)
 {
-  return static_cast<jint>(
-      c_rsSetBodyCollisionFilter(static_cast<uint64_t>(world_handle),
-                                 body_index,
-                                 static_cast<uint32_t>(collision_layer_bits),
-                                 static_cast<uint32_t>(collision_mask_bits)));
+  return static_cast<jint>(c_rsSetBodyCollisionFilter(
+      static_cast<uint64_t>(world_handle), body_index, static_cast<uint32_t>(collision_layer_bits),
+      static_cast<uint32_t>(collision_mask_bits)));
 }
 
 /*
@@ -288,9 +258,8 @@ Java_jsim_jni_JSimJNI_setBodyAerodynamicSphere
   (JNIEnv*, jclass, jlong world_handle, jint body_index, jdouble radius_m,
    jdouble drag_coefficient)
 {
-  return static_cast<jint>(
-      c_rsSetBodyAerodynamicSphere(static_cast<uint64_t>(world_handle),
-                                   body_index, radius_m, drag_coefficient));
+  return static_cast<jint>(c_rsSetBodyAerodynamicSphere(static_cast<uint64_t>(world_handle),
+                                                        body_index, radius_m, drag_coefficient));
 }
 
 /*
@@ -303,41 +272,36 @@ Java_jsim_jni_JSimJNI_setBodyAerodynamicBox
   (JNIEnv*, jclass, jlong world_handle, jint body_index, jdouble x_m,
    jdouble y_m, jdouble z_m, jdouble drag_coefficient)
 {
-  return static_cast<jint>(
-      c_rsSetBodyAerodynamicBox(static_cast<uint64_t>(world_handle),
-                                body_index, x_m, y_m, z_m, drag_coefficient));
+  return static_cast<jint>(c_rsSetBodyAerodynamicBox(static_cast<uint64_t>(world_handle),
+                                                     body_index, x_m, y_m, z_m, drag_coefficient));
 }
-
-/* Deprecated ball-named JNI methods removed; use gamepiece equivalents. */
 
 /*
  * Class:     jsim_jni_JSimJNI
  * Method:    setGamepiecePosition
- * Signature: (JI DDD)I
+ * Signature: (JIDDD)I
  */
 JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_setGamepiecePosition
   (JNIEnv*, jclass, jlong world_handle, jint gamepiece_index, jdouble x_m,
    jdouble y_m, jdouble z_m)
 {
-  return static_cast<jint>(
-      c_rsSetGamepiecePosition(static_cast<uint64_t>(world_handle), gamepiece_index,
-                               x_m, y_m, z_m));
+  return static_cast<jint>(c_rsSetGamepiecePosition(static_cast<uint64_t>(world_handle),
+                                                    gamepiece_index, x_m, y_m, z_m));
 }
 
 /*
  * Class:     jsim_jni_JSimJNI
  * Method:    setGamepieceLinearVelocity
- * Signature: (JI DDD)I
+ * Signature: (JIDDD)I
  */
 JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_setGamepieceLinearVelocity
   (JNIEnv*, jclass, jlong world_handle, jint gamepiece_index, jdouble vx_mps,
    jdouble vy_mps, jdouble vz_mps)
 {
-  return static_cast<jint>(
-      c_rsSetGamepieceLinearVelocity(static_cast<uint64_t>(world_handle), gamepiece_index,
-                                     vx_mps, vy_mps, vz_mps));
+  return static_cast<jint>(c_rsSetGamepieceLinearVelocity(static_cast<uint64_t>(world_handle),
+                                                          gamepiece_index, vx_mps, vy_mps, vz_mps));
 }
 
 /*
@@ -357,8 +321,8 @@ Java_jsim_jni_JSimJNI_getGamepiecePosition
   double x = 0.0;
   double y = 0.0;
   double z = 0.0;
-  const int rc = c_rsGetGamepiecePosition(
-      static_cast<uint64_t>(world_handle), gamepiece_index, &x, &y, &z);
+  const int rc =
+      c_rsGetGamepiecePosition(static_cast<uint64_t>(world_handle), gamepiece_index, &x, &y, &z);
   if (rc != 0) {
     return rc;
   }
@@ -385,8 +349,8 @@ Java_jsim_jni_JSimJNI_getGamepieceLinearVelocity
   double vx = 0.0;
   double vy = 0.0;
   double vz = 0.0;
-  const int rc = c_rsGetGamepieceLinearVelocity(
-      static_cast<uint64_t>(world_handle), gamepiece_index, &vx, &vy, &vz);
+  const int rc = c_rsGetGamepieceLinearVelocity(static_cast<uint64_t>(world_handle),
+                                                gamepiece_index, &vx, &vy, &vz);
   if (rc != 0) {
     return rc;
   }
@@ -407,8 +371,7 @@ Java_jsim_jni_JSimJNI_setWorldGravity
    jdouble gz_mps2)
 {
   return static_cast<jint>(
-      c_rsSetWorldGravity(static_cast<uint64_t>(world_handle),
-                          gx_mps2, gy_mps2, gz_mps2));
+      c_rsSetWorldGravity(static_cast<uint64_t>(world_handle), gx_mps2, gy_mps2, gz_mps2));
 }
 
 /*
@@ -424,11 +387,9 @@ Java_jsim_jni_JSimJNI_setWorldAerodynamics
    jdouble default_drag_reference_area_m2)
 {
   return static_cast<jint>(
-      c_rsSetWorldAerodynamics(static_cast<uint64_t>(world_handle),
-                               enabled ? 1 : 0, air_density_kgpm3,
-                               linear_drag_n_per_mps, magnus_coefficient,
-                               default_drag_coefficient,
-                               default_drag_reference_area_m2));
+      c_rsSetWorldAerodynamics(static_cast<uint64_t>(world_handle), enabled ? 1 : 0,
+                               air_density_kgpm3, linear_drag_n_per_mps, magnus_coefficient,
+                               default_drag_coefficient, default_drag_reference_area_m2));
 }
 
 /*
@@ -438,21 +399,18 @@ Java_jsim_jni_JSimJNI_setWorldAerodynamics
  */
 JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_setMaterialInteraction
-  (JNIEnv*, jclass, jlong world_handle, jint material_a_id,
-   jint material_b_id, jdouble restitution, jdouble friction,
-   jboolean enabled)
+  (JNIEnv*, jclass, jlong world_handle, jint material_a_id, jint material_b_id,
+   jdouble restitution, jdouble friction, jboolean enabled)
 {
-  return static_cast<jint>(
-      c_rsSetMaterialInteraction(static_cast<uint64_t>(world_handle),
-                                 static_cast<int32_t>(material_a_id),
-                                 static_cast<int32_t>(material_b_id),
-                                 restitution, friction, enabled ? 1 : 0));
+  return static_cast<jint>(c_rsSetMaterialInteraction(
+      static_cast<uint64_t>(world_handle), static_cast<int32_t>(material_a_id),
+      static_cast<int32_t>(material_b_id), restitution, friction, enabled ? 1 : 0));
 }
 
 /*
  * Class:     jsim_jni_JSimJNI
  * Method:    pickGamepiece
- * Signature: (JIIDDDDD)I
+ * Signature: (JIDDDDDDD)I
  */
 JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_pickGamepiece
@@ -460,10 +418,9 @@ Java_jsim_jni_JSimJNI_pickGamepiece
    jdouble intake_y, jdouble intake_z, jdouble capture_radius,
    jdouble carry_offset_x, jdouble carry_offset_y, jdouble carry_offset_z)
 {
-  return static_cast<jint>(
-      c_rsPickGamepiece(static_cast<uint64_t>(world_handle), gamepiece_index,
-                        intake_x, intake_y, intake_z, capture_radius,
-                        carry_offset_x, carry_offset_y, carry_offset_z));
+  return static_cast<jint>(c_rsPickGamepiece(static_cast<uint64_t>(world_handle), gamepiece_index,
+                                             intake_x, intake_y, intake_z, capture_radius,
+                                             carry_offset_x, carry_offset_y, carry_offset_z));
 }
 
 /*
@@ -477,23 +434,21 @@ Java_jsim_jni_JSimJNI_placeGamepiece
    jdouble y_m, jdouble z_m)
 {
   return static_cast<jint>(
-      c_rsPlaceGamepiece(static_cast<uint64_t>(world_handle), gamepiece_index,
-                         x_m, y_m, z_m));
+      c_rsPlaceGamepiece(static_cast<uint64_t>(world_handle), gamepiece_index, x_m, y_m, z_m));
 }
 
 /*
  * Class:     jsim_jni_JSimJNI
  * Method:    outtakeGamepiece
- * Signature: (JI DDD DDD)I
+ * Signature: (JIDDDDDD)I
  */
 JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_outtakeGamepiece
   (JNIEnv*, jclass, jlong world_handle, jint gamepiece_index, jdouble px,
    jdouble py, jdouble pz, jdouble vx, jdouble vy, jdouble vz)
 {
-  return static_cast<jint>(
-      c_rsOuttakeGamepiece(static_cast<uint64_t>(world_handle), gamepiece_index,
-                         px, py, pz, vx, vy, vz));
+  return static_cast<jint>(c_rsOuttakeGamepiece(static_cast<uint64_t>(world_handle),
+                                                gamepiece_index, px, py, pz, vx, vy, vz));
 }
 
 /*
@@ -505,8 +460,7 @@ JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_stepWorld
   (JNIEnv*, jclass, jlong world_handle, jint steps)
 {
-  return static_cast<jint>(
-      c_rsStepWorld(static_cast<uint64_t>(world_handle), steps));
+  return static_cast<jint>(c_rsStepWorld(static_cast<uint64_t>(world_handle), steps));
 }
 
 /*
@@ -526,8 +480,7 @@ Java_jsim_jni_JSimJNI_getBodyPosition
   double x = 0.0;
   double y = 0.0;
   double z = 0.0;
-  const int rc = c_rsGetBodyPosition(
-      static_cast<uint64_t>(world_handle), body_index, &x, &y, &z);
+  const int rc = c_rsGetBodyPosition(static_cast<uint64_t>(world_handle), body_index, &x, &y, &z);
   if (rc != 0) {
     return rc;
   }
@@ -554,8 +507,8 @@ Java_jsim_jni_JSimJNI_getBodyLinearVelocity
   double vx = 0.0;
   double vy = 0.0;
   double vz = 0.0;
-  const int rc = c_rsGetBodyLinearVelocity(
-      static_cast<uint64_t>(world_handle), body_index, &vx, &vy, &vz);
+  const int rc =
+      c_rsGetBodyLinearVelocity(static_cast<uint64_t>(world_handle), body_index, &vx, &vy, &vz);
   if (rc != 0) {
     return rc;
   }
@@ -589,8 +542,7 @@ Java_jsim_jni_JSimJNI_getBodyPose7Array
     return -1;
   }
 
-  const int rc = c_rsGetBodyPose7Array(static_cast<uint64_t>(world_handle),
-                                       data, max_bodies);
+  const int rc = c_rsGetBodyPose7Array(static_cast<uint64_t>(world_handle), data, max_bodies);
   env->ReleaseDoubleArrayElements(out_pose7, data, 0);
   return static_cast<jint>(rc);
 }
@@ -619,8 +571,7 @@ Java_jsim_jni_JSimJNI_getBodyVelocity6Array
     return -1;
   }
 
-  const int rc = c_rsGetBodyVelocity6Array(static_cast<uint64_t>(world_handle),
-                                           data, max_bodies);
+  const int rc = c_rsGetBodyVelocity6Array(static_cast<uint64_t>(world_handle), data, max_bodies);
   env->ReleaseDoubleArrayElements(out_velocity6, data, 0);
   return static_cast<jint>(rc);
 }
@@ -632,7 +583,8 @@ Java_jsim_jni_JSimJNI_getBodyVelocity6Array
  */
 JNIEXPORT jint JNICALL
 Java_jsim_jni_JSimJNI_getBodyOrientation
-  (JNIEnv* env, jclass, jlong world_handle, jint body_index, jdoubleArray out_orientation)
+  (JNIEnv* env, jclass, jlong world_handle, jint body_index,
+   jdoubleArray out_orientation)
 {
   if (out_orientation == nullptr) {
     return -1;
@@ -652,8 +604,8 @@ Java_jsim_jni_JSimJNI_getBodyOrientation
   double qx = 0.0;
   double qy = 0.0;
   double qz = 0.0;
-  const int rc = c_rsGetBodyOrientation(static_cast<uint64_t>(world_handle), body_index,
-                                        &qw, &qx, &qy, &qz);
+  const int rc =
+      c_rsGetBodyOrientation(static_cast<uint64_t>(world_handle), body_index, &qw, &qx, &qy, &qz);
   if (rc == 0) {
     data[0] = qw;
     data[1] = qx;
@@ -689,8 +641,7 @@ Java_jsim_jni_JSimJNI_getBodyState13Array
     return -1;
   }
 
-  const int rc = c_rsGetBodyState13Array(static_cast<uint64_t>(world_handle),
-                                         data, max_bodies);
+  const int rc = c_rsGetBodyState13Array(static_cast<uint64_t>(world_handle), data, max_bodies);
   env->ReleaseDoubleArrayElements(out_state13, data, 0);
   return static_cast<jint>(rc);
 }

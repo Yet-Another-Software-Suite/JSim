@@ -4,7 +4,8 @@
 
 /**
  * @file goal_structure.hpp
- * @brief Scoring volume definitions used by arena presets and projectile hit checks.
+ * @brief Scoring volume definitions used by arena presets and projectile hit
+ * checks.
  */
 
 #pragma once
@@ -64,13 +65,16 @@ struct GoalStructure {
 
   /** @brief Filter for accepted gamepiece types (allows selective scoring). */
   AcceptedType accepted_type{AcceptedType::kBall};
-  /** @brief When true, scoring requires upward (+Z) velocity unless custom validator overrides. */
+  /** @brief When true, scoring requires upward (+Z) velocity unless custom
+   * validator overrides. */
   bool require_positive_vertical_velocity{false};
 
-  /** @brief Optional custom position test for complex geometry in kCustom mode. */
+  /** @brief Optional custom position test for complex geometry in kCustom mode.
+   */
   std::function<bool(const Vector3&)> custom_position_checker{};
 
-  /** @brief Optional custom validator for velocity constraints during scoring. */
+  /** @brief Optional custom validator for velocity constraints during scoring.
+   */
   std::function<bool(const Vector3&)> custom_velocity_validator{};
 
   /**
@@ -88,9 +92,7 @@ struct GoalStructure {
     }
 
     const Vector3 delta = position_m - center_m;
-    return std::abs(delta.x) <= half_extents_m.x &&
-           std::abs(delta.y) <= half_extents_m.y &&
-           std::abs(delta.z) <= half_extents_m.z;
+    return std::abs(delta.x) <= half_extents_m.x && std::abs(delta.y) <= half_extents_m.y && std::abs(delta.z) <= half_extents_m.z;
   }
 
   /**

@@ -4,7 +4,8 @@
 
 /**
  * @file shooter_wheel.hpp
- * @brief Single-wheel flywheel velocity model with motor physics and ball-coupling estimate.
+ * @brief Single-wheel flywheel velocity model with motor physics and
+ * ball-coupling estimate.
  */
 
 #pragma once
@@ -85,23 +86,28 @@ class FlywheelWheelSim {
     double inertia_kgm2{0.0025};
     /// @brief Viscous friction coefficient in N·m/(rad/s).
     double viscous_friction_nm_per_radps{0.0008};
-    /// @brief Fraction of wheel tangential speed transferred to ball exit speed (0–1).
+    /// @brief Fraction of wheel tangential speed transferred to ball exit speed
+    /// (0–1).
     double ball_coupling{0.88};
   };
 
-  /** @brief Control inputs for open-loop or simple internal velocity-loop operation. */
+  /** @brief Control inputs for open-loop or simple internal velocity-loop
+   * operation. */
   struct ControlInput {
     /// @brief Open-loop voltage command in volts.
     double command_voltage_v{0.0};
-    /// @brief When true, internal velocity loop maps target_speed_radps to a voltage.
+    /// @brief When true, internal velocity loop maps target_speed_radps to a
+    /// voltage.
     bool velocity_closed_loop{false};
-    /// @brief Target angular speed when velocity_closed_loop is active, in rad/s.
+    /// @brief Target angular speed when velocity_closed_loop is active, in
+    /// rad/s.
     double target_speed_radps{0.0};
     /// @brief Proportional gain for the internal velocity loop.
     double velocity_kp{0.03};
     /// @brief Stator current clamp in amperes; disabled when <= 0.
     double current_limit_a{0.0};
-    /// @brief Voltage needed to overcome static friction at near-zero speed, in volts.
+    /// @brief Voltage needed to overcome static friction at near-zero speed, in
+    /// volts.
     double friction_voltage_v{0.0};
   };
 
@@ -113,8 +119,7 @@ class FlywheelWheelSim {
    * @param motor Motor configuration constants.
    * @param wheel Wheel mechanical configuration.
    */
-  FlywheelWheelSim(const MotorConfig& motor, const WheelConfig& wheel)
-      : motor_(motor), wheel_(wheel) {}
+  FlywheelWheelSim(const MotorConfig& motor, const WheelConfig& wheel) : motor_(motor), wheel_(wheel) {}
 
   /** @brief Sets motor constants. @param motor New motor configuration. */
   void setMotorConfig(const MotorConfig& motor) { motor_ = motor; }
@@ -137,16 +142,11 @@ class FlywheelWheelSim {
 
   /** @brief Computes tangential speed at wheel perimeter. @return Surface speed
    * in m/s. */
-  double surfaceSpeedMps() const {
-    return omega_radps_ * std::max(0.0, wheel_.radius_m);
-  }
+  double surfaceSpeedMps() const { return omega_radps_ * std::max(0.0, wheel_.radius_m); }
 
   /** @brief Estimates ball exit speed from current surface speed and coupling
    * factor. @return Exit speed in m/s. */
-  double estimatedExitVelocityMps() const {
-    return std::max(0.0,
-                    surfaceSpeedMps() * std::max(0.0, wheel_.ball_coupling));
-  }
+  double estimatedExitVelocityMps() const { return std::max(0.0, surfaceSpeedMps() * std::max(0.0, wheel_.ball_coupling)); }
 
   /**
    * @brief Advances the flywheel wheel state by one step.
@@ -174,8 +174,7 @@ class FlywheelWheelSim {
       if (std::abs(voltage) <= v_deadband) {
         voltage = 0.0;
       } else {
-        voltage = std::copysign(std::max(0.0, std::abs(voltage) - v_deadband),
-                                voltage);
+        voltage = std::copysign(std::max(0.0, std::abs(voltage) - v_deadband), voltage);
       }
     }
 
@@ -184,20 +183,15 @@ class FlywheelWheelSim {
     const double voltage_scale = voltage / effective_nominal_v;
     const double no_load_speed = effective_free_speed * voltage_scale;
     const double speed_error = no_load_speed - omega_radps_;
-    double available_torque =
-        motor_.stall_torque_nm * speed_error / effective_free_speed;
+    double available_torque = motor_.stall_torque_nm * speed_error / effective_free_speed;
 
     if (control.current_limit_a > 0.0 && motor_.stall_current_a > 0.0) {
-      const double torque_per_amp =
-          motor_.stall_torque_nm / motor_.stall_current_a;
-      const double max_torque_from_limit =
-          torque_per_amp * control.current_limit_a;
-      available_torque = std::clamp(available_torque, -max_torque_from_limit,
-                                    max_torque_from_limit);
+      const double torque_per_amp = motor_.stall_torque_nm / motor_.stall_current_a;
+      const double max_torque_from_limit = torque_per_amp * control.current_limit_a;
+      available_torque = std::clamp(available_torque, -max_torque_from_limit, max_torque_from_limit);
     }
 
-    const double friction_torque =
-        wheel_.viscous_friction_nm_per_radps * omega_radps_;
+    const double friction_torque = wheel_.viscous_friction_nm_per_radps * omega_radps_;
     const double net_torque = available_torque - friction_torque;
 
     const double inertia = std::max(1e-9, wheel_.inertia_kgm2);

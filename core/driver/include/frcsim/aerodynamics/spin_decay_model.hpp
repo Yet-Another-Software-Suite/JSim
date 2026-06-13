@@ -1,3 +1,7 @@
+// Copyright (c) JSim contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the LGPLv3 license file in the root directory of this project.
+
 /**
  * @file spin_decay_model.hpp
  * @brief Models angular velocity evolution with damping and Magnus coupling.
@@ -7,10 +11,10 @@
 
 #include <cmath>
 
-#include "frcsim/math/vector.hpp"
+#include "frcsim/aerodynamics/magnus_model.hpp"
 #include "frcsim/math/matrix.hpp"
 #include "frcsim/math/quaternion.hpp"
-#include "frcsim/aerodynamics/magnus_model.hpp"
+#include "frcsim/math/vector.hpp"
 
 /** @addtogroup aerodynamics @{ */
 
@@ -40,8 +44,7 @@ class SpinDecayModel {
    *
    * @note Explicit to prevent unintended implicit conversions.
    */
-  explicit SpinDecayModel(const MagnusModel& magnus_model = MagnusModel())
-      : magnus_model_(magnus_model) {}
+  explicit SpinDecayModel(const MagnusModel& magnus_model = MagnusModel()) : magnus_model_(magnus_model) {}
 
   /**
    * @brief Advances angular velocity forward in time.
@@ -60,10 +63,7 @@ class SpinDecayModel {
    *
    * @return Updated angular velocity in body frame
    */
-  Vector3 step(const Vector3& omegaLocal,
-               const Vector3& velocityWorld,
-               const Quaternion& orientation,
-               double dt) const noexcept {
+  Vector3 step(const Vector3& omegaLocal, const Vector3& velocityWorld, const Quaternion& orientation, double dt) const noexcept {
     // --- Rotation transforms ---
     Matrix3 R = Matrix3::fromQuaternion(orientation);
     Matrix3 Rinv = R.transpose();
@@ -91,18 +91,13 @@ class SpinDecayModel {
      * Magnus force computed from external model.
      * This avoids duplicating aerodynamic logic.
      */
-    Vector3 magnusForce =
-        magnus_model_.computeForce(velocityWorld, omegaWorld);
+    Vector3 magnusForce = magnus_model_.computeForce(velocityWorld, omegaWorld);
 
     /** Torque generated via lever arm cross force */
     Vector3 magnusTorque = m_radiusVector.cross(magnusForce);
 
     // --- Angular acceleration ---
-    Vector3 domega =
-        magnusTorque
-        - linearDamping
-        - velocityDamping
-        - nonlinearDamping;
+    Vector3 domega = magnusTorque - linearDamping - velocityDamping - nonlinearDamping;
 
     // integrate in world frame
     omegaWorld = omegaWorld + domega * dt;

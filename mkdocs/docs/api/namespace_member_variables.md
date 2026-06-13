@@ -5,4 +5,3 @@ Constants and global configuration
 
 Changing defaults
 - Prefer passing configuration via constructors or configuration objects rather than mutating globals at runtime.
-

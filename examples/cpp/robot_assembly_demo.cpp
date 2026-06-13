@@ -17,17 +17,17 @@
 
 #include <iostream>
 
-#include "frcsim/physics_world.hpp"
 #include "frcsim/joints/prismatic_joint.hpp"
 #include "frcsim/joints/revolute_joint.hpp"
+#include "frcsim/physics_world.hpp"
 
 int main() {
   // --- World Configuration ---
   frcsim::PhysicsConfig config;
-  config.fixed_dt_s = 0.01; // 100 Hz simulation rate
+  config.fixed_dt_s = 0.01;  // 100 Hz simulation rate
   config.integration_method = frcsim::IntegrationMethod::kSemiImplicitEuler;
-  config.enable_collision_detection = false; // Collisions are off for simplicity
-  config.enable_joint_constraints = true; // Joints must be enabled!
+  config.enable_collision_detection = false;  // Collisions are off for simplicity
+  config.enable_joint_constraints = true;     // Joints must be enabled!
   config.linear_damping_per_s = 0.05;
 
   frcsim::PhysicsWorld world(config);
@@ -42,9 +42,9 @@ int main() {
   // 2. Add bodies to the assembly.
   // We'll create a simple robot with a chassis, an arm, and a gripper.
   // The integer returned is the body's index within the assembly.
-  frcsim::RigidBody* chassis = robot.addBody(5.0); // 5.0 kg
-  frcsim::RigidBody* arm = robot.addBody(2.0);     // 2.0 kg
-  frcsim::RigidBody* gripper = robot.addBody(0.5); // 0.5 kg
+  frcsim::RigidBody* chassis = robot.addBody(5.0);  // 5.0 kg
+  frcsim::RigidBody* arm = robot.addBody(2.0);      // 2.0 kg
+  frcsim::RigidBody* gripper = robot.addBody(0.5);  // 0.5 kg
 
   // Set initial positions relative to the assembly's origin.
   chassis->setPosition(frcsim::Vector3(0.0, 0.0, 0.5));
@@ -56,32 +56,32 @@ int main() {
   // 3. Create a Revolute Joint (Hinge).
   // This will connect the chassis (body 0) to the arm (body 1).
   // The joint will rotate around the Z-axis.
-  frcsim::RevoluteJoint* shoulder = robot.addRevoluteJoint(
-      0, 1, frcsim::Vector3(0.0, 0.0, 1.0)); // Z-axis rotation
+  frcsim::RevoluteJoint* shoulder = robot.addRevoluteJoint(0, 1, frcsim::Vector3(0.0, 0.0, 1.0));  // Z-axis rotation
   if (shoulder) {
     // Anchors define the pivot point in the local coordinates of each body.
-    shoulder->setAnchorA(frcsim::Vector3(0.0, 0.25, 0.0)); // Pivot on chassis
-    shoulder->setAnchorB(frcsim::Vector3(0.0, -0.25, 0.0)); // Pivot on arm
+    shoulder->setAnchorA(frcsim::Vector3(0.0, 0.25, 0.0));   // Pivot on chassis
+    shoulder->setAnchorB(frcsim::Vector3(0.0, -0.25, 0.0));  // Pivot on arm
     // Set angular limits for the joint.
-    shoulder->setLimits(-1.57, 1.57); // +/- 90 degrees (in radians)
+    shoulder->setLimits(-1.57, 1.57);  // +/- 90 degrees (in radians)
     // Set a motor to drive the joint towards a target velocity.
-    shoulder->setMotorTarget(0.5, 10.0); // Target 0.5 rad/s with 10 N·m max torque
+    shoulder->setMotorTarget(0.5,
+                             10.0);  // Target 0.5 rad/s with 10 N·m max torque
     std::cout << "Added a revolute 'shoulder' joint between chassis and arm." << std::endl;
   }
 
   // 4. Create a Prismatic Joint (Slider).
   // This will connect the arm (body 1) to the gripper (body 2).
   // The joint will translate along the arm's Y-axis.
-  frcsim::PrismaticJoint* extension = robot.addPrismaticJoint(
-      1, 2, frcsim::Vector3(0.0, 1.0, 0.0)); // Y-axis translation
+  frcsim::PrismaticJoint* extension = robot.addPrismaticJoint(1, 2, frcsim::Vector3(0.0, 1.0, 0.0));  // Y-axis translation
   if (extension) {
-    // Anchors define the connection point in the local coordinates of each body.
+    // Anchors define the connection point in the local coordinates of each
+    // body.
     extension->setAnchorA(frcsim::Vector3(0.0, 0.5, 0.0));  // Connection point on arm
     extension->setAnchorB(frcsim::Vector3(0.0, 0.0, 0.0));  // Connection point on gripper
     // Set linear limits for the joint.
-    extension->setLimits(0.0, 0.3); // Can extend 0.3m from its starting point
+    extension->setLimits(0.0, 0.3);  // Can extend 0.3m from its starting point
     // Set a motor to drive the joint.
-    extension->setMotorTarget(0.1, 5.0); // Target 0.1 m/s with 5 N max force
+    extension->setMotorTarget(0.1, 5.0);  // Target 0.1 m/s with 5 N max force
     std::cout << "Added a prismatic 'extension' joint between arm and gripper." << std::endl;
   }
 
@@ -90,7 +90,7 @@ int main() {
   std::cout << "Number of joints: " << robot.joints().size() << "\n";
 
   // --- Simulation Loop ---
-  const int num_steps = 300; // Simulate for 3 seconds
+  const int num_steps = 300;  // Simulate for 3 seconds
   std::cout << "\nRunning simulation for " << num_steps << " steps..." << std::endl;
   for (int i = 0; i < num_steps; ++i) {
     world.step();
