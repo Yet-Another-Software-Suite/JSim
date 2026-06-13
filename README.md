@@ -1,7 +1,7 @@
 # JSim Physics Library
 
-[![CI](https://github.com/Ruthie-FRC/JSim/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Ruthie-FRC/JSim/actions/workflows/ci.yml)
-[![jsim.dev](https://github.com/Ruthie-FRC/JSim/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/Ruthie-FRC/JSim/actions/workflows/deploy-mkdocs.yml)
+[![CI](https://github.com/Yet-Another-Software-/JSim/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Yet-Another-Software-Suite/JSim/actions/workflows/ci.yml)
+[![jsim.dev](https://github.com/Yet-Another-Software-Suite/JSim/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/Yet-Another-Software-Suite/JSim/actions/workflows/deploy-mkdocs.yml)
 
 JSim is an open-source FRC physics library for simulation.
 

@@ -18,7 +18,7 @@ See the repository `CONTRIBUTING.md` in the project root for contribution guidel
 
 ## Feedback
 
-If something is missing or unclear, please file an issue at https://github.com/Ruthie-FRC/JSim/issues
+If something is missing or unclear, please file an issue at https://github.com/Yet-Another-Software-Suite/JSim/issues
 # JSim
 JSim is a modular FRC physics library for simulation, analysis, and robotics workflow integration.
 
@@ -80,7 +80,7 @@ cd vendordep
 
 Contributions are welcome from teams, mentors, and developers across the FRC ecosystem.
 
-- Report bugs and request features in [GitHub Issues](https://github.com/Ruthie-FRC/JSim/issues)
+- Report bugs and request features in [GitHub Issues](https://github.com/Yet-Another-Software-Suite/JSim/issues)
 - Propose improvements through pull requests
 - Follow project standards in the repository documentation
 

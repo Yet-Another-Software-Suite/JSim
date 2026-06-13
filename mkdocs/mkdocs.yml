@@ -1,6 +1,6 @@
 site_name: JSim
-repo_url: https://github.com/Ruthie-FRC/JSim
-repo_name: Ruthie-FRC/JSim
+repo_url: https://github.com/Yet-Another-Software-Suite/JSim
+repo_name: Yet-Another-Software-Suite/JSim
 site_description: >-
   Professional documentation for the JSim FRC physics library.
 site_author: Ruthie-FRC
@@ -78,7 +78,7 @@ extra:
   generator: false
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/Ruthie-FRC/JSim
+      link: https://github.com/Yet-Another-Software-Suite/JSim
       name: JSim on GitHub
 
 extra_css:
