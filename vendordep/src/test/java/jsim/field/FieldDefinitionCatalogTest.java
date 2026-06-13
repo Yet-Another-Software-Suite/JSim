@@ -24,5 +24,15 @@ class FieldDefinitionCatalogTest {
   void exposesAvailableYears() {
     assertTrue(FieldDefinitionCatalog.availableYears().contains(2024));
     assertTrue(FieldDefinitionCatalog.availableYears().contains(2025));
+    assertTrue(FieldDefinitionCatalog.availableYears().contains(2026));
+  }
+
+  @Test
+  void loads2026FieldDefinition() {
+    JsonNode field2026 = FieldDefinitionCatalog.loadFieldNode(2026);
+    assertEquals(2026, field2026.get("year").asInt());
+    assertTrue(field2026.has("field_boundary"));
+    assertTrue(field2026.get("field_boundary").has("vertices"));
+    assertTrue(field2026.get("field_boundary").get("vertices").size() >= 4);
   }
 }

@@ -35,7 +35,7 @@ import java.util.Set;
  */
 public final class FieldDefinitionCatalog {
   private static final ObjectMapper MAPPER = new ObjectMapper();
-  private static final Set<Integer> BUILTIN_YEARS = Set.of(2024, 2025);
+  private static final Set<Integer> BUILTIN_YEARS = Set.of(2024, 2025, 2026);
 
   private FieldDefinitionCatalog() {}
 

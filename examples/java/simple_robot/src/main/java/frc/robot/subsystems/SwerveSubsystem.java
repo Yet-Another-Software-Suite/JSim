@@ -41,7 +41,6 @@ import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.SwerveDriveConfig;
 import yams.mechanisms.config.SwerveModuleConfig;
 import yams.mechanisms.swerve.SwerveDrive;
-import yams.mechanisms.swerve.SwerveDrive.DriveSysIdTestType;
 import yams.mechanisms.swerve.SwerveModule;
 import yams.mechanisms.swerve.utility.SwerveInputStream;
 import yams.motorcontrollers.SmartMotorController;

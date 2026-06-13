@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import jsim.JSim;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -18,8 +19,8 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
     if (isSimulation()) {
+      JSim.initializeField(2026);
       // Initialize the physics world from the vendordep-configured field.
-      m_robotContainer.resetSimulationField();
       DriverStation.silenceJoystickConnectionWarning(true);
     }
   }
@@ -35,7 +36,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledInit() {
-    m_robotContainer.resetSimulationField();
   }
 
   @Override
