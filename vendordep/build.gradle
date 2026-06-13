@@ -96,6 +96,7 @@ javadoc {
 
     failOnError = true
     options {
+        encoding = 'UTF-8'
         if (enableExternalJavadocLinks) {
             links "https://docs.oracle.com/en/java/javase/${JavaVersion.current().majorVersion}/docs/api/", 'https://github.wpilib.org/allwpilib/docs/release/java/'
         }
@@ -260,6 +261,14 @@ tasks.register("wpiformat", Exec) {
 build.dependsOn wpiformat
 build.dependsOn javadoc
 build.dependsOn doxygenDox
+
+// Prevent race condition: wpiformat writes source files while the compiler
+// reads them. Force all compile tasks to wait for wpiformat to finish first.
+tasks.configureEach {
+    if (name.startsWith("compile")) {
+        mustRunAfter wpiformat
+    }
+}
 
 apply from: 'publish.gradle'
 
