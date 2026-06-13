@@ -55,7 +55,7 @@ cd vendordep
 ./gradlew test
 ```
 
-`scripts/run-tests.sh` is the recommended path from repository root and expects Java 21.
+`scripts/run-tests.sh` is the recommended path from repository root and expects Java 17.
 
 ### Run Examples
 
