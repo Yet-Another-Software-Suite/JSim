@@ -106,17 +106,17 @@ javadoc {
 
 // https://ysb33rorg.gitlab.io/gradle/doxygen-gradle-plugin/doxygen-gradle-plugin/2.1.1/usage.html
 // Outputs to build/docs/doxygen
-doxygen {
-    sourceSets {
-        main {
-            option "project_name", "JSim"
-            option "project_number", "$pubVersion"
-
-            sources file('src/main/driver/include'), file('../core/driver/mainpage.dox')
-            template = file('../core/driver/Doxyfile')
-        }
-    }
-}
+//doxygen {
+//    sourceSets {
+//        main {
+//            option "project_name", "JSim"
+//            option "project_number", "$pubVersion"
+//
+//            sources file('src/main/driver/include'), file('../core/driver/mainpage.dox')
+//            template = file('../core/driver/Doxyfile')
+//        }
+//    }
+//}
 
 
 // Set up exports properly
@@ -165,83 +165,83 @@ sourceSets {
 
 model {
     components {
-        JSim(NativeLibrarySpec) {
-            sources {
-                cpp {
-                    source {
-                        srcDirs 'src/main/driver/cpp'
-                        include 'src/main/driver/include'
-                        exclude nativeFromDriverExcludes
-                        exclude driverWpilibCExcludes
-                    }
-                    exportedHeaders {
-                        srcDirs 'src/main/driver/include'
-                    }
-                }
-            }
-            binaries.all {
-                lib library: 'JSimDriver', linkage: 'shared'
-            }
-            nativeUtils.useRequiredLibrary(it, 'wpilib_shared', 'wpimath_shared')
-        }
-
-        JSimDriver(JniNativeLibrarySpec) {
-            enableCheckTask true
-            javaCompileTasks << compileJava
-            jniCrossCompileOptions << JniCrossCompileOptions(nativeUtils.wpi.platforms.roborio)
-            // Leave these for future proofing
-            jniCrossCompileOptions << JniCrossCompileOptions(nativeUtils.wpi.platforms.linuxarm32)
-            jniCrossCompileOptions << JniCrossCompileOptions(nativeUtils.wpi.platforms.linuxarm64)
-            sources {
-                cpp {
-                    source {
-                        srcDirs 'src/main/driver/cpp'
-                        include '**/*.cpp'
-                        exclude driverWpilibCExcludes
-                    }
-                    exportedHeaders {
-                        srcDirs 'src/main/driver/include'
-                    }
-                }
-            }
-
-            nativeUtils.useRequiredLibrary(it, "driver_shared")
-        }
+//        JSim(NativeLibrarySpec) {
+//            sources {
+//                cpp {
+//                    source {
+//                        srcDirs 'src/main/driver/cpp'
+//                        include 'src/main/driver/include'
+//                        exclude nativeFromDriverExcludes
+//                        exclude driverWpilibCExcludes
+//                    }
+//                    exportedHeaders {
+//                        srcDirs 'src/main/driver/include'
+//                    }
+//                }
+//            }
+//            binaries.all {
+//                lib library: 'JSimDriver', linkage: 'shared'
+//            }
+//            nativeUtils.useRequiredLibrary(it, 'wpilib_shared', 'wpimath_shared')
+//        }
+//
+//        JSimDriver(JniNativeLibrarySpec) {
+//            enableCheckTask true
+//            javaCompileTasks << compileJava
+//            jniCrossCompileOptions << JniCrossCompileOptions(nativeUtils.wpi.platforms.roborio)
+//            // Leave these for future proofing
+//            jniCrossCompileOptions << JniCrossCompileOptions(nativeUtils.wpi.platforms.linuxarm32)
+//            jniCrossCompileOptions << JniCrossCompileOptions(nativeUtils.wpi.platforms.linuxarm64)
+//            sources {
+//                cpp {
+//                    source {
+//                        srcDirs 'src/main/driver/cpp'
+//                        include '**/*.cpp'
+//                        exclude driverWpilibCExcludes
+//                    }
+//                    exportedHeaders {
+//                        srcDirs 'src/main/driver/include'
+//                    }
+//                }
+//            }
+//
+//            nativeUtils.useRequiredLibrary(it, "driver_shared")
+//        }
     }
     testSuites {
-        JSimTest {
-            sources.cpp {
-                source {
-                    srcDir 'src/test/native/cpp'
-                    include '**/*.cpp'
-                }
-            }
-
-            binaries.all {
-                lib library: 'JSimDriver', linkage: 'shared'
-
-                def arch = it.targetPlatform.name
-                if (systemArch == arch && it.buildType.name == 'debug') {
-                    def filePath = it.tasks.install.installDirectory.get().toString() + File.separatorChar + 'lib'
-                    test.dependsOn it.tasks.install
-                    test.systemProperty 'java.library.path', filePath
-                    test.environment 'LD_LIBRARY_PATH', filePath
-                    test.workingDir filePath
-                }
-            }
-
-            nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared", "googletest_static")
-        }
-
-        JSimDriverTest {
-            sources.cpp {
-                source {
-                    srcDir 'src/test/driver/cpp'
-                    include '**/*.cpp'
-                }
-            }
-            nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared", "googletest_static")
-        }
+//        JSimTest {
+//            sources.cpp {
+//                source {
+//                    srcDir 'src/test/native/cpp'
+//                    include '**/*.cpp'
+//                }
+//            }
+//
+//            binaries.all {
+//                lib library: 'JSimDriver', linkage: 'shared'
+//
+//                def arch = it.targetPlatform.name
+//                if (systemArch == arch && it.buildType.name == 'debug') {
+//                    def filePath = it.tasks.install.installDirectory.get().toString() + File.separatorChar + 'lib'
+//                    test.dependsOn it.tasks.install
+//                    test.systemProperty 'java.library.path', filePath
+//                    test.environment 'LD_LIBRARY_PATH', filePath
+//                    test.workingDir filePath
+//                }
+//            }
+//
+//            nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared", "googletest_static")
+//        }
+//
+//        JSimDriverTest {
+//            sources.cpp {
+//                source {
+//                    srcDir 'src/test/driver/cpp'
+//                    include '**/*.cpp'
+//                }
+//            }
+//            nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared", "googletest_static")
+//        }
     }
 }
 

@@ -95,12 +95,12 @@ task cppDriverHeadersZip(type: Zip) {
     }
 }
 
-build.dependsOn cppHeadersZip
-addTaskToCopyAllOutputs(cppHeadersZip)
-build.dependsOn cppSourceZip
-addTaskToCopyAllOutputs(cppSourceZip)
-build.dependsOn cppDriverHeadersZip
-addTaskToCopyAllOutputs(cppDriverHeadersZip)
+//build.dependsOn cppHeadersZip
+//addTaskToCopyAllOutputs(cppHeadersZip)
+//build.dependsOn cppSourceZip
+//addTaskToCopyAllOutputs(cppSourceZip)
+//build.dependsOn cppDriverHeadersZip
+//addTaskToCopyAllOutputs(cppDriverHeadersZip)
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     archiveClassifier = 'sources'
@@ -202,30 +202,30 @@ model {
     publishing {
         def taskList = createComponentZipTasks($.components, ['JSim'], zipBaseName, Zip, project, includeStandardZipFormat)
 
-        def driverTaskList = createComponentZipTasks($.components, ['JSimDriver'], driverZipBaseName, Zip, project, includeStandardZipFormat)
+//        def driverTaskList = createComponentZipTasks($.components, ['JSimDriver'], driverZipBaseName, Zip, project, includeStandardZipFormat)
 
         publications {
-            cpp(MavenPublication) {
-                taskList.each {
-                    artifact it
-                }
-                artifact cppHeadersZip
-                artifact cppSourceZip
-
-                artifactId = "${baseArtifactId}-cpp"
-                groupId = artifactGroupId
-                version = pubVersion
-            }
-            driver(MavenPublication) {
-                driverTaskList.each {
-                    artifact it
-                }
-                artifact cppDriverHeadersZip
-
-                artifactId = "${baseArtifactId}-driver"
-                groupId = artifactGroupId
-                version = pubVersion
-            }
+//            cpp(MavenPublication) {
+//                taskList.each {
+//                    artifact it
+//                }
+//                artifact cppHeadersZip
+//                artifact cppSourceZip
+//
+//                artifactId = "${baseArtifactId}-cpp"
+//                groupId = artifactGroupId
+//                version = pubVersion
+//            }
+//            driver(MavenPublication) {
+//                driverTaskList.each {
+//                    artifact it
+//                }
+//                artifact cppDriverHeadersZip
+//
+//                artifactId = "${baseArtifactId}-driver"
+//                groupId = artifactGroupId
+//                version = pubVersion
+//            }
 
             java(MavenPublication) {
                 artifact jar

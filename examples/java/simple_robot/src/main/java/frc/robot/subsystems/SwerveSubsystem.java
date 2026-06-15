@@ -219,7 +219,7 @@ public class SwerveSubsystem extends SubsystemBase
         simRobot.setChassisSpeeds(drive.getRobotRelativeSpeed());
         StateManager.getInstance().stepPhysics();
         Pose2d jsimPose = simRobot.getPose();
-        drive.resetOdometry(jsimPose);
+        // drive.resetOdometry(jsimPose);
         field.setRobotPose(jsimPose);
     }
 }
