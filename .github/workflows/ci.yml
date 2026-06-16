@@ -19,12 +19,12 @@ jobs:
         run: |
           set -euo pipefail
           test -x vendordep/gradlew
-          count=$(find vendordep/tests -maxdepth 1 -type f -name '*.cpp' | wc -l)
+          count=$(find vendordep/src/test/java -name '*.java' | wc -l)
           if [ "$count" -lt 1 ]; then
-            echo "No standalone native tests found in vendordep/tests" >&2
+            echo "No Java unit tests found in vendordep/src/test/java" >&2
             exit 1
           fi
-          echo "Found $count standalone native test source files."
+          echo "Found $count Java test source files."
 
   api-docs:
     needs: [validation]
