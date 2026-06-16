@@ -83,10 +83,12 @@ public final class ImpulseSolver {
             c.normalBias = -(SimConstants.BAUMGARTE_BETA / dt)
                 * Math.max(0, cp.penetration - slop);
 
-            // Restitution bias (only if approaching fast enough)
+            // Restitution bias — stored as a constant target; PGS converges vRelN → -restitutionBias.
+            // Sign: vRelN < 0 when approaching, so e*vRelN < 0, and lambda = -(vRelN + bias)/K
+            // yields -(1+e)*vRelN/K > 0 (separating impulse) on the first iteration.
             double e = cp.combinedRestitution;
             if (-vRelN > SimConstants.RESTITUTION_VELOCITY_THRESHOLD) {
-                c.restitutionBias = -e * vRelN;
+                c.restitutionBias = e * vRelN;
             } else {
                 c.restitutionBias = 0;
             }
