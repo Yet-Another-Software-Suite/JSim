@@ -51,10 +51,7 @@ public final class BodyTracker {
         this.totalDistance = 0;
     }
 
-    // ------------------------------------------------------------------
     // Update
-    // ------------------------------------------------------------------
-
     /**
      * Record the body's current state. Call once per tick after the physics step.
      */
@@ -79,10 +76,7 @@ public final class BodyTracker {
         }
     }
 
-    // ------------------------------------------------------------------
     // Current state
-    // ------------------------------------------------------------------
-
     /** The body being tracked. */
     public SimBody getTarget() { return target; }
 
@@ -98,10 +92,7 @@ public final class BodyTracker {
     /** Total distance travelled since construction (metres). */
     public double getTotalDistance() { return totalDistance; }
 
-    // ------------------------------------------------------------------
     // History
-    // ------------------------------------------------------------------
-
     /**
      * Ordered list of past poses, oldest first (empty if {@code maxHistory == 0}).
      * Returns a snapshot — modifying the returned array does not affect history.
