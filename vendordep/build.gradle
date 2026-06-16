@@ -155,11 +155,11 @@ sourceSets {
             srcDirs "src/main/java/"
         }
     }
-    //    test {
-    //        java {
-    //            srcDir "src/test/java"
-    //        }
-    //    } // TODO: Eventually write java unit tests
+    test {
+        java {
+            srcDir "src/test/java"
+        }
+    }
 }
 
 
