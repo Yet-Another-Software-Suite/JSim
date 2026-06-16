@@ -21,7 +21,7 @@ import frc.jsim.material.Material;
 public final class RigidBody {
     // ---- Identity -------------------------------------------------------
     /** World-assigned unique ID, set by PhysicsWorld on registration. */
-    int id = -1;
+    public int id = -1;
 
     /** Human-readable label for debugging. */
     public final String name;
