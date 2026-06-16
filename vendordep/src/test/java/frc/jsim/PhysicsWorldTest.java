@@ -82,25 +82,28 @@ class PhysicsWorldTest {
 
     @Test
     void sphereBouncesAfterHittingFloor() {
-        // Ball dropped close to floor with rubber material (e=0.7)
-        SimBody ball = world.addBody(new SimBodyBuilder("Ball")
+        // Use a dedicated world with a rubber floor so combined restitution = min(0.7,0.7) = 0.7.
+        // The setUp() world has a carpet floor (e=0.1) which would reduce bounce to near zero.
+        SimWorld bounceWorld = new SimWorld(0.02, 10);
+        bounceWorld.addBody(new SimBodyBuilder("Floor")
+            .planeCollider(0, 0, 1, 0)
+            .material(Material.RUBBER));
+        SimBody ball = bounceWorld.addBody(new SimBodyBuilder("Ball")
             .position(0, 0, 1.0)
             .mass(1.0)
             .sphereCollider(0.1)
             .material(Material.RUBBER));
 
-        // Drop the ball for ~0.5 s until it hits
-        for (int i = 0; i < 25; i++) world.step();
-        double zAtImpact = ball.getPosition().getZ();
+        // Drop for ~0.5 s; ball hits floor around tick 22 and bounces at ~3 m/s upward
+        for (int i = 0; i < 25; i++) bounceWorld.step();
 
-        // Run a few more ticks — after a bounce the ball should move upward
-        // Check that velocity is positive-Z at some point after the likely impact
+        // Velocity should be clearly positive-Z within the next 30 ticks
         boolean bouncedUp = false;
         for (int i = 0; i < 30; i++) {
-            world.step();
+            bounceWorld.step();
             if (ball.getLinearVelocity().getZ() > 0.05) { bouncedUp = true; break; }
         }
-        assertTrue(bouncedUp, "Ball should bounce upward after hitting floor (got z=" + zAtImpact + ")");
+        assertTrue(bouncedUp, "Ball should bounce upward after hitting rubber floor");
     }
 
     // ------------------------------------------------------------------

@@ -80,12 +80,13 @@ class ColliderShapeTest {
 
     @Test
     void box_aabbEnclosesCube_under45DegRotation() {
-        // After a 45° rotation, the AABB of a unit cube is larger than 1
+        // After a true 45° rotation around Z, both X and Y extents grow to sqrt(2)
         BoxCollider b = new BoxCollider(1.0, 1.0, 0.0);
-        double s45 = Math.sqrt(0.5);
+        // Quaternion for 45° around Z: half-angle = 22.5°
+        double qw = Math.cos(Math.PI / 8.0);
+        double qz = Math.sin(Math.PI / 8.0);
         double[] aabb = new double[6];
-        b.computeAABB(0, 0, 0, s45, 0, 0, s45, aabb); // 45° around Z
-        // After 45°, the x and y extents should be sqrt(2) ≈ 1.414
+        b.computeAABB(0, 0, 0, qw, 0, 0, qz, aabb);
         assertEquals(Math.sqrt(2.0), aabb[3], 1e-10);
         assertEquals(Math.sqrt(2.0), aabb[4], 1e-10);
     }

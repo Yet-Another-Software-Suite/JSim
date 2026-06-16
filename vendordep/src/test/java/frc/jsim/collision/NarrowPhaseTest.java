@@ -80,8 +80,9 @@ class NarrowPhaseTest {
 
     @Test
     void sphereSphere_normalPointsFromBToA() {
-        RigidBody a = sphere(1, 0, 0, 1.0);  // A is to the right
-        RigidBody b = sphere(-1, 0, 0, 1.0); // B is to the left
+        // Centres 1.8 apart, radii 1.0 each → overlap 0.2, contact generated
+        RigidBody a = sphere(0.9, 0, 0, 1.0);  // A to the right
+        RigidBody b = sphere(-0.9, 0, 0, 1.0); // B to the left
         List<ContactPoint> out = contacts(a, b);
         assertEquals(1, out.size());
         ContactPoint cp = out.get(0);
