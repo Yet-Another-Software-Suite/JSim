@@ -25,10 +25,7 @@ public final class SimBody {
         this.actuator = actuator;
     }
 
-    // ------------------------------------------------------------------
     // Identity
-    // ------------------------------------------------------------------
-
     public int getId() { return body.id; }
     public String getName() { return body.name; }
 
