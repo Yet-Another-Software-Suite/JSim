@@ -34,9 +34,7 @@ class ImpulseSolverTest {
         solver = new ImpulseSolver(20); // 20 iterations for convergence
     }
 
-    // ------------------------------------------------------------------
     // Helpers
-    // ------------------------------------------------------------------
 
     /** Create a dynamic sphere body with the given state and mass. */
     private static RigidBody dynSphere(String name, double mass, double radius,
@@ -81,10 +79,7 @@ class ImpulseSolverTest {
         return p;
     }
 
-    // ------------------------------------------------------------------
     // Elastic head-on collision (e=1)
-    // ------------------------------------------------------------------
-
     @Test
     void elasticHeadOnCollision_velocitiesExchanged() {
         // Equal masses: A moving right, B moving left
@@ -129,10 +124,7 @@ class ImpulseSolverTest {
         assertEquals(ke0, ke1, 1e-8, "Kinetic energy conserved for e=1");
     }
 
-    // ------------------------------------------------------------------
     // Perfectly inelastic collision (e=0)
-    // ------------------------------------------------------------------
-
     @Test
     void inelasticCollision_equalMasses_commonVelocityAlongNormal() {
         RigidBody a = dynSphere("A", 1.0, 0.1, -0.5, 0, 0, 2.0, 0, 0);
@@ -160,10 +152,7 @@ class ImpulseSolverTest {
         assertEquals(p0, totalMomentumX(a, b), 1e-9);
     }
 
-    // ------------------------------------------------------------------
     // Partial restitution (0 < e < 1)
-    // ------------------------------------------------------------------
-
     @Test
     void partialRestitution_postVelocityMatchesTarget() {
         double e = 0.5;
@@ -195,10 +184,7 @@ class ImpulseSolverTest {
         assertEquals(-e * incoming, ball.velZ, 1e-9); // expected: +2.25
     }
 
-    // ------------------------------------------------------------------
     // Normal impulse is non-negative
-    // ------------------------------------------------------------------
-
     @Test
     void separatingContact_noImpulseApplied() {
         // Bodies already moving apart: no impulse should be applied
@@ -214,9 +200,7 @@ class ImpulseSolverTest {
         assertEquals(vBx0, b.velX, 1e-12);
     }
 
-    // ------------------------------------------------------------------
     // Static body
-    // ------------------------------------------------------------------
 
     @Test
     void staticBody_neverMoves() {
@@ -232,9 +216,7 @@ class ImpulseSolverTest {
         assertEquals(0.0, floor.velZ, 1e-12);
     }
 
-    // ------------------------------------------------------------------
     // Friction
-    // ------------------------------------------------------------------
 
     @Test
     void friction_deceleratesSliding() {

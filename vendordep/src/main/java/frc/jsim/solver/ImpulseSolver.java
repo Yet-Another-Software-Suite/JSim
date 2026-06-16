@@ -47,9 +47,7 @@ public final class ImpulseSolver {
         }
     }
 
-    // ------------------------------------------------------------------
     // Pre-computation
-    // ------------------------------------------------------------------
 
     private List<ContactConstraint> buildConstraints(List<ContactPoint> contacts, double dt) {
         List<ContactConstraint> out = new ArrayList<>(contacts.size());
@@ -117,9 +115,7 @@ public final class ImpulseSolver {
         return out;
     }
 
-    // ------------------------------------------------------------------
     // Normal impulse
-    // ------------------------------------------------------------------
 
     private void solveNormal(ContactConstraint c) {
         ContactPoint cp = c.contact;
@@ -143,9 +139,7 @@ public final class ImpulseSolver {
         applyImpulse(a, b, rA, rB, n, dLambda);
     }
 
-    // ------------------------------------------------------------------
     // Tangential (friction) impulse
-    // ------------------------------------------------------------------
 
     private void solveTangent(ContactConstraint c) {
         ContactPoint cp = c.contact;
@@ -168,9 +162,7 @@ public final class ImpulseSolver {
         applyImpulse(a, b, rA, rB, t, dLambda);
     }
 
-    // ------------------------------------------------------------------
     // Helpers
-    // ------------------------------------------------------------------
 
     /** Relative velocity of body A's contact point with respect to body B's. */
     private static double[] relativeVelocity(RigidBody a, double[] rA, RigidBody b, double[] rB) {

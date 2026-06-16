@@ -9,10 +9,7 @@ class ColliderShapeTest {
     // Identity orientation (no rotation)
     private static final double QW = 1, QX = 0, QY = 0, QZ = 0;
 
-    // ------------------------------------------------------------------
     // SphereCollider
-    // ------------------------------------------------------------------
-
     @Test
     void sphere_aabbAtOrigin() {
         SphereCollider s = new SphereCollider(0.5);
@@ -45,10 +42,7 @@ class ColliderShapeTest {
         assertThrows(IllegalArgumentException.class, () -> new SphereCollider(-1));
     }
 
-    // ------------------------------------------------------------------
     // BoxCollider — identity orientation
-    // ------------------------------------------------------------------
-
     @Test
     void box_aabbIdentityOrientation() {
         BoxCollider b = new BoxCollider(1.0, 2.0, 3.0);
@@ -91,10 +85,7 @@ class ColliderShapeTest {
         assertEquals(Math.sqrt(2.0), aabb[4], 1e-10);
     }
 
-    // ------------------------------------------------------------------
     // PlaneCollider
-    // ------------------------------------------------------------------
-
     @Test
     void plane_aabbIsInfinite() {
         PlaneCollider p = new PlaneCollider(0, 0, 1, 0);
@@ -115,10 +106,7 @@ class ColliderShapeTest {
         assertEquals(4.0 / 5.0, p.ny, EPS);
     }
 
-    // ------------------------------------------------------------------
     // Type tags
-    // ------------------------------------------------------------------
-
     @Test
     void typeTagsAreCorrect() {
         assertEquals(ColliderShape.Type.SPHERE, new SphereCollider(1).getType());

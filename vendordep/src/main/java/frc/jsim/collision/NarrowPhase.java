@@ -26,9 +26,7 @@ public final class NarrowPhase {
         }
     }
 
-    // ------------------------------------------------------------------
     // Dispatch
-    // ------------------------------------------------------------------
 
     private static void dispatch(RigidBody a, RigidBody b, List<ContactPoint> out) {
         ColliderShape.Type ta = a.collider.getType();
@@ -53,9 +51,7 @@ public final class NarrowPhase {
         }
     }
 
-    // ------------------------------------------------------------------
     // Sphere vs Sphere
-    // ------------------------------------------------------------------
 
     private static void sphereSphere(RigidBody a, SphereCollider sa,
                                       RigidBody b, SphereCollider sb,
@@ -77,9 +73,7 @@ public final class NarrowPhase {
         emit(a, b, cx, cy, cz, n[0], n[1], n[2], pen, out);
     }
 
-    // ------------------------------------------------------------------
     // Sphere vs Plane (sphere is dynamic, plane is static)
-    // ------------------------------------------------------------------
 
     private static void spherePlane(RigidBody sphere, SphereCollider sc,
                                      RigidBody plane, PlaneCollider pc,
@@ -105,9 +99,7 @@ public final class NarrowPhase {
         emit(sphere, plane, cx, cy, cz, wn[0], wn[1], wn[2], pen, out);
     }
 
-    // ------------------------------------------------------------------
     // Box vs Plane
-    // ------------------------------------------------------------------
 
     private static void boxPlane(RigidBody box, BoxCollider bc,
                                   RigidBody plane, PlaneCollider pc,
@@ -140,9 +132,7 @@ public final class NarrowPhase {
         }
     }
 
-    // ------------------------------------------------------------------
     // Box vs Sphere
-    // ------------------------------------------------------------------
 
     private static void boxSphere(RigidBody box, BoxCollider bc,
                                    RigidBody sphere, SphereCollider sc,
@@ -187,9 +177,7 @@ public final class NarrowPhase {
         emit(sphere, box, wClosest[0], wClosest[1], wClosest[2], wn[0], wn[1], wn[2], pen, out);
     }
 
-    // ------------------------------------------------------------------
     // Box vs Box (SAT — emit the deepest contact point)
-    // ------------------------------------------------------------------
 
     private static void boxBox(RigidBody a, BoxCollider ba,
                                 RigidBody b, BoxCollider bb,
@@ -246,9 +234,7 @@ public final class NarrowPhase {
         emit(a, b, corner[0], corner[1], corner[2], n[0], n[1], n[2], minPen, out);
     }
 
-    // ------------------------------------------------------------------
     // SAT helpers
-    // ------------------------------------------------------------------
 
     private static double[] colOf(double[] R, int col) {
         return Vec3.of(R[col], R[3 + col], R[6 + col]);
@@ -270,9 +256,7 @@ public final class NarrowPhase {
         return world;
     }
 
-    // ------------------------------------------------------------------
     // Shared emitter
-    // ------------------------------------------------------------------
 
     private static void emit(RigidBody a, RigidBody b,
                               double cx, double cy, double cz,

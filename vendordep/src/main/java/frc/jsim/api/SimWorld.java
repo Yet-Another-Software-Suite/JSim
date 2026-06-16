@@ -50,9 +50,7 @@ public final class SimWorld {
         this.physics = new PhysicsWorld(solverIterations);
     }
 
-    // ------------------------------------------------------------------
     // Body management
-    // ------------------------------------------------------------------
 
     /**
      * Build a body from the supplied builder, register it in the world, and
@@ -78,9 +76,7 @@ public final class SimWorld {
         return Collections.unmodifiableList(simBodies);
     }
 
-    // ------------------------------------------------------------------
     // Force generators
-    // ------------------------------------------------------------------
 
     /**
      * Register a custom force generator (drag, magnus, spring, custom motor model, etc.).
@@ -94,9 +90,7 @@ public final class SimWorld {
         physics.removeForceGenerator(fg);
     }
 
-    // ------------------------------------------------------------------
     // Simulation control
-    // ------------------------------------------------------------------
 
     /**
      * Advance the simulation by the fixed timestep configured at construction time.
@@ -117,9 +111,7 @@ public final class SimWorld {
     /** The fixed timestep this world was configured with (seconds). */
     public double getTimestep() { return dt; }
 
-    // ------------------------------------------------------------------
     // Convenience finders
-    // ------------------------------------------------------------------
 
     /** Find the first body with the given name, or {@code null} if none. */
     public SimBody findBody(String name) {

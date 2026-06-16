@@ -7,9 +7,7 @@ class MaterialTest {
 
     private static final double EPS = 1e-12;
 
-    // ------------------------------------------------------------------
     // Material construction
-    // ------------------------------------------------------------------
 
     @Test
     void construction_validInputs() {
@@ -43,10 +41,7 @@ class MaterialTest {
         assertDoesNotThrow(() -> new Material(0.5, 1.0));
     }
 
-    // ------------------------------------------------------------------
     // MaterialCombiner — friction
-    // ------------------------------------------------------------------
-
     @Test
     void combineFriction_geometricMean() {
         Material a = new Material(0.25, 0.5);
@@ -78,10 +73,7 @@ class MaterialTest {
             MaterialCombiner.combineFriction(b, a), EPS);
     }
 
-    // ------------------------------------------------------------------
     // MaterialCombiner — restitution
-    // ------------------------------------------------------------------
-
     @Test
     void combineRestitution_takesMinimum() {
         Material a = new Material(0.5, 0.8);
@@ -105,10 +97,7 @@ class MaterialTest {
             MaterialCombiner.combineRestitution(b, a), EPS);
     }
 
-    // ------------------------------------------------------------------
     // Combined material
-    // ------------------------------------------------------------------
-
     @Test
     void combine_producesCorrectBothProperties() {
         Material a = new Material(0.49, 0.9);
@@ -120,9 +109,7 @@ class MaterialTest {
         assertEquals(0.5, c.restitution, EPS);
     }
 
-    // ------------------------------------------------------------------
     // Preset materials sanity checks
-    // ------------------------------------------------------------------
 
     @Test
     void presets_haveValidRanges() {

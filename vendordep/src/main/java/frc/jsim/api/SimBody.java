@@ -25,17 +25,12 @@ public final class SimBody {
         this.actuator = actuator;
     }
 
-    // ------------------------------------------------------------------
     // Identity
-    // ------------------------------------------------------------------
 
     public int getId() { return body.id; }
     public String getName() { return body.name; }
 
-    // ------------------------------------------------------------------
     // Pose
-    // ------------------------------------------------------------------
-
     public Pose3d getPose() { return body.getPose(); }
 
     public Translation3d getPosition() {
@@ -54,10 +49,7 @@ public final class SimBody {
         body.refreshWorldInertia();
     }
 
-    // ------------------------------------------------------------------
     // Velocity
-    // ------------------------------------------------------------------
-
     public Translation3d getLinearVelocity() { return body.getLinearVelocity(); }
     public Translation3d getAngularVelocity() { return body.getAngularVelocity(); }
 
@@ -77,10 +69,7 @@ public final class SimBody {
         return Math.sqrt(vx * vx + vy * vy + vz * vz);
     }
 
-    // ------------------------------------------------------------------
     // Actuator (force/torque input from robot code)
-    // ------------------------------------------------------------------
-
     /**
      * The actuator belonging to this body.
      *
@@ -89,23 +78,16 @@ public final class SimBody {
      */
     public ActuatorForce getActuator() { return actuator; }
 
-    // ------------------------------------------------------------------
     // Mass / material
-    // ------------------------------------------------------------------
-
     public double getMass() { return body.invMass > 0 ? 1.0 / body.invMass : Double.POSITIVE_INFINITY; }
     public Material getMaterial() { return body.material; }
     public void setMaterial(Material m) { body.material = m; }
 
-    // ------------------------------------------------------------------
     // Collider
-    // ------------------------------------------------------------------
 
     public ColliderShape getCollider() { return body.collider; }
 
-    // ------------------------------------------------------------------
     // State queries
-    // ------------------------------------------------------------------
 
     public boolean isStatic() { return body.isStatic(); }
 

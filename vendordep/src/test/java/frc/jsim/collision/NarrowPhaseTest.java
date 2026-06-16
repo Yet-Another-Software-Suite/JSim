@@ -11,10 +11,7 @@ import org.junit.jupiter.api.Test;
 
 class NarrowPhaseTest {
 
-    // ------------------------------------------------------------------
     // Helpers
-    // ------------------------------------------------------------------
-
     private static RigidBody sphere(double px, double py, double pz, double radius) {
         RigidBody b = new RigidBody("s", RigidBodyFlags.DYNAMIC, Material.DEFAULT);
         b.posX = px; b.posY = py; b.posZ = pz;
@@ -48,10 +45,7 @@ class NarrowPhaseTest {
         return out;
     }
 
-    // ------------------------------------------------------------------
     // Sphere vs Sphere
-    // ------------------------------------------------------------------
-
     @Test
     void sphereSphere_overlapping_generatesContact() {
         // Two unit spheres whose centres are 1.5 apart (overlap of 0.5)
@@ -110,10 +104,7 @@ class NarrowPhaseTest {
         assertTrue(cp.combinedRestitution >= 0 && cp.combinedRestitution <= 1);
     }
 
-    // ------------------------------------------------------------------
     // Sphere vs Plane
-    // ------------------------------------------------------------------
-
     @Test
     void spherePlane_above_noContact() {
         RigidBody s = sphere(0, 0, 2.0, 0.5); // centre 2m above floor, radius 0.5
@@ -153,10 +144,7 @@ class NarrowPhaseTest {
         assertEquals(1.0, out.get(0).normalZ, 1e-9);
     }
 
-    // ------------------------------------------------------------------
     // Box vs Plane
-    // ------------------------------------------------------------------
-
     @Test
     void boxPlane_cornerBelowFloor_contact() {
         // Box at z=0.4, half-height 0.5 → bottom corners at z=-0.1 (penetrating)
@@ -182,10 +170,7 @@ class NarrowPhaseTest {
         assertEquals(0, out.size());
     }
 
-    // ------------------------------------------------------------------
     // Box vs Sphere
-    // ------------------------------------------------------------------
-
     @Test
     void boxSphere_overlapping_contact() {
         RigidBody b = box(0, 0, 0, 1.0, 1.0, 1.0);  // unit cube centred at origin
@@ -209,10 +194,7 @@ class NarrowPhaseTest {
         assertEquals(0, out.size());
     }
 
-    // ------------------------------------------------------------------
     // Box vs Box
-    // ------------------------------------------------------------------
-
     @Test
     void boxBox_overlapping_contact() {
         RigidBody a = box(0, 0, 0, 1.0, 1.0, 1.0);

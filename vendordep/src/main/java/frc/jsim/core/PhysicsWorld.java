@@ -53,9 +53,7 @@ public final class PhysicsWorld {
         forceGenerators.add(gravityForce);
     }
 
-    // ------------------------------------------------------------------
     // Registration
-    // ------------------------------------------------------------------
 
     /** Add a body to the world and assign it a unique ID. */
     public void addBody(RigidBody body) {
@@ -83,9 +81,7 @@ public final class PhysicsWorld {
         return Collections.unmodifiableList(bodies);
     }
 
-    // ------------------------------------------------------------------
     // Main tick pipeline
-    // ------------------------------------------------------------------
 
     /**
      * Advance the simulation by exactly {@code dt} seconds.
@@ -114,9 +110,7 @@ public final class PhysicsWorld {
         for (RigidBody b : bodies) updateDerivedState(b);
     }
 
-    // ------------------------------------------------------------------
     // Integration — semi-implicit Euler
-    // ------------------------------------------------------------------
 
     private static void integrate(RigidBody b, double dt) {
         if (b.isStatic()) return;
@@ -163,9 +157,7 @@ public final class PhysicsWorld {
         b.normalizeQuaternion();
     }
 
-    // ------------------------------------------------------------------
     // Derived state update
-    // ------------------------------------------------------------------
 
     private static void updateDerivedState(RigidBody b) {
         // Refresh world-frame inverse inertia from updated orientation

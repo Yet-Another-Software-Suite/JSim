@@ -31,9 +31,7 @@ class PhysicsWorldTest {
             .material(Material.CARPET));
     }
 
-    // ------------------------------------------------------------------
     // Gravity
-    // ------------------------------------------------------------------
 
     @Test
     void bodyFallsUnderGravity() {
@@ -63,9 +61,7 @@ class PhysicsWorldTest {
         assertEquals(100 - 9.80665 * 0.02, ball.getPosition().getZ(), 1e-6);
     }
 
-    // ------------------------------------------------------------------
     // Floor collision
-    // ------------------------------------------------------------------
 
     @Test
     void sphereDoesNotPassThroughFloor() {
@@ -106,10 +102,7 @@ class PhysicsWorldTest {
         assertTrue(bouncedUp, "Ball should bounce upward after hitting rubber floor");
     }
 
-    // ------------------------------------------------------------------
     // Static bodies
-    // ------------------------------------------------------------------
-
     @Test
     void staticBodyDoesNotMove() {
         SimBody wall = world.addBody(new SimBodyBuilder("Wall")
@@ -124,9 +117,7 @@ class PhysicsWorldTest {
         assertEquals(1.0, wall.getPosition().getZ(), 1e-9);
     }
 
-    // ------------------------------------------------------------------
     // Determinism
-    // ------------------------------------------------------------------
 
     @Test
     void determinismIdenticalRuns() {
@@ -172,9 +163,7 @@ class PhysicsWorldTest {
         assertEquals(b1.getPosition().getZ(), b2.getPosition().getZ(), 1e-9);
     }
 
-    // ------------------------------------------------------------------
     // Two-body collision — linear momentum conservation
-    // ------------------------------------------------------------------
 
     @Test
     void twoBodyCollision_linearMomentumConserved() {
@@ -223,10 +212,7 @@ class PhysicsWorldTest {
             "Bodies should have separated after elastic collision");
     }
 
-    // ------------------------------------------------------------------
     // BodyTracker
-    // ------------------------------------------------------------------
-
     @Test
     void bodyTrackerAccumulatesDistance() {
         SimBody ball = world.addBody(new SimBodyBuilder("Ball")
@@ -271,10 +257,7 @@ class PhysicsWorldTest {
         assertEquals(0, tracker.getPoseHistory().length);
     }
 
-    // ------------------------------------------------------------------
     // Actuator
-    // ------------------------------------------------------------------
-
     @Test
     void actuatorPushesBody() {
         SimBody box = world.addBody(new SimBodyBuilder("Box")
@@ -318,9 +301,7 @@ class PhysicsWorldTest {
             "Angular velocity Z should grow: " + box.getAngularVelocity().getZ());
     }
 
-    // ------------------------------------------------------------------
     // Flags
-    // ------------------------------------------------------------------
 
     @Test
     void noGravityBodyDoesNotFall() {
@@ -349,10 +330,7 @@ class PhysicsWorldTest {
         assertEquals(0.0, box.getAngularVelocity().getZ(), 1e-9);
     }
 
-    // ------------------------------------------------------------------
     // Pose3d round-trip
-    // ------------------------------------------------------------------
-
     @Test
     void poseRoundTrip() {
         SimBody body = world.addBody(new SimBodyBuilder("Teleport")
@@ -367,9 +345,7 @@ class PhysicsWorldTest {
         assertEquals(target.getZ(), retrieved.getZ(), 1e-9);
     }
 
-    // ------------------------------------------------------------------
     // SimWorld API
-    // ------------------------------------------------------------------
 
     @Test
     void findBody_returnsCorrectBody() {
@@ -404,9 +380,7 @@ class PhysicsWorldTest {
         assertEquals(0.005, w.getTimestep(), 1e-12);
     }
 
-    // ------------------------------------------------------------------
     // Box-box interaction
-    // ------------------------------------------------------------------
 
     @Test
     void boxBoxCollision_bodiesSeparate() {

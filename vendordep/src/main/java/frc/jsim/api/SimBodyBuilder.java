@@ -43,10 +43,7 @@ public final class SimBodyBuilder {
 
     public SimBodyBuilder(String name) { this.name = name; }
 
-    // ------------------------------------------------------------------
     // Pose
-    // ------------------------------------------------------------------
-
     public SimBodyBuilder pose(Pose3d pose) {
         posX = pose.getX(); posY = pose.getY(); posZ = pose.getZ();
         Quaternion q = pose.getRotation().getQuaternion();
@@ -64,9 +61,7 @@ public final class SimBodyBuilder {
         return this;
     }
 
-    // ------------------------------------------------------------------
     // Velocity
-    // ------------------------------------------------------------------
 
     public SimBodyBuilder linearVelocity(double vx, double vy, double vz) {
         velX = vx; velY = vy; velZ = vz; return this;
@@ -76,9 +71,7 @@ public final class SimBodyBuilder {
         omX = ox; omY = oy; omZ = oz; return this;
     }
 
-    // ------------------------------------------------------------------
     // Mass / inertia
-    // ------------------------------------------------------------------
 
     public SimBodyBuilder mass(double kg) { this.mass = kg; return this; }
 
@@ -90,9 +83,7 @@ public final class SimBodyBuilder {
         this.ixx = ixx; this.iyy = iyy; this.izz = izz; return this;
     }
 
-    // ------------------------------------------------------------------
     // Collider shortcuts
-    // ------------------------------------------------------------------
 
     public SimBodyBuilder sphereCollider(double radius) {
         collider = new SphereCollider(radius);
@@ -115,24 +106,18 @@ public final class SimBodyBuilder {
         this.collider = shape; return this;
     }
 
-    // ------------------------------------------------------------------
     // Material
-    // ------------------------------------------------------------------
 
     public SimBodyBuilder material(Material m) { this.material = m; return this; }
 
-    // ------------------------------------------------------------------
     // Flags
-    // ------------------------------------------------------------------
 
     public SimBodyBuilder isStatic() { flags |= RigidBodyFlags.STATIC; return this; }
     public SimBodyBuilder noGravity() { flags |= RigidBodyFlags.NO_GRAVITY; return this; }
     public SimBodyBuilder noCollision() { flags |= RigidBodyFlags.NO_COLLISION; return this; }
     public SimBodyBuilder fixedRotation() { flags |= RigidBodyFlags.FIXED_ROTATION; return this; }
 
-    // ------------------------------------------------------------------
     // Build (called internally by SimWorld.addBody)
-    // ------------------------------------------------------------------
 
     SimBody build() {
         RigidBody body = new RigidBody(name, flags, material);
@@ -152,9 +137,7 @@ public final class SimBodyBuilder {
         return new SimBody(body, actuator);
     }
 
-    // ------------------------------------------------------------------
     // Inertia estimation
-    // ------------------------------------------------------------------
 
     private SimBodyBuilder estimateInertiaIfNeeded(double radius) {
         // Solid sphere: I = 2/5 * m * r²
