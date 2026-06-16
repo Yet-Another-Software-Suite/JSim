@@ -1,0 +1,38 @@
+package frc.jsim.forces;
+
+import java.util.List;
+import frc.jsim.core.SimConstants;
+import frc.jsim.dynamics.RigidBody;
+import frc.jsim.dynamics.RigidBodyFlags;
+
+/**
+ * Applies gravitational acceleration to all dynamic, non-static bodies.
+ *
+ * <p>Gravity is uniform (not per-body — attach a custom {@link ForceGenerator} for buoyancy
+ * or other per-body gravity modifications).
+ */
+public final class GravityForce implements ForceGenerator {
+    private final List<RigidBody> bodies;
+    private final double gx, gy, gz;
+
+    /** Default gravity pointing in −Z (WPILib field convention). */
+    public GravityForce(List<RigidBody> bodies) {
+        this(bodies, SimConstants.GRAVITY_X, SimConstants.GRAVITY_Y, SimConstants.GRAVITY_Z);
+    }
+
+    public GravityForce(List<RigidBody> bodies, double gx, double gy, double gz) {
+        this.bodies = bodies;
+        this.gx = gx; this.gy = gy; this.gz = gz;
+    }
+
+    @Override
+    public void apply(double dt) {
+        for (RigidBody body : bodies) {
+            if (body.isStatic()) continue;
+            if (RigidBodyFlags.isSet(body.flags, RigidBodyFlags.NO_GRAVITY)) continue;
+            if (body.invMass <= 0) continue;
+            double mass = 1.0 / body.invMass;
+            body.applyForce(gx * mass, gy * mass, gz * mass);
+        }
+    }
+}
