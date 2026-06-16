@@ -132,8 +132,6 @@ public final class ImpulseSolver {
         double vRelN = Vec3.dot(vRel, n);
 
         double bias = c.normalBias + c.restitutionBias;
-        // After first iteration, restitution is already baked in; keep only Baumgarte
-        c.restitutionBias = 0;
 
         double lambda = -(vRelN + bias) / c.normalEffMass;
 
