@@ -219,7 +219,8 @@ public final class NarrowPhase {
             if (-dist < minPen) {
                 minPen = -dist;
                 bestAxis = ax;
-                bestAxisSign = (Vec3.dot(t, ax) < 0) ? -1 : 1;
+                // normal must point from B toward A: negate axis if it aligns with t (A→B)
+                bestAxisSign = (Vec3.dot(t, ax) < 0) ? 1 : -1;
             }
         }
         // Test B's face normals
@@ -232,7 +233,7 @@ public final class NarrowPhase {
             if (-dist < minPen) {
                 minPen = -dist;
                 bestAxis = ax;
-                bestAxisSign = (Vec3.dot(t, ax) < 0) ? -1 : 1;
+                bestAxisSign = (Vec3.dot(t, ax) < 0) ? 1 : -1;
             }
         }
 
@@ -240,8 +241,8 @@ public final class NarrowPhase {
 
         // Contact normal points from B to A
         double[] n = Vec3.scale(bestAxis, bestAxisSign);
-        // Contact point: deepest corner of B along -n
-        double[] corner = deepestCorner(b, Rb, bb, Vec3.negate(n));
+        // Contact point: deepest corner of B in direction n (toward A)
+        double[] corner = deepestCorner(b, Rb, bb, n);
         emit(a, b, corner[0], corner[1], corner[2], n[0], n[1], n[2], minPen, out);
     }
 
