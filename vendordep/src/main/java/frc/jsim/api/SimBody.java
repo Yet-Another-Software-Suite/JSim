@@ -19,16 +19,27 @@ import frc.jsim.material.Material;
 public final class SimBody {
     final RigidBody body;
     final ActuatorForce actuator;
+    private final RobotId robotId;
 
-    SimBody(RigidBody body, ActuatorForce actuator) {
+    SimBody(RigidBody body, ActuatorForce actuator, RobotId robotId) {
         this.body = body;
         this.actuator = actuator;
+        this.robotId = robotId;
     }
 
     // Identity
 
     public int getId() { return body.id; }
     public String getName() { return body.name; }
+
+    /**
+     * The FRC alliance-station identity of this body, or {@code null} if it
+     * was not registered with {@link SimBodyBuilder#robotId(RobotId)}.
+     */
+    public RobotId getRobotId() { return robotId; }
+
+    /** {@code true} if this body was created with an alliance-station identity. */
+    public boolean isRobot() { return robotId != null; }
 
     // Pose
     public Pose3d getPose() { return body.getPose(); }

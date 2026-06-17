@@ -31,6 +31,7 @@ public final class SimBodyBuilder {
     private int flags = RigidBodyFlags.DYNAMIC;
     private Material material = Material.DEFAULT;
     private ColliderShape collider;
+    private RobotId robotId = null;
 
     private double mass = 1.0;
     private double ixx = 1.0, iyy = 1.0, izz = 1.0;
@@ -110,6 +111,13 @@ public final class SimBodyBuilder {
 
     public SimBodyBuilder material(Material m) { this.material = m; return this; }
 
+    /**
+     * Tag this body as an FRC robot at the given alliance station.
+     * The body can then be retrieved from the world with
+     * {@link SimWorld#findRobot(RobotId)}.
+     */
+    public SimBodyBuilder robotId(RobotId id) { this.robotId = id; return this; }
+
     // Flags
 
     public SimBodyBuilder isStatic() { flags |= RigidBodyFlags.STATIC; return this; }
@@ -134,7 +142,7 @@ public final class SimBodyBuilder {
         }
 
         ActuatorForce actuator = new ActuatorForce(body);
-        return new SimBody(body, actuator);
+        return new SimBody(body, actuator, robotId);
     }
 
     // Inertia estimation
