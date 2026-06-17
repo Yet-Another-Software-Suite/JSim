@@ -120,4 +120,15 @@ public final class SimWorld {
         }
         return null;
     }
+
+    /**
+     * Find the robot body registered with the given alliance-station identity,
+     * or {@code null} if no body was added with that {@link RobotId}.
+     */
+    public SimBody findRobot(RobotId id) {
+        for (SimBody sb : simBodies) {
+            if (id.equals(sb.getRobotId())) return sb;
+        }
+        return null;
+    }
 }
