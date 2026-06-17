@@ -96,15 +96,18 @@ public final class SimWorld {
      * @param fg the force generator to register
      */
     public void addForceGenerator(ForceGenerator fg) {
-        physics.addForceGenerator(fg);
+          physics.addForceGenerator(fg);
     }
 
+    /**
+     * Unregister a previously added force generator.
+     *
+     * @param fg the force generator to remove
+     */
     public void removeForceGenerator(ForceGenerator fg) {
         physics.removeForceGenerator(fg);
     }
-
     // Simulation control
-
     /**
      * Advance the simulation by the fixed timestep configured at construction time.
      * Call once per robot loop iteration from {@code simulationPeriodic()}.
@@ -112,7 +115,6 @@ public final class SimWorld {
     public void step() {
         physics.step(dt);
     }
-
     /**
      * Advance by an explicit timestep (useful for tests or variable-rate callers).
      * Determinism is only guaranteed when {@code dt} is the same every call.
@@ -122,7 +124,6 @@ public final class SimWorld {
     public void step(double dtSeconds) {
         physics.step(dtSeconds);
     }
-
     /**
      * The fixed timestep this world was configured with (seconds).
      *
@@ -132,17 +133,24 @@ public final class SimWorld {
 
     // Convenience finders
 
-    /** Find the first body with the given name, or {@code null} if none. */
+    /**
+     * Find the first body with the given name, or {@code null} if none.
+     *
+     * @param name the body name to search for
+     * @return the matching body, or {@code null}
+     */
     public SimBody findBody(String name) {
         for (SimBody sb : simBodies) {
             if (sb.getName().equals(name)) return sb;
         }
         return null;
     }
-
     /**
      * Find the robot body registered with the given alliance-station identity,
      * or {@code null} if no body was added with that {@link RobotId}.
+     *
+     * @param id the alliance-station identity to look up
+     * @return the matching robot body, or {@code null}
      */
     public SimBody findRobot(RobotId id) {
         for (SimBody sb : simBodies) {

@@ -18,15 +18,26 @@ package frc.jsim.api;
  * }</pre>
  */
 public enum RobotId {
+    /** Red alliance, driver station 1. */
     RED_1(Alliance.RED, 1),
+    /** Red alliance, driver station 2. */
     RED_2(Alliance.RED, 2),
+    /** Red alliance, driver station 3. */
     RED_3(Alliance.RED, 3),
+    /** Blue alliance, driver station 1. */
     BLUE_1(Alliance.BLUE, 1),
+    /** Blue alliance, driver station 2. */
     BLUE_2(Alliance.BLUE, 2),
+    /** Blue alliance, driver station 3. */
     BLUE_3(Alliance.BLUE, 3);
 
     /** FRC alliance color. */
-    public enum Alliance { RED, BLUE }
+    public enum Alliance {
+        /** Red alliance. */
+        RED,
+        /** Blue alliance. */
+        BLUE
+    }
 
     /** Which alliance this robot belongs to. */
     public final Alliance alliance;
