@@ -30,18 +30,48 @@ public final class RigidBody {
     public int flags;
 
     // ---- Pose (position + orientation) ----------------------------------
-    public double posX, posY, posZ;
-    /** Unit quaternion orientation (w + xi + yj + zk). */
-    public double qW = 1, qX, qY, qZ;
+    /** Position X coordinate in world frame (metres). */
+    public double posX;
+    /** Position Y coordinate in world frame (metres). */
+    public double posY;
+    /** Position Z coordinate in world frame (metres). */
+    public double posZ;
+    /** Orientation quaternion W component. Unit quaternion (w + xi + yj + zk). */
+    public double qW = 1;
+    /** Orientation quaternion X component. */
+    public double qX;
+    /** Orientation quaternion Y component. */
+    public double qY;
+    /** Orientation quaternion Z component. */
+    public double qZ;
 
     // ---- Velocities -----------------------------------------------------
-    public double velX, velY, velZ;
-    /** Angular velocity in world frame (rad/s). */
-    public double omX, omY, omZ;
+    /** Linear velocity X component in world frame (m/s). */
+    public double velX;
+    /** Linear velocity Y component in world frame (m/s). */
+    public double velY;
+    /** Linear velocity Z component in world frame (m/s). */
+    public double velZ;
+    /** Angular velocity X component in world frame (rad/s). */
+    public double omX;
+    /** Angular velocity Y component in world frame (rad/s). */
+    public double omY;
+    /** Angular velocity Z component in world frame (rad/s). */
+    public double omZ;
 
     // ---- Accumulators (cleared each tick) -------------------------------
-    public double forceX, forceY, forceZ;
-    public double torqueX, torqueY, torqueZ;
+    /** Net force X component accumulated this tick (N). */
+    public double forceX;
+    /** Net force Y component accumulated this tick (N). */
+    public double forceY;
+    /** Net force Z component accumulated this tick (N). */
+    public double forceZ;
+    /** Net torque X component accumulated this tick (N·m). */
+    public double torqueX;
+    /** Net torque Y component accumulated this tick (N·m). */
+    public double torqueY;
+    /** Net torque Z component accumulated this tick (N·m). */
+    public double torqueZ;
 
     // ---- Mass properties ------------------------------------------------
     /** 1/mass. 0 for static bodies (infinite mass). */
@@ -52,7 +82,9 @@ public final class RigidBody {
     public final double[] invIWorld = new double[9];
 
     // ---- Material + collider --------------------------------------------
+    /** Surface material used for collision response. */
     public Material material;
+    /** Collision shape attached to this body, or {@code null} for no collision. */
     public ColliderShape collider;
 
     // ---- Derived state (recomputed by PhysicsWorld.updateDerivedState) --
@@ -63,6 +95,11 @@ public final class RigidBody {
     // Construction
     // -----------------------------------------------------------------------
 
+    /**
+     * @param name     human-readable label for debugging
+     * @param flags    bitmask of {@link RigidBodyFlags} constants
+     * @param material initial surface material
+     */
     public RigidBody(String name, int flags, Material material) {
         this.name = name;
         this.flags = flags;
@@ -73,12 +110,18 @@ public final class RigidBody {
     // WPILib surface
     // -----------------------------------------------------------------------
 
+    /** @return current pose in world frame */
     public Pose3d getPose() {
         return new Pose3d(
             new Translation3d(posX, posY, posZ),
             new Rotation3d(new Quaternion(qW, qX, qY, qZ)));
     }
 
+    /**
+     * Teleport this body to the given pose and refresh derived state.
+     *
+     * @param pose new world-frame pose
+     */
     public void setPose(Pose3d pose) {
         posX = pose.getX();
         posY = pose.getY();
@@ -89,18 +132,26 @@ public final class RigidBody {
         refreshWorldInertia();
     }
 
+    /** @return linear velocity in world frame (m/s) */
     public Translation3d getLinearVelocity() {
         return new Translation3d(velX, velY, velZ);
     }
 
+    /**
+     * @param v new linear velocity in world frame (m/s)
+     */
     public void setLinearVelocity(Translation3d v) {
         velX = v.getX(); velY = v.getY(); velZ = v.getZ();
     }
 
+    /** @return angular velocity in world frame (rad/s) */
     public Translation3d getAngularVelocity() {
         return new Translation3d(omX, omY, omZ);
     }
 
+    /**
+     * @param omega new angular velocity in world frame (rad/s)
+     */
     public void setAngularVelocity(Translation3d omega) {
         omX = omega.getX(); omY = omega.getY(); omZ = omega.getZ();
     }
@@ -211,5 +262,6 @@ public final class RigidBody {
         return RigidBodyFlags.isSet(flags, RigidBodyFlags.STATIC);
     }
 
+    /** @return world-assigned unique body ID */
     public int getId() { return id; }
 }

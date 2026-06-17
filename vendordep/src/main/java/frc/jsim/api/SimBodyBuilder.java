@@ -81,6 +81,11 @@ public final class SimBodyBuilder {
     /**
      * Set diagonal body-frame inertia tensor components (kg·m²).
      * If not called, the builder estimates inertia from the mass and collider shape.
+     *
+     * @param ixx moment of inertia about the body X axis (kg·m²)
+     * @param iyy moment of inertia about the body Y axis (kg·m²)
+     * @param izz moment of inertia about the body Z axis (kg·m²)
+     * @return this builder
      */
     public SimBodyBuilder inertia(double ixx, double iyy, double izz) {
         this.ixx = ixx; this.iyy = iyy; this.izz = izz; return this;
@@ -98,7 +103,15 @@ public final class SimBodyBuilder {
         return estimateInertiaIfNeeded(halfX, halfY, halfZ);
     }
 
-    /** Infinite half-space floor/wall. Automatically sets STATIC flag. */
+    /**
+     * Infinite half-space floor/wall. Automatically sets STATIC flag.
+     *
+     * @param nx     normal X component (will be normalized)
+     * @param ny     normal Y component
+     * @param nz     normal Z component
+     * @param offset signed distance from the body origin to the plane surface along the normal
+     * @return this builder
+     */
     public SimBodyBuilder planeCollider(double nx, double ny, double nz, double offset) {
         collider = new PlaneCollider(nx, ny, nz, offset);
         isStatic();
@@ -117,6 +130,9 @@ public final class SimBodyBuilder {
      * Tag this body as an FRC robot at the given alliance station.
      * The body can then be retrieved from the world with
      * {@link SimWorld#findRobot(RobotId)}.
+     *
+     * @param id the alliance-station identity to assign
+     * @return this builder
      */
     public SimBodyBuilder robotId(RobotId id) { this.robotId = id; return this; }
 

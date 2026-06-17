@@ -55,6 +55,9 @@ public final class SimWorld {
     /**
      * Build a body from the supplied builder, register it in the world, and
      * return the high-level {@link SimBody} handle.
+     *
+     * @param builder configured body builder
+     * @return the newly created {@link SimBody}
      */
     public SimBody addBody(SimBodyBuilder builder) {
         SimBody sb = builder.build();
@@ -64,14 +67,22 @@ public final class SimWorld {
         return sb;
     }
 
-    /** Remove a previously added body from the simulation. */
+    /**
+     * Remove a previously added body from the simulation.
+     *
+     * @param sb the body to remove
+     */
     public void removeBody(SimBody sb) {
         physics.removeBody(sb.body);
         physics.removeForceGenerator(sb.actuator);
         simBodies.remove(sb);
     }
 
-    /** Read-only list of all registered bodies in insertion order. */
+    /**
+     * Read-only list of all registered bodies in insertion order.
+     *
+     * @return unmodifiable list of all bodies
+     */
     public List<SimBody> getBodies() {
         return Collections.unmodifiableList(simBodies);
     }
@@ -81,6 +92,8 @@ public final class SimWorld {
     /**
      * Register a custom force generator (drag, magnus, spring, custom motor model, etc.).
      * The generator is called every tick after built-in gravity.
+     *
+     * @param fg the force generator to register
      */
     public void addForceGenerator(ForceGenerator fg) {
         physics.addForceGenerator(fg);
@@ -103,12 +116,18 @@ public final class SimWorld {
     /**
      * Advance by an explicit timestep (useful for tests or variable-rate callers).
      * Determinism is only guaranteed when {@code dt} is the same every call.
+     *
+     * @param dtSeconds timestep in seconds
      */
     public void step(double dtSeconds) {
         physics.step(dtSeconds);
     }
 
-    /** The fixed timestep this world was configured with (seconds). */
+    /**
+     * The fixed timestep this world was configured with (seconds).
+     *
+     * @return timestep in seconds
+     */
     public double getTimestep() { return dt; }
 
     // Convenience finders

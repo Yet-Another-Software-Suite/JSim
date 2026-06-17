@@ -16,6 +16,12 @@ public final class PlaneCollider extends ColliderShape {
     /** Signed distance from the body origin to the plane surface along the normal. */
     public final double offset;
 
+    /**
+     * @param nx     outward normal X component (will be normalized)
+     * @param ny     outward normal Y component
+     * @param nz     outward normal Z component
+     * @param offset signed distance from the body origin to the plane surface along the normal
+     */
     public PlaneCollider(double nx, double ny, double nz, double offset) {
         double len = Math.sqrt(nx * nx + ny * ny + nz * nz);
         this.nx = nx / len; this.ny = ny / len; this.nz = nz / len;

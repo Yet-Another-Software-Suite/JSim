@@ -90,11 +90,20 @@ public final class PhysicsWorld {
         forceGenerators.add(fg);
     }
 
+    /**
+     * Unregister a previously added force generator.
+     *
+     * @param fg the force generator to remove
+     */
     public void removeForceGenerator(ForceGenerator fg) {
         forceGenerators.remove(fg);
     }
 
-    /** Read-only view of all bodies for sensors/tracking. */
+    /**
+     * Read-only view of all bodies for sensors/tracking.
+     *
+     * @return unmodifiable list of all registered bodies
+     */
     public List<RigidBody> getBodies() {
         return Collections.unmodifiableList(bodies);
     }
@@ -104,6 +113,8 @@ public final class PhysicsWorld {
     /**
      * Advance the simulation by exactly {@code dt} seconds.
      * Always use a fixed timestep for determinism.
+     *
+     * @param dt timestep in seconds
      */
     public void step(double dt) {
         // 1. Clear accumulators

@@ -30,6 +30,11 @@ public final class RigidBodyFlags {
     /** Body does not rotate (infinite rotational inertia). */
     public static final int FIXED_ROTATION = 1 << 3;
 
+    /**
+     * @param flags bitmask to test
+     * @param flag  single flag constant to check
+     * @return {@code true} if the flag bit is set in the bitmask
+     */
     public static boolean isSet(int flags, int flag) {
         return (flags & flag) != 0;
     }
