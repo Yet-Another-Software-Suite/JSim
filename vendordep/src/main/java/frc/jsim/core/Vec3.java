@@ -66,14 +66,25 @@ public final class Vec3 {
         return scale(a, 1.0 / len);
     }
 
-    /** Adds b*s into a in-place. */
+    /**
+     * Adds {@code b * s} into {@code a} in-place.
+     *
+     * @param a the vector to accumulate into
+     * @param b the vector to scale and add
+     * @param s the scalar multiplier
+     */
     public static void addScaled(double[] a, double[] b, double s) {
         a[0] += b[0] * s;
         a[1] += b[1] * s;
         a[2] += b[2] * s;
     }
 
-    /** Returns {@code -a} as a new vector. */
+    /**
+     * Returns {@code -a} as a new vector.
+     *
+     * @param a the vector to negate
+     * @return a new vector with all components negated
+     */
     public static double[] negate(double[] a) {
         return of(-a[0], -a[1], -a[2]);
     }
