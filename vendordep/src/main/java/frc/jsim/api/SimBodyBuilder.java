@@ -4,6 +4,8 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.Mass;
+import static edu.wpi.first.units.Units.Kilograms;
 import frc.jsim.collision.BoxCollider;
 import frc.jsim.collision.ColliderShape;
 import frc.jsim.collision.PlaneCollider;
@@ -20,7 +22,7 @@ import frc.jsim.material.Material;
  * <pre>{@code
  * SimBody robot = world.addBody(new SimBodyBuilder("Robot")
  *     .pose(new Pose3d(1, 2, 0.1, new Rotation3d()))
- *     .mass(50)  // kg
+ *     .mass(Kilograms.of(50))
  *     .boxCollider(0.5, 0.4, 0.15)  // half-extents in metres
  *     .material(Material.CARPET)
  *     .noGravity());
@@ -33,8 +35,8 @@ public final class SimBodyBuilder {
     private ColliderShape collider;
     private RobotId robotId = null;
 
-    private double mass = 1.0;
-    private double ixx = 1.0, iyy = 1.0, izz = 1.0;
+    private double mass = 1.0;          // kg
+    private double ixx = 1.0, iyy = 1.0, izz = 1.0;  // kg·m²
 
     private double posX, posY, posZ;          // metres
     private double qW = 1, qX, qY, qZ;       // unit quaternion (w,x,y,z)
@@ -74,7 +76,7 @@ public final class SimBodyBuilder {
 
     // Mass / inertia
 
-    public SimBodyBuilder mass(double kg) { this.mass = kg; return this; }
+    public SimBodyBuilder mass(Mass mass) { this.mass = mass.in(Kilograms); return this; }
 
     /**
      * Set diagonal body-frame inertia tensor components (kg·m²).

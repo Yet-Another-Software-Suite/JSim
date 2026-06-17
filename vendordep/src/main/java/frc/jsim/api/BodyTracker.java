@@ -4,6 +4,9 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
+import static edu.wpi.first.units.Units.Meters;
 
 /**
  * Lightweight utility for querying and optionally recording the history of a
@@ -87,11 +90,11 @@ public final class BodyTracker {
     /** Latest recorded linear velocity. */
     public Translation3d getVelocity() { return latestVelocity; }
 
-    /** Latest recorded speed (m/s). */
-    public double getSpeed() { return target.getSpeed(); }
+    /** Latest recorded speed. */
+    public LinearVelocity getSpeed() { return target.getSpeed(); }
 
-    /** Total distance travelled since construction (metres). */
-    public double getTotalDistance() { return totalDistance; }
+    /** Total distance travelled since construction. */
+    public Distance getTotalDistance() { return Meters.of(totalDistance); }
 
     // History
     /**
@@ -111,9 +114,11 @@ public final class BodyTracker {
 
     /**
      * Whether the body is nearly stationary (speed below threshold).
+     *
+     * @param threshold maximum speed to be considered at rest
      */
-    public boolean isAtRest(double thresholdMetersPerSecond) {
-        return getSpeed() < thresholdMetersPerSecond;
+    public boolean isAtRest(LinearVelocity threshold) {
+        return getSpeed().lt(threshold);
     }
 
     /** Reset accumulated distance and clear history. */

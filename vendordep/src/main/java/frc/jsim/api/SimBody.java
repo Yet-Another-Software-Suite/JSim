@@ -3,6 +3,10 @@ package frc.jsim.api;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Mass;
+import static edu.wpi.first.units.Units.Kilograms;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import frc.jsim.collision.ColliderShape;
 import frc.jsim.dynamics.RigidBody;
 import frc.jsim.forces.ActuatorForce;
@@ -75,9 +79,9 @@ public final class SimBody {
         body.omX = omX; body.omY = omY; body.omZ = omZ;
     }
 
-    public double getSpeed() {
+    public LinearVelocity getSpeed() {
         double vx = body.velX, vy = body.velY, vz = body.velZ;
-        return Math.sqrt(vx * vx + vy * vy + vz * vz);
+        return MetersPerSecond.of(Math.sqrt(vx * vx + vy * vy + vz * vz));
     }
 
     // Actuator (force/torque input from robot code)
@@ -90,7 +94,7 @@ public final class SimBody {
     public ActuatorForce getActuator() { return actuator; }
 
     // Mass / material
-    public double getMass() { return body.invMass > 0 ? 1.0 / body.invMass : Double.POSITIVE_INFINITY; }
+    public Mass getMass() { return Kilograms.of(body.invMass > 0 ? 1.0 / body.invMass : Double.POSITIVE_INFINITY); }
     public Material getMaterial() { return body.material; }
     public void setMaterial(Material m) { body.material = m; }
 
@@ -102,7 +106,7 @@ public final class SimBody {
 
     public boolean isStatic() { return body.isStatic(); }
 
-    /** Return the 6-element world-space AABB [minX,minY,minZ,maxX,maxY,maxZ]. */
+    /** Return the 6-element world-space AABB [minX,minY,minZ,maxX,maxY,maxZ] in metres. */
     public double[] getAABB() { return body.aabb.clone(); }
 
     @Override

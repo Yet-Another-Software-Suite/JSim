@@ -92,11 +92,6 @@ def enableExternalJavadocLinks = !gradle.startParameter.isOffline() && System.ge
 javadoc {
     title = "JSim API"
 
-    // Exclude internal implementation packages from published Javadocs.
-    // Vec3, Mat3, PhysicsWorld, and the solver internals are not part of the public API.
-    exclude 'frc/jsim/core/**'
-    exclude 'frc/jsim/solver/**'
-
     failOnError = true
     options {
         encoding = 'UTF-8'
@@ -104,9 +99,6 @@ javadoc {
             links "https://docs.oracle.com/en/java/javase/${JavaVersion.current().majorVersion}/docs/api/", 'https://github.wpilib.org/allwpilib/docs/release/java/'
         }
         addBooleanOption('Werror', true)
-        // Suppress "missing @param / @return" doclint warnings; structural and HTML
-        // errors still fail the build via -Werror.
-        addBooleanOption('Xdoclint:-missing', true)
     }
 }
 
