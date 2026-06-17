@@ -7,9 +7,11 @@ public final class SimConstants {
     /** Default fixed timestep in seconds (20 ms = 50 Hz, matching FRC robot loop). */
     public static final double DEFAULT_DT = 0.02;
 
-    /** Default gravity vector (negative Z = downward, FRC field convention). */
+    /** Default gravity vector X component (m/s²); zero for FRC field convention. */
     public static final double GRAVITY_X = 0.0;
+    /** Default gravity vector Y component (m/s²); zero for FRC field convention. */
     public static final double GRAVITY_Y = 0.0;
+    /** Default gravity vector Z component (m/s²); negative Z = downward, FRC field convention. */
     public static final double GRAVITY_Z = -9.80665;
 
     /** Impulse solver iteration count per tick. Higher = more accurate but slower. */

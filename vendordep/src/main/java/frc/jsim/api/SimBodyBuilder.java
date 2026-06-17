@@ -44,9 +44,21 @@ public final class SimBodyBuilder {
     private double velX, velY, velZ;          // m/s
     private double omX, omY, omZ;             // rad/s
 
+    /**
+     * Creates a builder for a body with the given name.
+     *
+     * @param name human-readable label for the body
+     */
     public SimBodyBuilder(String name) { this.name = name; }
 
     // Pose
+
+    /**
+     * Sets the initial pose (position + rotation) of the body.
+     *
+     * @param pose the initial pose in world space
+     * @return this builder
+     */
     public SimBodyBuilder pose(Pose3d pose) {
         posX = pose.getX(); posY = pose.getY(); posZ = pose.getZ();
         Quaternion q = pose.getRotation().getQuaternion();
@@ -54,10 +66,24 @@ public final class SimBodyBuilder {
         return this;
     }
 
+    /**
+     * Sets the initial position of the body in world space.
+     *
+     * @param x position along the X axis (metres)
+     * @param y position along the Y axis (metres)
+     * @param z position along the Z axis (metres)
+     * @return this builder
+     */
     public SimBodyBuilder position(double x, double y, double z) {
         posX = x; posY = y; posZ = z; return this;
     }
 
+    /**
+     * Sets the initial rotation of the body.
+     *
+     * @param r the initial orientation in world space
+     * @return this builder
+     */
     public SimBodyBuilder rotation(Rotation3d r) {
         Quaternion q = r.getQuaternion();
         qW = q.getW(); qX = q.getX(); qY = q.getY(); qZ = q.getZ();
@@ -66,16 +92,38 @@ public final class SimBodyBuilder {
 
     // Velocity
 
+    /**
+     * Sets the initial linear velocity of the body.
+     *
+     * @param vx velocity along the X axis (m/s)
+     * @param vy velocity along the Y axis (m/s)
+     * @param vz velocity along the Z axis (m/s)
+     * @return this builder
+     */
     public SimBodyBuilder linearVelocity(double vx, double vy, double vz) {
         velX = vx; velY = vy; velZ = vz; return this;
     }
 
+    /**
+     * Sets the initial angular velocity of the body.
+     *
+     * @param ox angular velocity about the X axis (rad/s)
+     * @param oy angular velocity about the Y axis (rad/s)
+     * @param oz angular velocity about the Z axis (rad/s)
+     * @return this builder
+     */
     public SimBodyBuilder angularVelocity(double ox, double oy, double oz) {
         omX = ox; omY = oy; omZ = oz; return this;
     }
 
     // Mass / inertia
 
+    /**
+     * Sets the mass of the body.
+     *
+     * @param mass the body mass
+     * @return this builder
+     */
     public SimBodyBuilder mass(Mass mass) { this.mass = mass.in(Kilograms); return this; }
 
     /**
@@ -93,11 +141,25 @@ public final class SimBodyBuilder {
 
     // Collider shortcuts
 
+    /**
+     * Attaches a sphere collider and estimates inertia from mass and radius.
+     *
+     * @param radius sphere radius in metres; must be positive
+     * @return this builder
+     */
     public SimBodyBuilder sphereCollider(double radius) {
         collider = new SphereCollider(radius);
         return estimateInertiaIfNeeded(radius);
     }
 
+    /**
+     * Attaches a box collider and estimates inertia from mass and half-extents.
+     *
+     * @param halfX half-width along the X axis (metres)
+     * @param halfY half-width along the Y axis (metres)
+     * @param halfZ half-width along the Z axis (metres)
+     * @return this builder
+     */
     public SimBodyBuilder boxCollider(double halfX, double halfY, double halfZ) {
         collider = new BoxCollider(halfX, halfY, halfZ);
         return estimateInertiaIfNeeded(halfX, halfY, halfZ);
@@ -118,12 +180,24 @@ public final class SimBodyBuilder {
         return this;
     }
 
+    /**
+     * Attaches a custom collider shape.
+     *
+     * @param shape the collider to attach
+     * @return this builder
+     */
     public SimBodyBuilder collider(ColliderShape shape) {
         this.collider = shape; return this;
     }
 
     // Material
 
+    /**
+     * Sets the surface material used for contact response.
+     *
+     * @param m the surface material
+     * @return this builder
+     */
     public SimBodyBuilder material(Material m) { this.material = m; return this; }
 
     /**
@@ -138,9 +212,13 @@ public final class SimBodyBuilder {
 
     // Flags
 
+    /** Marks the body as static (infinite mass, never moved by the solver). @return this builder */
     public SimBodyBuilder isStatic() { flags |= RigidBodyFlags.STATIC; return this; }
+    /** Disables gravity for this body. @return this builder */
     public SimBodyBuilder noGravity() { flags |= RigidBodyFlags.NO_GRAVITY; return this; }
+    /** Disables collision detection for this body. @return this builder */
     public SimBodyBuilder noCollision() { flags |= RigidBodyFlags.NO_COLLISION; return this; }
+    /** Prevents rotational integration, keeping orientation constant. @return this builder */
     public SimBodyBuilder fixedRotation() { flags |= RigidBodyFlags.FIXED_ROTATION; return this; }
 
     // Build (called internally by SimWorld.addBody)
