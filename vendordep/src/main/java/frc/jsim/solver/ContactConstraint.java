@@ -33,6 +33,8 @@ public final class ContactConstraint {
     public double restitutionBias;
 
     /**
+     * Create a constraint pre-computed from the given contact point.
+     *
      * @param contact the contact point to constrain
      */
     public ContactConstraint(ContactPoint contact) {

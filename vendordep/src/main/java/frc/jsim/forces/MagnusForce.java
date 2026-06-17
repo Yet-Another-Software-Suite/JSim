@@ -16,6 +16,8 @@ public final class MagnusForce implements ForceGenerator {
     private final double k;
 
     /**
+     * Create a Magnus force generator for the given body.
+     *
      * @param body              the spinning body to apply Magnus lift to
      * @param magnusCoefficient Magnus lift coefficient k (kg)
      */

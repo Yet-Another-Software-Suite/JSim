@@ -31,6 +31,8 @@ public final class RigidBodyFlags {
     public static final int FIXED_ROTATION = 1 << 3;
 
     /**
+     * Test whether a specific flag bit is set in a bitmask.
+     *
      * @param flags bitmask to test
      * @param flag  single flag constant to check
      * @return {@code true} if the flag bit is set in the bitmask

@@ -10,6 +10,8 @@ public final class CollisionPair {
     public final RigidBody b;
 
     /**
+     * Create a collision pair from two bodies.
+     *
      * @param a first body
      * @param b second body
      */

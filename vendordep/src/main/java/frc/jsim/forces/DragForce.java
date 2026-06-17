@@ -18,6 +18,8 @@ public final class DragForce implements ForceGenerator {
     private final double angularDamping;
 
     /**
+     * Create a drag force applied to the given body.
+     *
      * @param body            the body to damp
      * @param linearDamping   linear drag coefficient (N·s/m)
      * @param angularDamping  rotational drag coefficient (N·m·s/rad)

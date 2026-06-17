@@ -17,6 +17,8 @@ public final class PlaneCollider extends ColliderShape {
     public final double offset;
 
     /**
+     * Create an infinite half-space plane collider.
+     *
      * @param nx     outward normal X component (will be normalized)
      * @param ny     outward normal Y component
      * @param nz     outward normal Z component

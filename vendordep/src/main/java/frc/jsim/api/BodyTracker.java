@@ -46,6 +46,8 @@ public final class BodyTracker {
     }
 
     /**
+     * Create a tracker with bounded history.
+     *
      * @param target     the body to track
      * @param maxHistory maximum number of past samples to retain (0 = no history)
      */

@@ -19,7 +19,6 @@ import frc.jsim.material.Material;
  * {@link frc.jsim.api.SimBodyBuilder} to configure them before adding.
  */
 public final class RigidBody {
-    // ---- Identity -------------------------------------------------------
     /** World-assigned unique ID, set by PhysicsWorld on registration. */
     public int id = -1;
 
@@ -29,7 +28,6 @@ public final class RigidBody {
     /** Bitmask of {@link RigidBodyFlags}. */
     public int flags;
 
-    // ---- Pose (position + orientation) ----------------------------------
     /** Position X coordinate in world frame (metres). */
     public double posX;
     /** Position Y coordinate in world frame (metres). */
@@ -45,7 +43,6 @@ public final class RigidBody {
     /** Orientation quaternion Z component. */
     public double qZ;
 
-    // ---- Velocities -----------------------------------------------------
     /** Linear velocity X component in world frame (m/s). */
     public double velX;
     /** Linear velocity Y component in world frame (m/s). */
@@ -59,7 +56,6 @@ public final class RigidBody {
     /** Angular velocity Z component in world frame (rad/s). */
     public double omZ;
 
-    // ---- Accumulators (cleared each tick) -------------------------------
     /** Net force X component accumulated this tick (N). */
     public double forceX;
     /** Net force Y component accumulated this tick (N). */
@@ -73,7 +69,6 @@ public final class RigidBody {
     /** Net torque Z component accumulated this tick (N·m). */
     public double torqueZ;
 
-    // ---- Mass properties ------------------------------------------------
     /** 1/mass. 0 for static bodies (infinite mass). */
     public double invMass;
     /** Body-frame diagonal inertia tensor components (kg·m²). */
@@ -81,21 +76,17 @@ public final class RigidBody {
     /** World-frame inverse inertia tensor (3x3 row-major). Recomputed each tick. */
     public final double[] invIWorld = new double[9];
 
-    // ---- Material + collider --------------------------------------------
     /** Surface material used for collision response. */
     public Material material;
     /** Collision shape attached to this body, or {@code null} for no collision. */
     public ColliderShape collider;
 
-    // ---- Derived state (recomputed by PhysicsWorld.updateDerivedState) --
     /** Cached world-frame AABB for broadphase. Stored as [minX,minY,minZ,maxX,maxY,maxZ]. */
     public final double[] aabb = new double[6];
 
-    // -----------------------------------------------------------------------
-    // Construction
-    // -----------------------------------------------------------------------
-
     /**
+     * Create a rigid body with the given name, flags, and surface material.
+     *
      * @param name     human-readable label for debugging
      * @param flags    bitmask of {@link RigidBodyFlags} constants
      * @param material initial surface material
@@ -105,10 +96,6 @@ public final class RigidBody {
         this.flags = flags;
         this.material = material;
     }
-
-    // -----------------------------------------------------------------------
-    // WPILib surface
-    // -----------------------------------------------------------------------
 
     /** @return current pose in world frame */
     public Pose3d getPose() {
@@ -138,6 +125,8 @@ public final class RigidBody {
     }
 
     /**
+     * Set the linear velocity directly.
+     *
      * @param v new linear velocity in world frame (m/s)
      */
     public void setLinearVelocity(Translation3d v) {
@@ -150,15 +139,13 @@ public final class RigidBody {
     }
 
     /**
+     * Set the angular velocity directly.
+     *
      * @param omega new angular velocity in world frame (rad/s)
      */
     public void setAngularVelocity(Translation3d omega) {
         omX = omega.getX(); omY = omega.getY(); omZ = omega.getZ();
     }
-
-    // -----------------------------------------------------------------------
-    // Internal helpers
-    // -----------------------------------------------------------------------
 
     /**
      * Apply a force at the centre of mass (world frame).

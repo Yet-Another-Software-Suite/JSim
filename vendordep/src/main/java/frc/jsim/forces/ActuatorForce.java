@@ -22,6 +22,8 @@ public final class ActuatorForce implements ForceGenerator {
     private double appX = Double.NaN, appY, appZ;
 
     /**
+     * Create an actuator for the given rigid body.
+     *
      * @param body the rigid body this actuator drives
      */
     public ActuatorForce(RigidBody body) {

@@ -11,6 +11,8 @@ public final class BoxCollider extends ColliderShape {
     public final double halfX, halfY, halfZ;
 
     /**
+     * Create a box collider with the given half-extents.
+     *
      * @param halfX half-extent along the body-local X axis (metres)
      * @param halfY half-extent along the body-local Y axis (metres)
      * @param halfZ half-extent along the body-local Z axis (metres)

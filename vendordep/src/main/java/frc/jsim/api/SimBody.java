@@ -92,13 +92,34 @@ public final class SimBody {
     /** @return angular velocity in world frame (rad/s) */
     public Translation3d getAngularVelocity() { return body.getAngularVelocity(); }
 
+    /**
+     * Set the linear velocity directly from a {@link Translation3d}.
+     *
+     * @param v new linear velocity in world frame (m/s)
+     */
     public void setLinearVelocity(Translation3d v) { body.setLinearVelocity(v); }
+
+    /**
+     * Set the angular velocity directly from a {@link Translation3d}.
+     *
+     * @param omega new angular velocity in world frame (rad/s)
+     */
     public void setAngularVelocity(Translation3d omega) { body.setAngularVelocity(omega); }
+
+    /**
+     * Set the linear velocity from scalar components.
+     *
+     * @param vx velocity X component (m/s)
+     * @param vy velocity Y component (m/s)
+     * @param vz velocity Z component (m/s)
+     */
     public void setLinearVelocity(double vx, double vy, double vz) {
         body.velX = vx; body.velY = vy; body.velZ = vz;
     }
 
     /**
+     * Set the angular velocity from scalar components.
+     *
      * @param omX angular velocity X component (rad/s)
      * @param omY angular velocity Y component (rad/s)
      * @param omZ angular velocity Z component (rad/s)
