@@ -36,6 +36,11 @@ public final class BodyTracker {
     private Translation3d latestVelocity;
     private double totalDistance;
 
+    /**
+     * Create a tracker with no history retention.
+     *
+     * @param target the body to track
+     */
     public BodyTracker(SimBody target) {
         this(target, 0);
     }
@@ -81,25 +86,47 @@ public final class BodyTracker {
 
     // Current state
 
-    /** The body being tracked. */
+    /**
+     * The body being tracked.
+     *
+     * @return the tracked SimBody
+     */
     public SimBody getTarget() { return target; }
 
-    /** Latest recorded pose (updated by {@link #update()}). */
+    /**
+     * Latest recorded pose (updated by {@link #update()}).
+     *
+     * @return latest pose
+     */
     public Pose3d getPose() { return latestPose; }
 
-    /** Latest recorded linear velocity. */
+    /**
+     * Latest recorded linear velocity.
+     *
+     * @return latest linear velocity
+     */
     public Translation3d getVelocity() { return latestVelocity; }
 
-    /** Latest recorded speed. */
+    /**
+     * Latest recorded speed.
+     *
+     * @return latest speed
+     */
     public LinearVelocity getSpeed() { return target.getSpeed(); }
 
-    /** Total distance travelled since construction. */
+    /**
+     * Total distance travelled since construction.
+     *
+     * @return total distance travelled
+     */
     public Distance getTotalDistance() { return Meters.of(totalDistance); }
 
     // History
     /**
      * Ordered list of past poses, oldest first (empty if {@code maxHistory == 0}).
      * Returns a snapshot — modifying the returned array does not affect history.
+     *
+     * @return snapshot of past poses
      */
     public Pose3d[] getPoseHistory() {
         return poseHistory.toArray(new Pose3d[0]);
@@ -107,6 +134,8 @@ public final class BodyTracker {
 
     /**
      * Ordered list of past linear velocities, oldest first.
+     *
+     * @return snapshot of past velocities
      */
     public Translation3d[] getVelocityHistory() {
         return velocityHistory.toArray(new Translation3d[0]);
@@ -116,6 +145,7 @@ public final class BodyTracker {
      * Whether the body is nearly stationary (speed below threshold).
      *
      * @param threshold maximum speed to be considered at rest
+     * @return true if current speed is below threshold
      */
     public boolean isAtRest(LinearVelocity threshold) {
         return getSpeed().lt(threshold);

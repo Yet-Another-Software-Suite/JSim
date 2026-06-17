@@ -15,6 +15,10 @@ public final class MagnusForce implements ForceGenerator {
     /** Magnus lift coefficient (kg). */
     private final double k;
 
+    /**
+     * @param body              the spinning body to apply Magnus lift to
+     * @param magnusCoefficient Magnus lift coefficient k (kg)
+     */
     public MagnusForce(RigidBody body, double magnusCoefficient) {
         this.body = body;
         this.k = magnusCoefficient;

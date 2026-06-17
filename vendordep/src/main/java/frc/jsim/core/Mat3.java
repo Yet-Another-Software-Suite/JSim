@@ -16,7 +16,15 @@ public final class Mat3 {
         return new double[] {a, 0, 0, 0, b, 0, 0, 0, c};
     }
 
-    /** Build rotation matrix from unit quaternion (w, x, y, z). */
+    /**
+     * Build rotation matrix from unit quaternion (w, x, y, z).
+     *
+     * @param qw quaternion W component
+     * @param qx quaternion X component
+     * @param qy quaternion Y component
+     * @param qz quaternion Z component
+     * @return 3x3 row-major rotation matrix as a 9-element array
+     */
     public static double[] fromQuaternion(double qw, double qx, double qy, double qz) {
         double x2 = 2 * qx * qx, y2 = 2 * qy * qy, z2 = 2 * qz * qz;
         double xy = 2 * qx * qy, xz = 2 * qx * qz, yz = 2 * qy * qz;
@@ -28,7 +36,13 @@ public final class Mat3 {
         };
     }
 
-    /** m * v where m is 3x3 and v is length-3. */
+    /**
+     * Multiply a 3x3 matrix by a 3-vector (m * v).
+     *
+     * @param m 3x3 row-major matrix (9 elements)
+     * @param v input vector (3 elements)
+     * @return result vector (3 elements)
+     */
     public static double[] mulVec(double[] m, double[] v) {
         return new double[] {
             m[0] * v[0] + m[1] * v[1] + m[2] * v[2],
@@ -37,7 +51,13 @@ public final class Mat3 {
         };
     }
 
-    /** a * b (both 3x3 row-major). */
+    /**
+     * Multiply two 3x3 row-major matrices (a * b).
+     *
+     * @param a left matrix (9 elements)
+     * @param b right matrix (9 elements)
+     * @return product matrix (9 elements)
+     */
     public static double[] mul(double[] a, double[] b) {
         double[] r = new double[9];
         for (int i = 0; i < 3; i++) {
@@ -48,7 +68,12 @@ public final class Mat3 {
         return r;
     }
 
-    /** Transpose of a 3x3 row-major matrix. */
+    /**
+     * Transpose of a 3x3 row-major matrix.
+     *
+     * @param m input matrix (9 elements)
+     * @return transposed matrix (9 elements)
+     */
     public static double[] transpose(double[] m) {
         return new double[] {
             m[0], m[3], m[6],
@@ -60,6 +85,12 @@ public final class Mat3 {
     /**
      * Compute R * diag(d0,d1,d2) * R^T efficiently.
      * Used to transform body-frame diagonal inertia to world frame.
+     *
+     * @param R  rotation matrix (9 elements, row-major)
+     * @param d0 first diagonal element
+     * @param d1 second diagonal element
+     * @param d2 third diagonal element
+     * @return 3x3 result matrix (9 elements)
      */
     public static double[] rotateInertia(double[] R, double d0, double d1, double d2) {
         // tmp = R * diag
@@ -75,7 +106,10 @@ public final class Mat3 {
 
     /**
      * Invert a 3x3 matrix using Cramer's rule.
-     * Returns identity-like (large values) if singular.
+     * Returns the identity matrix if the input is singular.
+     *
+     * @param m input matrix (9 elements, row-major)
+     * @return inverted matrix (9 elements)
      */
     public static double[] invert(double[] m) {
         double a = m[0], b = m[1], c = m[2];

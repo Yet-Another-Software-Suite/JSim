@@ -17,6 +17,11 @@ public final class DragForce implements ForceGenerator {
     /** Rotational drag coefficient (N·m·s/rad). */
     private final double angularDamping;
 
+    /**
+     * @param body            the body to damp
+     * @param linearDamping   linear drag coefficient (N·s/m)
+     * @param angularDamping  rotational drag coefficient (N·m·s/rad)
+     */
     public DragForce(RigidBody body, double linearDamping, double angularDamping) {
         this.body = body;
         this.linearDamping = linearDamping;

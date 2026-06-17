@@ -8,8 +8,20 @@ package frc.jsim.collision;
  */
 public abstract class ColliderShape {
     /** Shape type tag for fast dispatch in narrowphase. */
-    public enum Type { SPHERE, BOX, PLANE }
+    public enum Type {
+        /** Sphere defined by a radius. */
+        SPHERE,
+        /** Axis-aligned box defined by half-extents. */
+        BOX,
+        /** Infinite half-space defined by a normal and offset. */
+        PLANE
+    }
 
+    /**
+     * The shape type of this collider.
+     *
+     * @return this shape's type tag
+     */
     public abstract Type getType();
 
     /**

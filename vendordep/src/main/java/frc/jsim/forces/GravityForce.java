@@ -15,11 +15,23 @@ public final class GravityForce implements ForceGenerator {
     private final List<RigidBody> bodies;
     private final double gx, gy, gz;
 
-    /** Default gravity pointing in −Z (WPILib field convention). */
+    /**
+     * Default gravity pointing in −Z (WPILib field convention).
+     *
+     * @param bodies all bodies to apply gravity to
+     */
     public GravityForce(List<RigidBody> bodies) {
         this(bodies, SimConstants.GRAVITY_X, SimConstants.GRAVITY_Y, SimConstants.GRAVITY_Z);
     }
 
+    /**
+     * Gravity with a custom acceleration vector.
+     *
+     * @param bodies all bodies to apply gravity to
+     * @param gx     gravitational acceleration X component (m/s²)
+     * @param gy     gravitational acceleration Y component (m/s²)
+     * @param gz     gravitational acceleration Z component (m/s²)
+     */
     public GravityForce(List<RigidBody> bodies, double gx, double gy, double gz) {
         this.bodies = bodies;
         this.gx = gx; this.gy = gy; this.gz = gz;

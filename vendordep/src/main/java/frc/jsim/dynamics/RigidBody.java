@@ -109,12 +109,24 @@ public final class RigidBody {
     // Internal helpers
     // -----------------------------------------------------------------------
 
-    /** Apply a force (world frame, Newtons) at the centre of mass. */
+    /**
+     * Apply a force at the centre of mass (world frame).
+     *
+     * @param fx X component (N)
+     * @param fy Y component (N)
+     * @param fz Z component (N)
+     */
     public void applyForce(double fx, double fy, double fz) {
         forceX += fx; forceY += fy; forceZ += fz;
     }
 
-    /** Apply a torque (world frame, N·m). */
+    /**
+     * Apply a torque directly (world frame).
+     *
+     * @param tx X component (N·m)
+     * @param ty Y component (N·m)
+     * @param tz Z component (N·m)
+     */
     public void applyTorque(double tx, double ty, double tz) {
         torqueX += tx; torqueY += ty; torqueZ += tz;
     }
@@ -122,6 +134,13 @@ public final class RigidBody {
     /**
      * Apply a world-frame force at a world-frame point.
      * Generates both a linear force and a torque about the centre of mass.
+     *
+     * @param fx force X component (N)
+     * @param fy force Y component (N)
+     * @param fz force Z component (N)
+     * @param px application point X (metres)
+     * @param py application point Y (metres)
+     * @param pz application point Z (metres)
      */
     public void applyForceAtPoint(double fx, double fy, double fz,
                                    double px, double py, double pz) {
@@ -137,7 +156,14 @@ public final class RigidBody {
         torqueX = torqueY = torqueZ = 0;
     }
 
-    /** Set mass (kg) and a diagonal body-frame inertia tensor (kg·m²). */
+    /**
+     * Set mass and diagonal body-frame inertia tensor.
+     *
+     * @param mass total mass (kg)
+     * @param ixx  body-frame inertia about X axis (kg·m²)
+     * @param iyy  body-frame inertia about Y axis (kg·m²)
+     * @param izz  body-frame inertia about Z axis (kg·m²)
+     */
     public void setMassProperties(double mass, double ixx, double iyy, double izz) {
         invMass = (mass <= 0) ? 0 : 1.0 / mass;
         iBodyXX = ixx; iBodyYY = iyy; iBodyZZ = izz;
@@ -176,7 +202,11 @@ public final class RigidBody {
         qW /= len; qX /= len; qY /= len; qZ /= len;
     }
 
-    /** Whether this body participates as an infinite-mass static wall. */
+    /**
+     * Whether this body participates as an infinite-mass static wall.
+     *
+     * @return true if the STATIC flag is set
+     */
     public boolean isStatic() {
         return RigidBodyFlags.isSet(flags, RigidBodyFlags.STATIC);
     }

@@ -25,16 +25,25 @@ import frc.jsim.dynamics.RigidBody;
 public final class ImpulseSolver {
     private final int iterations;
 
+    /** Create a solver with the default iteration count. */
     public ImpulseSolver() {
         this(SimConstants.DEFAULT_SOLVER_ITERATIONS);
     }
 
+    /**
+     * Create a solver with a custom iteration count.
+     *
+     * @param iterations number of PGS passes per tick (higher = more accurate, slower)
+     */
     public ImpulseSolver(int iterations) {
         this.iterations = iterations;
     }
 
     /**
      * Build constraint data from contacts, then run {@code iterations} solve passes.
+     *
+     * @param contacts the contact points to resolve
+     * @param dt       simulation timestep (seconds)
      */
     public void solve(List<ContactPoint> contacts, double dt) {
         if (contacts.isEmpty()) return;

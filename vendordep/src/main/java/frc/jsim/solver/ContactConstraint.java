@@ -10,25 +10,31 @@ import frc.jsim.collision.ContactPoint;
  * and resist sliding via Coulomb friction."
  */
 public final class ContactConstraint {
+    /** The contact point this constraint was built for. */
     public final ContactPoint contact;
 
-    // Vectors from each body's CoM to the contact point (world frame)
+    /** Vector from body A's CoM to the contact point, world frame (metres). */
     public double rAx, rAy, rAz;
+    /** Vector from body B's CoM to the contact point, world frame (metres). */
     public double rBx, rBy, rBz;
 
-    // Effective mass along the contact normal
+    /** Effective inverse mass along the contact normal (kg⁻¹). */
     public double normalEffMass;
 
-    // Tangent direction (first friction direction)
+    /** First friction tangent direction, world frame (unit vector). */
     public double tangX, tangY, tangZ;
+    /** Effective inverse mass along the tangent direction (kg⁻¹). */
     public double tangEffMass;
 
-    // Bias velocity for Baumgarte penetration correction
+    /** Baumgarte bias velocity for penetration correction (m/s). */
     public double normalBias;
 
-    // Restitution target velocity (used only on first iteration)
+    /** Restitution target velocity used on the first solver iteration (m/s). */
     public double restitutionBias;
 
+    /**
+     * @param contact the contact point to constrain
+     */
     public ContactConstraint(ContactPoint contact) {
         this.contact = contact;
     }

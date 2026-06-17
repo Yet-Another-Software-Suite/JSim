@@ -7,8 +7,14 @@ import frc.jsim.core.Mat3;
  * Half-extents are the distances from the centre to each face.
  */
 public final class BoxCollider extends ColliderShape {
+    /** Half-extents along each body-local axis (metres). */
     public final double halfX, halfY, halfZ;
 
+    /**
+     * @param halfX half-extent along the body-local X axis (metres)
+     * @param halfY half-extent along the body-local Y axis (metres)
+     * @param halfZ half-extent along the body-local Z axis (metres)
+     */
     public BoxCollider(double halfX, double halfY, double halfZ) {
         this.halfX = halfX; this.halfY = halfY; this.halfZ = halfZ;
     }

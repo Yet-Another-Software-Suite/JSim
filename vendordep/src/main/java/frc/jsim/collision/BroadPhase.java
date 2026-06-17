@@ -18,6 +18,9 @@ public final class BroadPhase {
     /**
      * Return all body pairs whose cached AABBs overlap.
      * The supplied list is cleared and repopulated each call.
+     *
+     * @param bodies all bodies in the world
+     * @param out    cleared and populated with overlapping pairs
      */
     public static void findPairs(List<RigidBody> bodies, List<CollisionPair> out) {
         out.clear();
