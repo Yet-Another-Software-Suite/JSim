@@ -13,7 +13,7 @@ package frc.jsim.api;
  *     .mass(54).boxCollider(0.45, 0.4, 0.15)
  *     .material(Material.CARPET));
  *
- * // Elsewhere in simulationPeriodic():
+ * Elsewhere in simulationPeriodic():
  * SimBody red1 = world.findRobot(RobotId.RED_1);
  * }</pre>
  */
