@@ -212,13 +212,32 @@ public final class SimBodyBuilder {
 
     // Flags
 
-    /** Marks the body as static (infinite mass, never moved by the solver). @return this builder */
+    /**
+     * Marks the body as static (infinite mass, never moved by the solver).
+     *
+     * @return this builder
+     */
     public SimBodyBuilder isStatic() { flags |= RigidBodyFlags.STATIC; return this; }
-    /** Disables gravity for this body. @return this builder */
+
+    /**
+     * Disables gravity for this body.
+     *
+     * @return this builder
+     */
     public SimBodyBuilder noGravity() { flags |= RigidBodyFlags.NO_GRAVITY; return this; }
-    /** Disables collision detection for this body. @return this builder */
+
+    /**
+     * Disables collision detection for this body.
+     *
+     * @return this builder
+     */
     public SimBodyBuilder noCollision() { flags |= RigidBodyFlags.NO_COLLISION; return this; }
-    /** Prevents rotational integration, keeping orientation constant. @return this builder */
+
+    /**
+     * Prevents rotational integration, keeping orientation constant.
+     *
+     * @return this builder
+     */
     public SimBodyBuilder fixedRotation() { flags |= RigidBodyFlags.FIXED_ROTATION; return this; }
 
     // Build (called internally by SimWorld.addBody)

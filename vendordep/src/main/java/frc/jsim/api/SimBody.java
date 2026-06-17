@@ -149,7 +149,11 @@ public final class SimBody {
     public Mass getMass() { return Kilograms.of(body.invMass > 0 ? 1.0 / body.invMass : Double.POSITIVE_INFINITY); }
     /** @return current surface material */
     public Material getMaterial() { return body.material; }
-    /** Sets the surface material used for contact response. @param m the new material */
+    /**
+     * Sets the surface material used for contact response.
+     *
+     * @param m the new material
+     */
     public void setMaterial(Material m) { body.material = m; }
 
     // Collider
