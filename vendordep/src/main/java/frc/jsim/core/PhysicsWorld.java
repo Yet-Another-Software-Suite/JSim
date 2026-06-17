@@ -43,10 +43,16 @@ public final class PhysicsWorld {
 
     private int nextId = 0;
 
+    /** Creates a world with default solver iteration count. */
     public PhysicsWorld() {
         this(SimConstants.DEFAULT_SOLVER_ITERATIONS);
     }
 
+    /**
+     * Creates a world with the given solver iteration count.
+     *
+     * @param solverIterations number of impulse-solver iterations per tick
+     */
     public PhysicsWorld(int solverIterations) {
         this.solver       = new ImpulseSolver(solverIterations);
         this.gravityForce = new GravityForce(bodies);
@@ -55,19 +61,31 @@ public final class PhysicsWorld {
 
     // Registration
 
-    /** Add a body to the world and assign it a unique ID. */
+    /**
+     * Add a body to the world and assign it a unique ID.
+     *
+     * @param body the body to register
+     */
     public void addBody(RigidBody body) {
         body.id = nextId++;
         bodies.add(body);
         updateDerivedState(body);
     }
 
-    /** Remove a body from the world. */
+    /**
+     * Remove a body from the world.
+     *
+     * @param body the body to remove
+     */
     public void removeBody(RigidBody body) {
         bodies.remove(body);
     }
 
-    /** Register an additional force generator (e.g. actuator, drag, magnus). */
+    /**
+     * Register an additional force generator (e.g. actuator, drag, magnus).
+     *
+     * @param fg the force generator to add
+     */
     public void addForceGenerator(ForceGenerator fg) {
         forceGenerators.add(fg);
     }
