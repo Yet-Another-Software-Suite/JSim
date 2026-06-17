@@ -37,14 +37,26 @@ public final class SimWorld {
 
     private final List<SimBody> simBodies = new ArrayList<>();
 
+    /** Creates a world with the default timestep and solver iteration count. */
     public SimWorld() {
         this(SimConstants.DEFAULT_DT, SimConstants.DEFAULT_SOLVER_ITERATIONS);
     }
 
+    /**
+     * Creates a world with a custom fixed timestep and the default solver iteration count.
+     *
+     * @param fixedTimestepSeconds the physics timestep in seconds
+     */
     public SimWorld(double fixedTimestepSeconds) {
         this(fixedTimestepSeconds, SimConstants.DEFAULT_SOLVER_ITERATIONS);
     }
 
+    /**
+     * Creates a world with a custom fixed timestep and solver iteration count.
+     *
+     * @param fixedTimestepSeconds the physics timestep in seconds
+     * @param solverIterations number of constraint-solver iterations per step
+     */
     public SimWorld(double fixedTimestepSeconds, int solverIterations) {
         this.dt = fixedTimestepSeconds;
         this.physics = new PhysicsWorld(solverIterations);

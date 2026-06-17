@@ -2,8 +2,14 @@ package frc.jsim.collision;
 
 /** Sphere shape centred at the body's local origin. */
 public final class SphereCollider extends ColliderShape {
+    /** Radius of the sphere in metres. */
     public final double radius;
 
+    /**
+     * Creates a sphere collider with the given radius.
+     *
+     * @param radius the sphere radius in metres; must be positive
+     */
     public SphereCollider(double radius) {
         if (radius <= 0) throw new IllegalArgumentException("radius must be > 0");
         this.radius = radius;
