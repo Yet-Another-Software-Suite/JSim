@@ -74,6 +74,13 @@ public final class SimBody {
      */
     public void setPose(Pose3d pose) { body.setPose(pose); }
 
+    /**
+     * Teleport the body to a new position (rotation and velocities are preserved).
+     *
+     * @param x new X coordinate (metres)
+     * @param y new Y coordinate (metres)
+     * @param z new Z coordinate (metres)
+     */
     public void setPosition(double x, double y, double z) {
         body.posX = x; body.posY = y; body.posZ = z;
         body.refreshWorldInertia();
@@ -121,6 +128,7 @@ public final class SimBody {
     public Mass getMass() { return Kilograms.of(body.invMass > 0 ? 1.0 / body.invMass : Double.POSITIVE_INFINITY); }
     /** @return current surface material */
     public Material getMaterial() { return body.material; }
+    /** Sets the surface material used for contact response. @param m the new material */
     public void setMaterial(Material m) { body.material = m; }
 
     // Collider
