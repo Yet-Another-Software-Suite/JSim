@@ -18,6 +18,9 @@ public final class NarrowPhase {
     /**
      * Populate {@code contacts} from each {@link CollisionPair}. Existing entries are
      * cleared first. Only overlapping contacts (penetration > 0) are added.
+     *
+     * @param pairs    broadphase candidate pairs to test
+     * @param contacts output list to populate (cleared before adding new contacts)
      */
     public static void generateContacts(List<CollisionPair> pairs, List<ContactPoint> contacts) {
         contacts.clear();

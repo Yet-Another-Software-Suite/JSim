@@ -8,10 +8,23 @@ package frc.jsim.core;
 public final class Mat3 {
     private Mat3() {}
 
+    /**
+     * Returns the 3x3 identity matrix as a 9-element row-major array.
+     *
+     * @return identity matrix
+     */
     public static double[] identity() {
         return new double[] {1, 0, 0, 0, 1, 0, 0, 0, 1};
     }
 
+    /**
+     * Returns a diagonal 3x3 matrix with the given diagonal elements.
+     *
+     * @param a first diagonal element
+     * @param b second diagonal element
+     * @param c third diagonal element
+     * @return 9-element row-major diagonal matrix
+     */
     public static double[] diagonal(double a, double b, double c) {
         return new double[] {a, 0, 0, 0, b, 0, 0, 0, c};
     }
