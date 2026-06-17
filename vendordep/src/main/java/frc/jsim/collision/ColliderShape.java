@@ -16,7 +16,14 @@ public abstract class ColliderShape {
      * Compute the world-space AABB of this shape given the body's centre position
      * and orientation quaternion (w,x,y,z).
      *
-     * @param out receives [minX, minY, minZ, maxX, maxY, maxZ]
+     * @param posX world-space X position (metres)
+     * @param posY world-space Y position (metres)
+     * @param posZ world-space Z position (metres)
+     * @param qW   orientation quaternion W component (unit quaternion)
+     * @param qX   orientation quaternion X component (unit quaternion)
+     * @param qY   orientation quaternion Y component (unit quaternion)
+     * @param qZ   orientation quaternion Z component (unit quaternion)
+     * @param out  receives [minX, minY, minZ, maxX, maxY, maxZ] in metres
      */
     public abstract void computeAABB(
         double posX, double posY, double posZ,

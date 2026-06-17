@@ -36,11 +36,11 @@ public final class SimBodyBuilder {
     private double mass = 1.0;
     private double ixx = 1.0, iyy = 1.0, izz = 1.0;
 
-    private double posX, posY, posZ;
-    private double qW = 1, qX, qY, qZ;
+    private double posX, posY, posZ;          // metres
+    private double qW = 1, qX, qY, qZ;       // unit quaternion (w,x,y,z)
 
-    private double velX, velY, velZ;
-    private double omX, omY, omZ;
+    private double velX, velY, velZ;          // m/s
+    private double omX, omY, omZ;             // rad/s
 
     public SimBodyBuilder(String name) { this.name = name; }
 

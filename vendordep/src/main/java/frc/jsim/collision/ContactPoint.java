@@ -12,22 +12,23 @@ public final class ContactPoint {
     public RigidBody bodyA;
     public RigidBody bodyB;
 
-    /** World-space contact point (midpoint of overlap region). */
+    /** World-space contact point (midpoint of overlap region), in metres. */
     public double contactX, contactY, contactZ;
 
-    /** World-space contact normal (unit vector, points A←B). */
+    /** World-space contact normal (unit vector, dimensionless, points A←B). */
     public double normalX, normalY, normalZ;
 
-    /** Penetration depth (positive = overlapping). */
+    /** Penetration depth (positive = overlapping), in metres. */
     public double penetration;
 
-    /** Combined friction and restitution, filled in by the constraint builder. */
+    /** Combined friction coefficient (dimensionless) and restitution coefficient (dimensionless),
+     *  filled in by the constraint builder. */
     public double combinedFriction;
     public double combinedRestitution;
 
-    /** Accumulated normal impulse for warm-starting (reset each tick). */
+    /** Accumulated normal impulse for warm-starting (N·s), reset each tick. */
     public double accumulatedNormalImpulse;
-    /** Accumulated tangent impulse magnitude. */
+    /** Accumulated tangent impulse magnitude (N·s). */
     public double accumulatedTangentImpulse;
 
     public ContactPoint() {}
