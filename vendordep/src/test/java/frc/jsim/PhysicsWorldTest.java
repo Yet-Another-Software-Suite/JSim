@@ -1,6 +1,9 @@
 package frc.jsim;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static edu.wpi.first.units.Units.Kilograms;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -37,7 +40,7 @@ class PhysicsWorldTest {
     void bodyFallsUnderGravity() {
         SimBody ball = world.addBody(new SimBodyBuilder("Ball")
             .position(0, 0, 5)
-            .mass(1.0)
+            .mass(Kilograms.of(1.0))
             .sphereCollider(0.1)
             .material(Material.RUBBER));
 
@@ -51,7 +54,7 @@ class PhysicsWorldTest {
         // After n ticks of free fall from rest: z should be consistent with semi-implicit Euler
         SimBody ball = world.addBody(new SimBodyBuilder("Ball")
             .position(0, 0, 100)
-            .mass(1.0)
+            .mass(Kilograms.of(1.0))
             .sphereCollider(0.1)
             .noGravity()           // will apply our own force
             .material(Material.RUBBER));
@@ -67,7 +70,7 @@ class PhysicsWorldTest {
     void sphereDoesNotPassThroughFloor() {
         SimBody ball = world.addBody(new SimBodyBuilder("Ball")
             .position(0, 0, 0.5)
-            .mass(0.24)
+            .mass(Kilograms.of(0.24))
             .sphereCollider(0.085)
             .material(Material.RUBBER));
 
@@ -86,7 +89,7 @@ class PhysicsWorldTest {
             .material(Material.RUBBER));
         SimBody ball = bounceWorld.addBody(new SimBodyBuilder("Ball")
             .position(0, 0, 1.0)
-            .mass(1.0)
+            .mass(Kilograms.of(1.0))
             .sphereCollider(0.1)
             .material(Material.RUBBER));
 
@@ -125,14 +128,14 @@ class PhysicsWorldTest {
         worldA.addBody(new SimBodyBuilder("Floor")
             .planeCollider(0, 0, 1, 0).material(Material.CARPET));
         SimBody ballA = worldA.addBody(new SimBodyBuilder("Ball")
-            .position(0, 0, 2).mass(1.0).sphereCollider(0.1).material(Material.RUBBER));
+            .position(0, 0, 2).mass(Kilograms.of(1.0)).sphereCollider(0.1).material(Material.RUBBER));
         for (int i = 0; i < 100; i++) worldA.step();
 
         SimWorld worldB = new SimWorld(0.02, 10);
         worldB.addBody(new SimBodyBuilder("Floor")
             .planeCollider(0, 0, 1, 0).material(Material.CARPET));
         SimBody ballB = worldB.addBody(new SimBodyBuilder("Ball")
-            .position(0, 0, 2).mass(1.0).sphereCollider(0.1).material(Material.RUBBER));
+            .position(0, 0, 2).mass(Kilograms.of(1.0)).sphereCollider(0.1).material(Material.RUBBER));
         for (int i = 0; i < 100; i++) worldB.step();
 
         assertEquals(ballA.getPosition().getX(), ballB.getPosition().getX(), 0.0,
@@ -148,15 +151,15 @@ class PhysicsWorldTest {
         // Bodies that never interact must produce the same result regardless of registration order
         SimWorld w1 = new SimWorld(0.02, 10);
         w1.addBody(new SimBodyBuilder("Floor").planeCollider(0,0,1,0).material(Material.CARPET));
-        SimBody a1 = w1.addBody(new SimBodyBuilder("A").position(10,0,5).mass(1).sphereCollider(0.1).material(Material.RUBBER));
-        SimBody b1 = w1.addBody(new SimBodyBuilder("B").position(-10,0,5).mass(1).sphereCollider(0.1).material(Material.RUBBER));
+        SimBody a1 = w1.addBody(new SimBodyBuilder("A").position(10,0,5).mass(Kilograms.of(1)).sphereCollider(0.1).material(Material.RUBBER));
+        SimBody b1 = w1.addBody(new SimBodyBuilder("B").position(-10,0,5).mass(Kilograms.of(1)).sphereCollider(0.1).material(Material.RUBBER));
         for (int i = 0; i < 50; i++) w1.step();
 
         SimWorld w2 = new SimWorld(0.02, 10);
         w2.addBody(new SimBodyBuilder("Floor").planeCollider(0,0,1,0).material(Material.CARPET));
         // Register B before A this time — should not affect isolated-body trajectories
-        SimBody b2 = w2.addBody(new SimBodyBuilder("B").position(-10,0,5).mass(1).sphereCollider(0.1).material(Material.RUBBER));
-        SimBody a2 = w2.addBody(new SimBodyBuilder("A").position(10,0,5).mass(1).sphereCollider(0.1).material(Material.RUBBER));
+        SimBody b2 = w2.addBody(new SimBodyBuilder("B").position(-10,0,5).mass(Kilograms.of(1)).sphereCollider(0.1).material(Material.RUBBER));
+        SimBody a2 = w2.addBody(new SimBodyBuilder("A").position(10,0,5).mass(Kilograms.of(1)).sphereCollider(0.1).material(Material.RUBBER));
         for (int i = 0; i < 50; i++) w2.step();
 
         assertEquals(a1.getPosition().getZ(), a2.getPosition().getZ(), 1e-9);
@@ -171,14 +174,14 @@ class PhysicsWorldTest {
         SimBody sA = world.addBody(new SimBodyBuilder("A")
             .position(-0.5, 0, 0.5)
             .linearVelocity(3, 0, 0)
-            .mass(1.0)
+            .mass(Kilograms.of(1.0))
             .sphereCollider(0.2)
             .noGravity().fixedRotation()
             .material(new frc.jsim.material.Material(0.0, 0.5)));
         SimBody sB = world.addBody(new SimBodyBuilder("B")
             .position(0.5, 0, 0.5)
             .linearVelocity(-3, 0, 0)
-            .mass(1.0)
+            .mass(Kilograms.of(1.0))
             .sphereCollider(0.2)
             .noGravity().fixedRotation()
             .material(new frc.jsim.material.Material(0.0, 0.5)));
@@ -196,12 +199,12 @@ class PhysicsWorldTest {
     void twoBodyCollision_spheresSeperateAfterImpact() {
         SimBody sA = world.addBody(new SimBodyBuilder("A")
             .position(-0.25, 0, 0.5).linearVelocity(2, 0, 0)
-            .mass(1.0).sphereCollider(0.2)
+            .mass(Kilograms.of(1.0)).sphereCollider(0.2)
             .noGravity().fixedRotation()
             .material(new frc.jsim.material.Material(0.0, 1.0)));
         SimBody sB = world.addBody(new SimBodyBuilder("B")
             .position(0.25, 0, 0.5).linearVelocity(-2, 0, 0)
-            .mass(1.0).sphereCollider(0.2)
+            .mass(Kilograms.of(1.0)).sphereCollider(0.2)
             .noGravity().fixedRotation()
             .material(new frc.jsim.material.Material(0.0, 1.0)));
 
@@ -216,19 +219,19 @@ class PhysicsWorldTest {
     @Test
     void bodyTrackerAccumulatesDistance() {
         SimBody ball = world.addBody(new SimBodyBuilder("Ball")
-            .position(0, 0, 5).mass(1.0).sphereCollider(0.1).material(Material.RUBBER));
+            .position(0, 0, 5).mass(Kilograms.of(1.0)).sphereCollider(0.1).material(Material.RUBBER));
 
         BodyTracker tracker = new BodyTracker(ball, 50);
         for (int i = 0; i < 50; i++) { world.step(); tracker.update(); }
 
-        assertTrue(tracker.getTotalDistance() > 0, "Ball should have moved");
+        assertTrue(tracker.getTotalDistance().in(Meters) > 0, "Ball should have moved");
         assertTrue(tracker.getPoseHistory().length > 0, "History should be recorded");
     }
 
     @Test
     void bodyTrackerHistoryBounded() {
         SimBody ball = world.addBody(new SimBodyBuilder("Ball")
-            .position(0, 0, 5).mass(1.0).sphereCollider(0.1).material(Material.RUBBER));
+            .position(0, 0, 5).mass(Kilograms.of(1.0)).sphereCollider(0.1).material(Material.RUBBER));
 
         BodyTracker tracker = new BodyTracker(ball, 10);
         for (int i = 0; i < 100; i++) { world.step(); tracker.update(); }
@@ -242,18 +245,18 @@ class PhysicsWorldTest {
             .position(0, 0, 1).boxCollider(1,1,1).isStatic().material(Material.WALL));
         BodyTracker tracker = new BodyTracker(wall, 5);
         for (int i = 0; i < 5; i++) { world.step(); tracker.update(); }
-        assertTrue(tracker.isAtRest(1e-6), "Static body should always be at rest");
+        assertTrue(tracker.isAtRest(MetersPerSecond.of(1e-6)), "Static body should always be at rest");
     }
 
     @Test
     void bodyTrackerReset_clearsTotalDistance() {
         SimBody ball = world.addBody(new SimBodyBuilder("Ball")
-            .position(0, 0, 5).mass(1.0).sphereCollider(0.1).material(Material.RUBBER));
+            .position(0, 0, 5).mass(Kilograms.of(1.0)).sphereCollider(0.1).material(Material.RUBBER));
         BodyTracker tracker = new BodyTracker(ball, 10);
         for (int i = 0; i < 20; i++) { world.step(); tracker.update(); }
-        assertTrue(tracker.getTotalDistance() > 0);
+        assertTrue(tracker.getTotalDistance().in(Meters) > 0);
         tracker.reset();
-        assertEquals(0.0, tracker.getTotalDistance(), 0.0);
+        assertEquals(0.0, tracker.getTotalDistance().in(Meters), 0.0);
         assertEquals(0, tracker.getPoseHistory().length);
     }
 
@@ -261,7 +264,7 @@ class PhysicsWorldTest {
     @Test
     void actuatorPushesBody() {
         SimBody box = world.addBody(new SimBodyBuilder("Box")
-            .position(0, 0, 0.5).mass(5.0).boxCollider(0.3, 0.3, 0.3)
+            .position(0, 0, 0.5).mass(Kilograms.of(5.0)).boxCollider(0.3, 0.3, 0.3)
             .noGravity().fixedRotation().material(Material.DEFAULT));
 
         box.getActuator().setForce(100, 0, 0);
@@ -274,7 +277,7 @@ class PhysicsWorldTest {
     @Test
     void actuatorZero_stopsAcceleration() {
         SimBody box = world.addBody(new SimBodyBuilder("Box")
-            .position(0, 0, 0.5).mass(5.0).boxCollider(0.3, 0.3, 0.3)
+            .position(0, 0, 0.5).mass(Kilograms.of(5.0)).boxCollider(0.3, 0.3, 0.3)
             .noGravity().fixedRotation().material(Material.DEFAULT));
 
         box.getActuator().setForce(100, 0, 0);
@@ -291,7 +294,7 @@ class PhysicsWorldTest {
     @Test
     void actuatorTorque_spinBody() {
         SimBody box = world.addBody(new SimBodyBuilder("Box")
-            .position(0, 0, 1).mass(2.0).boxCollider(0.5, 0.5, 0.5)
+            .position(0, 0, 1).mass(Kilograms.of(2.0)).boxCollider(0.5, 0.5, 0.5)
             .noGravity().material(Material.DEFAULT));
 
         box.getActuator().setTorque(0, 0, 10); // spin about Z
@@ -306,7 +309,7 @@ class PhysicsWorldTest {
     @Test
     void noGravityBodyDoesNotFall() {
         SimBody floater = world.addBody(new SimBodyBuilder("Floater")
-            .position(0, 0, 3).mass(1.0).sphereCollider(0.1)
+            .position(0, 0, 3).mass(Kilograms.of(1.0)).sphereCollider(0.1)
             .noGravity().material(Material.DEFAULT));
 
         double z0 = floater.getPosition().getZ();
@@ -318,7 +321,7 @@ class PhysicsWorldTest {
     @Test
     void fixedRotation_bodyDoesNotSpin() {
         SimBody box = world.addBody(new SimBodyBuilder("Box")
-            .position(0, 0, 0.5).mass(5.0).boxCollider(0.3, 0.3, 0.3)
+            .position(0, 0, 0.5).mass(Kilograms.of(5.0)).boxCollider(0.3, 0.3, 0.3)
             .noGravity().fixedRotation().material(Material.DEFAULT));
 
         box.getActuator().setForceAtPoint(100, 0, 0, 0, 0.3, 0.5); // off-centre force
@@ -334,7 +337,7 @@ class PhysicsWorldTest {
     @Test
     void poseRoundTrip() {
         SimBody body = world.addBody(new SimBodyBuilder("Teleport")
-            .position(1, 2, 3).mass(1.0).sphereCollider(0.1).material(Material.DEFAULT));
+            .position(1, 2, 3).mass(Kilograms.of(1.0)).sphereCollider(0.1).material(Material.DEFAULT));
 
         Pose3d target = new Pose3d(new Translation3d(5, 6, 7), new Rotation3d(0.1, 0.2, 0.3));
         body.setPose(target);
@@ -350,9 +353,9 @@ class PhysicsWorldTest {
     @Test
     void findBody_returnsCorrectBody() {
         world.addBody(new SimBodyBuilder("Alpha").position(1, 0, 0)
-            .mass(1).sphereCollider(0.1).material(Material.DEFAULT));
+            .mass(Kilograms.of(1)).sphereCollider(0.1).material(Material.DEFAULT));
         world.addBody(new SimBodyBuilder("Beta").position(2, 0, 0)
-            .mass(1).sphereCollider(0.1).material(Material.DEFAULT));
+            .mass(Kilograms.of(1)).sphereCollider(0.1).material(Material.DEFAULT));
 
         SimBody found = world.findBody("Beta");
         assertNotNull(found);
@@ -367,7 +370,7 @@ class PhysicsWorldTest {
     @Test
     void removeBody_bodyNoLongerInWorld() {
         SimBody ball = world.addBody(new SimBodyBuilder("Temp")
-            .position(0, 0, 5).mass(1).sphereCollider(0.1).material(Material.DEFAULT));
+            .position(0, 0, 5).mass(Kilograms.of(1)).sphereCollider(0.1).material(Material.DEFAULT));
 
         int countBefore = world.getBodies().size();
         world.removeBody(ball);
@@ -386,12 +389,12 @@ class PhysicsWorldTest {
     void boxBoxCollision_bodiesSeparate() {
         SimBody bA = world.addBody(new SimBodyBuilder("BoxA")
             .position(-0.4, 0, 1).linearVelocity(2, 0, 0)
-            .mass(2.0).boxCollider(0.3, 0.3, 0.3)
+            .mass(Kilograms.of(2.0)).boxCollider(0.3, 0.3, 0.3)
             .noGravity().fixedRotation()
             .material(new frc.jsim.material.Material(0.0, 0.5)));
         SimBody bB = world.addBody(new SimBodyBuilder("BoxB")
             .position(0.4, 0, 1).linearVelocity(-2, 0, 0)
-            .mass(2.0).boxCollider(0.3, 0.3, 0.3)
+            .mass(Kilograms.of(2.0)).boxCollider(0.3, 0.3, 0.3)
             .noGravity().fixedRotation()
             .material(new frc.jsim.material.Material(0.0, 0.5)));
 
