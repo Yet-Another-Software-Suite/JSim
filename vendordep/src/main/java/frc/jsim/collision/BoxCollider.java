@@ -1,5 +1,7 @@
 package frc.jsim.collision;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Quaternion;
 import frc.jsim.core.Mat3;
 
 /**
@@ -25,11 +27,11 @@ public final class BoxCollider extends ColliderShape {
     public Type getType() { return Type.BOX; }
 
     @Override
-    public void computeAABB(double posX, double posY, double posZ,
-                             double qW, double qX, double qY, double qZ,
-                             double[] out) {
+    public void computeAABB(Pose3d pose, double[] out) {
+        double posX = pose.getX(), posY = pose.getY(), posZ = pose.getZ();
+        Quaternion q = pose.getRotation().getQuaternion();
         // Rotate half-extents using the absolute value of each column of R.
-        double[] R = Mat3.fromQuaternion(qW, qX, qY, qZ);
+        double[] R = Mat3.fromQuaternion(q.getW(), q.getX(), q.getY(), q.getZ());
         // World-space half-extents of the OBB's AABB:
         // h_world_i = |R[i,0]|*hX + |R[i,1]|*hY + |R[i,2]|*hZ
         double wx = Math.abs(R[0]) * halfX + Math.abs(R[1]) * halfY + Math.abs(R[2]) * halfZ;

@@ -193,7 +193,7 @@ public final class PhysicsWorld {
         b.refreshWorldInertia();
         // Refresh AABB for next broadphase
         if (b.collider != null) {
-            b.collider.computeAABB(b.posX, b.posY, b.posZ, b.qW, b.qX, b.qY, b.qZ, b.aabb);
+            b.collider.computeAABB(b.getPose(), b.aabb);
         }
     }
 }

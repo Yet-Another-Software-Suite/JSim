@@ -1,5 +1,7 @@
 package frc.jsim.collision;
 
+import edu.wpi.first.math.geometry.Pose3d;
+
 /**
  * Infinite half-space collider.
  *
@@ -34,9 +36,7 @@ public final class PlaneCollider extends ColliderShape {
     public Type getType() { return Type.PLANE; }
 
     @Override
-    public void computeAABB(double posX, double posY, double posZ,
-                             double qW, double qX, double qY, double qZ,
-                             double[] out) {
+    public void computeAABB(Pose3d pose, double[] out) {
         double big = 1e9;
         out[0] = -big; out[1] = -big; out[2] = -big;
         out[3] =  big; out[4] =  big; out[5] =  big;

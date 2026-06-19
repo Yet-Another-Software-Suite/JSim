@@ -1,6 +1,7 @@
 package frc.jsim.collision;
 
 import java.util.List;
+import static edu.wpi.first.units.Units.Meters;
 import frc.jsim.core.Mat3;
 import frc.jsim.core.Vec3;
 import frc.jsim.dynamics.RigidBody;
@@ -266,7 +267,7 @@ public final class NarrowPhase {
                               double nx, double ny, double nz,
                               double pen, List<ContactPoint> out) {
         ContactPoint cp = new ContactPoint();
-        cp.set(a, b, cx, cy, cz, nx, ny, nz, pen);
+        cp.set(a, b, Meters.of(cx), Meters.of(cy), Meters.of(cz), nx, ny, nz, pen);
         cp.combinedFriction    = MaterialCombiner.combineFriction(a.material, b.material);
         cp.combinedRestitution = MaterialCombiner.combineRestitution(a.material, b.material);
         out.add(cp);
