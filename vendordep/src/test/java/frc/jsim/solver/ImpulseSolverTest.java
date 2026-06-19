@@ -1,6 +1,7 @@
 package frc.jsim.solver;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static edu.wpi.first.units.Units.Meters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +66,7 @@ class ImpulseSolverTest {
             double nx, double ny, double nz,
             double pen, double friction, double restitution) {
         ContactPoint cp = new ContactPoint();
-        cp.set(a, b, cx, cy, cz, nx, ny, nz, pen);
+        cp.set(a, b, Meters.of(cx), Meters.of(cy), Meters.of(cz), nx, ny, nz, pen);
         cp.combinedFriction = friction;
         cp.combinedRestitution = restitution;
         return cp;
