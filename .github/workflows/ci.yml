@@ -26,6 +26,26 @@ jobs:
           fi
           echo "Found $count Java test source files."
 
+  unit-tests:
+    needs: [validation]
+    name: "Unit Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+      - name: Run unit tests
+        working-directory: vendordep
+        run: ./gradlew test
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: vendordep/build/reports/tests/test
+
   api-docs:
     needs: [validation]
     name: "API Docs"
@@ -180,7 +200,7 @@ jobs:
 
   combine:
     name: Combine
-    needs: [build-docker, build-host]
+    needs: [build-docker, build-host, unit-tests]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
