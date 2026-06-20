@@ -19,12 +19,32 @@ jobs:
         run: |
           set -euo pipefail
           test -x vendordep/gradlew
-          count=$(find vendordep/tests -maxdepth 1 -type f -name '*.cpp' | wc -l)
+          count=$(find vendordep/src/test/java -name '*.java' | wc -l)
           if [ "$count" -lt 1 ]; then
-            echo "No standalone native tests found in vendordep/tests" >&2
+            echo "No Java unit tests found in vendordep/src/test/java" >&2
             exit 1
           fi
-          echo "Found $count standalone native test source files."
+          echo "Found $count Java test source files."
+
+  unit-tests:
+    needs: [validation]
+    name: "Unit Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+      - name: Run unit tests
+        working-directory: vendordep
+        run: ./gradlew test
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: vendordep/build/reports/tests/test
 
   api-docs:
     needs: [validation]
@@ -180,7 +200,7 @@ jobs:
 
   combine:
     name: Combine
-    needs: [build-docker, build-host]
+    needs: [build-docker, build-host, unit-tests]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4

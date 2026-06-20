@@ -4,7 +4,7 @@
   "version": "test",
   "frcYear": "2026",
   "uuid": "a87eb0a9-efa5-4de6-9bb0-9ca5565d20c1",
-  "mavenUrls": ["local_maven"],
+  "mavenUrls": ["../../../vendordep/build/maven/releases/"],
   "jsonUrl": "https://jsim.dev/JSim.json",
   "javaDependencies": [
     {
@@ -13,57 +13,6 @@
       "version": "test"
     }
   ],
-  "jniDependencies": [
-    {
-      "groupId": "jsim",
-      "artifactId": "JSim-driver",
-      "version": "test",
-      "skipInvalidPlatforms": true,
-      "isJar": false,
-      "validPlatforms": [
-        "windowsx86-64",
-        "linuxarm64",
-        "linuxx86-64",
-        "linuxathena",
-        "linuxarm32",
-        "osxuniversal"
-      ]
-    }
-  ],
-  "cppDependencies": [
-    {
-      "groupId": "jsim",
-      "artifactId": "JSim-cpp",
-      "version": "test",
-      "libName": "JSim",
-      "headerClassifier": "headers",
-      "sharedLibrary": false,
-      "skipInvalidPlatforms": true,
-      "binaryPlatforms": [
-        "windowsx86-64",
-        "linuxarm64",
-        "linuxx86-64",
-        "linuxathena",
-        "linuxarm32",
-        "osxuniversal"
-      ]
-    },
-    {
-      "groupId": "jsim",
-      "artifactId": "JSim-driver",
-      "version": "test",
-      "libName": "JSimDriver",
-      "headerClassifier": "headers",
-      "sharedLibrary": false,
-      "skipInvalidPlatforms": true,
-      "binaryPlatforms": [
-        "windowsx86-64",
-        "linuxarm64",
-        "linuxx86-64",
-        "linuxathena",
-        "linuxarm32",
-        "osxuniversal"
-      ]
-    }
-  ]
+  "jniDependencies": [],
+  "cppDependencies": []
 }

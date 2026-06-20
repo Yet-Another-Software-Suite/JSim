@@ -92,8 +92,6 @@ def enableExternalJavadocLinks = !gradle.startParameter.isOffline() && System.ge
 javadoc {
     title = "JSim API"
 
-    // Exclude helper/example API trees from published Javadocs.
-
     failOnError = true
     options {
         encoding = 'UTF-8'
@@ -155,11 +153,11 @@ sourceSets {
             srcDirs "src/main/java/"
         }
     }
-    //    test {
-    //        java {
-    //            srcDir "src/test/java"
-    //        }
-    //    } // TODO: Eventually write java unit tests
+    test {
+        java {
+            srcDir "src/test/java"
+        }
+    }
 }
 
 
