@@ -68,7 +68,7 @@ public void simulationPeriodic() {
 | Resource | URL |
 |---|---|
 | Javadoc | [jsim.dev/api/javadocs](https://jsim.dev/api/javadocs) |
-| GitHub | [github.com/Ruthie-FRC/JSim](https://github.com/Ruthie-FRC/JSim) |
+| GitHub | [github.com/Yet-Another-Software-Suite/JSim](https://github.com/Yet-Another-Software-Suite/JSim) |
 | Maven | [jsim.dev/maven/releases](https://jsim.dev/maven/releases/) |
 | Vendordep JSON | [jsim.dev/JSim.json](https://jsim.dev/JSim.json) |
 
