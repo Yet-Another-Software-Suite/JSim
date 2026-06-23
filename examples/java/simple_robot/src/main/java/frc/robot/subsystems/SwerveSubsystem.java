@@ -248,6 +248,6 @@ public class SwerveSubsystem extends SubsystemBase
         // Read the physics pose back and feed it to the field widget.
         Pose3d p = simBody.getPose();
         Pose2d jsimPose = new Pose2d(p.getX(), p.getY(), p.getRotation().toRotation2d());
-        field.setRobotPose(jsimPose);
+        field.getObject("JSimPose").setPose(jsimPose);
     }
 }
