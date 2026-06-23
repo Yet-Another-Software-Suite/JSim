@@ -69,19 +69,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y doxygen
-      - name: Build Javadoc and Doxygen
+      - name: Build Javadoc
         working-directory: vendordep
-        run: ./gradlew javadoc doxygenDox
+        run: ./gradlew javadoc
       - name: Upload Javadocs artifact
         uses: actions/upload-artifact@v4
         with:
           name: javadocs
           path: vendordep/build/docs/javadoc
-      - name: Upload Doxygen artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: doxygen
-          path: vendordep/build/docs/doxygen
 
   build-docker:
     env:
@@ -215,18 +210,9 @@ jobs:
           java-version: 17
       - run: chmod +x gradlew
         working-directory: vendordep
-      - name: Install roboRio toolchain
-        run: ./gradlew installRoboRioToolchain
+      - name: Generate vendordep JSON
+        run: ./gradlew vendordepJson
         working-directory: vendordep
-      - uses: actions/download-artifact@v4
-        with:
-          path: build/allOutputs
-      - name: Publish vendordep
-        run: ./gradlew publish
-        working-directory: vendordep
-      - name: Output build dir
-        run: |
-          find vendordep/build/maven -type f
       - uses: actions/upload-artifact@v4
         with:
           name: vdep
@@ -312,10 +298,6 @@ jobs:
         run: |
           mkdir -p deploy/artifacts/jsim.dev/api/javadocs/
           rsync -a --delete deploy/artifacts/javadocs/ deploy/artifacts/jsim.dev/api/javadocs/
-      - name: Add Doxygen to JSim.dev
-        run: |
-          mkdir -p deploy/artifacts/jsim.dev/api/doxygen/
-          rsync -a --delete deploy/artifacts/doxygen/ deploy/artifacts/jsim.dev/api/doxygen/
       - name: Output JSim.dev tree
         run: |
           find deploy/artifacts/jsim.dev -type f

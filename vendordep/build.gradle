@@ -8,7 +8,6 @@ plugins {
     id 'edu.wpi.first.NativeUtils' version '2026.0.1'
     id 'edu.wpi.first.GradleJni' version '1.1.0'
     id 'edu.wpi.first.GradleVsCode' version '2.1.0'
-    id 'org.ysb33r.doxygen' version "2.1.1"
     id 'com.diffplug.spotless' version '8.0.0'
 }
 
@@ -258,7 +257,6 @@ tasks.register("wpiformat", Exec) {
 
 build.dependsOn wpiformat
 build.dependsOn javadoc
-build.dependsOn doxygenDox
 
 // Prevent race condition: wpiformat writes source files while the compiler
 // reads them. Force all compile tasks to wait for wpiformat to finish first.

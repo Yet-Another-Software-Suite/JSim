@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ["master"]
+    branches: ["main"]
   pull_request:
 
 jobs:
@@ -67,19 +67,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y doxygen
-      - name: Build Javadoc and Doxygen
+      - name: Build Javadoc
         working-directory: vendordep
-        run: ./gradlew javadoc doxygenDox
+        run: ./gradlew javadoc
       - name: Upload Javadocs artifact
         uses: actions/upload-artifact@v4
         with:
           name: javadocs
           path: vendordep/build/docs/javadoc
-      - name: Upload Doxygen artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: doxygen
-          path: vendordep/build/docs/doxygen
 
   build-all-script:
     needs: [validation]
