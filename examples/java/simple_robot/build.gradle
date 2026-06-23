@@ -36,6 +36,12 @@ wpi.java.debugJni = false
 
 def includeDesktopSupport = true
 
+repositories {
+    maven {
+        url = uri("https://jsim.dev/maven/releases/")
+    }
+}
+
 dependencies {
     annotationProcessor wpi.java.deps.wpilibAnnotations()
     implementation wpi.java.deps.wpilib()
