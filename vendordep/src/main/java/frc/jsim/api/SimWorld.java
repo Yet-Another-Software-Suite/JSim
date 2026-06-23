@@ -5,7 +5,9 @@ import java.util.Collections;
 import java.util.List;
 import frc.jsim.core.PhysicsWorld;
 import frc.jsim.core.SimConstants;
+import frc.jsim.forces.DragForce;
 import frc.jsim.forces.ForceGenerator;
+import frc.jsim.forces.MagnusForce;
 
 /**
  * Top-level public API for the JSim physics simulation.
@@ -119,6 +121,44 @@ public final class SimWorld {
     public void removeForceGenerator(ForceGenerator fg) {
         physics.removeForceGenerator(fg);
     }
+
+    /**
+     * Create and register a {@link DragForce} for the given body.
+     *
+     * <p>Example usage:
+     * <pre>{@code
+     * DragForce drag = world.addDragForce(ball, 0.1, 0.05);
+     * // later, to remove:
+     * world.removeForceGenerator(drag);
+     * }</pre>
+     *
+     * @param body            the body to apply drag to
+     * @param linearDamping   linear drag coefficient (N·s/m)
+     * @param angularDamping  rotational drag coefficient (N·m·s/rad)
+     * @return the registered {@link DragForce}
+     */
+    public DragForce addDragForce(SimBody body, double linearDamping, double angularDamping) {
+        DragForce df = new DragForce(body.body, linearDamping, angularDamping);
+        physics.addForceGenerator(df);
+        return df;
+    }
+
+    /**
+     * Create and register a {@link MagnusForce} for the given spinning body.
+     *
+     * <p>The Magnus effect produces a lift force perpendicular to both the spin axis and
+     * the velocity vector, causing curved flight for spinning game pieces.
+     *
+     * @param body              the spinning body to apply Magnus lift to
+     * @param magnusCoefficient Magnus lift coefficient k (kg); typically 0.1–2.0 for FRC game pieces
+     * @return the registered {@link MagnusForce}
+     */
+    public MagnusForce addMagnusForce(SimBody body, double magnusCoefficient) {
+        MagnusForce mf = new MagnusForce(body.body, magnusCoefficient);
+        physics.addForceGenerator(mf);
+        return mf;
+    }
+
     // Simulation control
     /**
      * Advance the simulation by the fixed timestep configured at construction time.

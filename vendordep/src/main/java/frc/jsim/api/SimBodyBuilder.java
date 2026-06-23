@@ -119,7 +119,15 @@ public final class SimBodyBuilder {
     // Mass / inertia
 
     /**
-     * Sets the mass of the body.
+     * Sets the mass of the body in kilograms.
+     *
+     * @param kg mass in kilograms (must be positive)
+     * @return this builder
+     */
+    public SimBodyBuilder mass(double kg) { this.mass = kg; return this; }
+
+    /**
+     * Sets the mass of the body from a WPILib {@link Mass} measure.
      *
      * @param mass the body mass
      * @return this builder

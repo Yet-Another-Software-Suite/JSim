@@ -5,33 +5,34 @@ ext.licenseFile = files("$rootDir/../LICENSE.txt")
 def templateVendorFile = "JSim.json"
 
 def artifactGroupId = 'jsim'
-def baseArtifactId = 'JSim'
+def baseArtifactId  = 'JSim'
 
-def outputsFolder = file("$buildDir/outputs")
+def outputsFolder    = file("$buildDir/outputs")
+def versionFile      = file("$outputsFolder/version.txt")
+def releasesRepoUrl  = "$releasePath/releases"
 
-def versionFile = file("$outputsFolder/version.txt")
-def releasesRepoUrl = "$releasePath/releases"
-
-task outputVersions() {
-    description = 'Prints the versions of wpilib to a file for use by the downstream packaging project'
+tasks.register('outputVersions') {
+    description = 'Writes the library version to a file for downstream packaging.'
     group = 'Build'
     outputs.files(versionFile)
 
     doFirst {
-        buildDir.mkdir()
-        outputsFolder.mkdir()
+        buildDir.mkdirs()
+        outputsFolder.mkdirs()
     }
 
     doLast {
-        versionFile.write pubVersion
+        versionFile.text = pubVersion
     }
 }
 
-task libraryBuild() {}
+tasks.register('libraryBuild') {
+    dependsOn build
+}
 
 build.dependsOn outputVersions
 
-task copyAllOutputs(type: Copy) {
+tasks.register('copyAllOutputs', Copy) {
     destinationDir = file("$buildDir/allOutputs")
     from versionFile
     dependsOn outputVersions
@@ -48,24 +49,28 @@ ext.addTaskToCopyAllOutputs = { task ->
 def javaBaseName = "_GROUP_jsim_ID_${baseArtifactId}-java_CLS"
 def vdepBaseName = "_GROUP_jsim_ID_${baseArtifactId}-vendordep_CLS"
 
-task sourcesJar(type: Jar, dependsOn: classes) {
+tasks.register('sourcesJar', Jar) {
+    dependsOn classes
     archiveClassifier = 'sources'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.allSource
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
+tasks.register('javadocJar', Jar) {
+    dependsOn javadoc
     archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
-task outputJar(type: Jar, dependsOn: classes) {
+tasks.register('outputJar', Jar) {
+    dependsOn classes
     archiveBaseName = javaBaseName
     destinationDirectory = outputsFolder
     from sourceSets.main.output
 }
 
-task outputSourcesJar(type: Jar, dependsOn: classes) {
+tasks.register('outputSourcesJar', Jar) {
+    dependsOn classes
     archiveBaseName = javaBaseName
     destinationDirectory = outputsFolder
     archiveClassifier = 'sources'
@@ -73,17 +78,17 @@ task outputSourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
 }
 
-task outputJavadocJar(type: Jar, dependsOn: javadoc) {
+tasks.register('outputJavadocJar', Jar) {
+    dependsOn javadoc
     archiveBaseName = javaBaseName
     destinationDirectory = outputsFolder
     archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
-// Apply template variables from the vendordep file.
-// Replaces ${VARIABLE} with VARIABLE: value in expand()
-task vendordepJson() {
-    description = 'Builds the vendordep json file.'
+// Expand template variables in JSim.json and copy to build/repos/
+tasks.register('vendordepJson') {
+    description = 'Builds the vendordep JSON file from the template.'
     group = 'Build'
     outputs.file("$buildDir/repos/$templateVendorFile")
 
@@ -91,20 +96,20 @@ task vendordepJson() {
         copy {
             from templateVendorFile
             into "$buildDir/repos/"
-            expand(version: pubVersion,
-            groupId: artifactGroupId,
-            artifactId: baseArtifactId)
+            expand(
+                version:    pubVersion,
+                groupId:    artifactGroupId,
+                artifactId: baseArtifactId
+            )
         }
     }
 }
 
-task vendordepJsonZip(type: Zip) {
+tasks.register('vendordepJsonZip', Zip) {
     destinationDirectory = outputsFolder
     archiveBaseName = vdepBaseName
 
-    from("$buildDir/repos/$templateVendorFile") {
-        into '/'
-    }
+    from("$buildDir/repos/$templateVendorFile") { into '/' }
     dependsOn vendordepJson
 }
 
@@ -118,36 +123,31 @@ build.dependsOn outputJavadocJar
 build.dependsOn outputJar
 build.dependsOn vendordepJsonZip
 
-libraryBuild.dependsOn build
-
 publishing {
     repositories {
         maven {
-            url = releasesRepoUrl
+            name = 'Maven'
+            url  = releasesRepoUrl
         }
     }
-}
 
-model {
-    publishing {
-        publications {
-            java(MavenPublication) {
-                artifact jar
-                artifact sourcesJar
-                artifact javadocJar
+    publications {
+        java(MavenPublication) {
+            artifact jar
+            artifact sourcesJar
+            artifact javadocJar
 
-                artifactId = "${baseArtifactId}-java"
-                groupId = artifactGroupId
-                version = pubVersion
-            }
+            groupId    = artifactGroupId
+            artifactId = "${baseArtifactId}-java"
+            version    = pubVersion
+        }
 
-            vendordep(MavenPublication) {
-                artifact vendordepJsonZip
+        vendordep(MavenPublication) {
+            artifact vendordepJsonZip
 
-                artifactId = "${baseArtifactId}-vendordep"
-                groupId = artifactGroupId
-                version = pubVersion
-            }
+            groupId    = artifactGroupId
+            artifactId = "${baseArtifactId}-vendordep"
+            version    = pubVersion
         }
     }
 }
