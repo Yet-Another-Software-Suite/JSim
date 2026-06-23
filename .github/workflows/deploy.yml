@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       releaseVersion:
-        description: "Release version number (leave blank to deploy docs only)"
+        description: "Release version number"
         type: string
-        required: false
+        required: true
 
 permissions:
   contents: write
@@ -79,7 +79,6 @@ jobs:
           path: vendordep/build/docs/javadoc
 
   build-docker:
-    if: inputs.releaseVersion != ''
     env:
       releaseVersion: ${{ inputs.releaseVersion }}
     strategy:
@@ -141,7 +140,6 @@ jobs:
 #          path: vendordep/build/maven
 
   build-host:
-    if: inputs.releaseVersion != ''
     env:
       releaseVersion: ${{ inputs.releaseVersion }}
       MACOSX_DEPLOYMENT_TARGET: 13.3
@@ -196,7 +194,6 @@ jobs:
 #          path: vendordep/build/maven/
 
   build-maven:
-    if: inputs.releaseVersion != ''
     name: "Build - Maven"
     runs-on: ubuntu-latest
     env:
@@ -222,7 +219,6 @@ jobs:
           path: vendordep/build/repos/
 
   combine:
-    if: inputs.releaseVersion != ''
     name: Combine
     needs: [ build-docker, build-host ]
     runs-on: ubuntu-22.04
@@ -266,8 +262,7 @@ jobs:
 
   deploy:
     name: Deploy
-    needs: [ build-docs, build-site ]
-    if: always() && !failure() && !cancelled()
+    needs: [ combine, build-docs, build-site, build-maven ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -293,12 +288,10 @@ jobs:
         run: |
           mv deploy/artifacts/mkdocs deploy/artifacts/jsim.dev
       - name: Add Maven to JSim.dev
-        if: inputs.releaseVersion != ''
         run: |
           mkdir -p deploy/artifacts/jsim.dev/maven/releases/
           rsync -a --delete deploy/artifacts/Maven/*/* deploy/artifacts/jsim.dev/maven/releases/
       - name: Add vendordep to JSim.dev
-        if: inputs.releaseVersion != ''
         run: mv deploy/artifacts/vdep/JSim.json deploy/artifacts/jsim.dev/
       - name: Add Javadocs to JSim.dev
         run: |
