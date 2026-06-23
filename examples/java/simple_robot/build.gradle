@@ -38,6 +38,9 @@ def includeDesktopSupport = true
 
 repositories {
     maven {
+        url = uri("../../../vendordep/build/maven/releases/")
+    }
+    maven {
         url = uri("https://jsim.dev/maven/releases/")
     }
 }
