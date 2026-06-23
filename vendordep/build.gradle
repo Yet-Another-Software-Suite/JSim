@@ -101,51 +101,6 @@ javadoc {
     }
 }
 
-// https://ysb33rorg.gitlab.io/gradle/doxygen-gradle-plugin/doxygen-gradle-plugin/2.1.1/usage.html
-// Outputs to build/docs/doxygen
-//doxygen {
-//    sourceSets {
-//        main {
-//            option "project_name", "JSim"
-//            option "project_number", "$pubVersion"
-//
-//            sources file('src/main/driver/include'), file('../core/driver/mainpage.dox')
-//            template = file('../core/driver/Doxyfile')
-//        }
-//    }
-//}
-
-
-// Set up exports properly
-nativeUtils {
-    privateExportsConfigs {
-        JSimDriver {
-            exportsFile = project.file("src/main/driver/symbols.txt")
-        }
-    }
-}
-
-ext.getCurrentArch = {
-    return NativePlatforms.desktop
-}
-
-def systemArch = getCurrentArch()
-
-// Native C++ should track the driver implementation. Keep JNI glue out of the
-// pure native component and let the driver/JNI library own it.
-def nativeFromDriverExcludes = [
-    '**/JSimJNI.cpp',
-    '**/physics_jni.cpp'
-]
-
-// Keep the driver build independent from WPILibC-native compilation units.
-// Native code can still reference WPILibC elsewhere, but driver targets should
-// not compile WPILibC-labeled sources.
-def driverWpilibCExcludes = [
-    'src/main/driver/cpp/**/wpilib/**'
-]
-
-
 sourceSets {
     main {
         java {
