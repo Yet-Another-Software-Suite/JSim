@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -50,6 +51,7 @@ import yams.motorcontrollers.local.SparkWrapper;
 
 public class SwerveSubsystem extends SubsystemBase
 {
+    private final Pigeon2     gyro  = new Pigeon2(14);
     private final SwerveDrive drive;
     private final Field2d     field = new Field2d();
 
@@ -138,7 +140,6 @@ public class SwerveSubsystem extends SubsystemBase
 
     public SwerveSubsystem()
     {
-        Pigeon2 gyro = new Pigeon2(14);
         var fl = createModule(new SparkMax(1, MotorType.kBrushless),
                 new SparkMax(2, MotorType.kBrushless),
                 new CANcoder(3),
@@ -176,7 +177,7 @@ public class SwerveSubsystem extends SubsystemBase
         simBody = simWorld.addBody(new SimBodyBuilder("Robot")
                 .robotId(RobotId.BLUE_1)
                 .position(0, 0, 0.1)
-                .mass(54)
+                .mass(Kilograms.of(54))
                 .boxCollider(Inches.of(24).in(Meters) / 2,
                              Inches.of(24).in(Meters) / 2,
                              0.1)
