@@ -2,7 +2,7 @@ site_name: JSim
 repo_url: https://github.com/Ruthie-FRC/JSim
 repo_name: Ruthie-FRC/JSim
 site_description: >-
-  Professional documentation for the JSim FRC physics library.
+  Deterministic 3D physics simulation for FRC robots — a WPILib vendordep.
 site_author: Ruthie-FRC
 edit_uri: edit/main/mkdocs/docs/
 
@@ -51,10 +51,11 @@ nav:
       - Swerve Drive Simulation: walkthroughs/swerve_drive.md
       - Gamepiece Simulation: walkthroughs/gamepiece_simulation.md
   - API Reference:
-      - SimRobot: api/sim_robot.md
-      - StateManager: api/state_manager.md
+      - SimWorld: api/sim_world.md
+      - SimBody: api/sim_body.md
+      - SimBodyBuilder: api/sim_body_builder.md
+      - BodyTracker: api/body_tracker.md
       - PhysicsWorld: api/physics_world.md
-      - GamepieceZone: api/gamepiece_zone.md
       - NetworkTables Publishing: api/network_tables.md
   - Physics Models:
       - physics_models.md
