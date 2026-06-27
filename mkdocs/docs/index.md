@@ -1,6 +1,6 @@
 # JSim
 
-**Deterministic 3D physics simulation for FRC robots — a WPILib vendordep.**
+**Deterministic 3D physics simulation for FRC robots**
 
 JSim gives your robot code a physics world it can step through each control loop iteration. Bodies collide, bounce, and respond to motor forces using impulse-based rigid-body dynamics, all from a clean Java API built on WPILib geometry types.
 
