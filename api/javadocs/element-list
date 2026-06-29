@@ -1,0 +1,7 @@
+jsim.api
+jsim.collision
+jsim.core
+jsim.dynamics
+jsim.forces
+jsim.material
+jsim.solver
