@@ -37,6 +37,7 @@ public final class SimBodyBuilder {
 
     private double mass = 1.0;          // kg
     private double ixx = 1.0, iyy = 1.0, izz = 1.0;  // kg·m²
+    private boolean inertiaExplicit = false;
 
     private double posX, posY, posZ;          // metres
     private double qW = 1, qX, qY, qZ;       // unit quaternion (w,x,y,z)
@@ -144,7 +145,9 @@ public final class SimBodyBuilder {
      * @return this builder
      */
     public SimBodyBuilder inertia(double ixx, double iyy, double izz) {
-        this.ixx = ixx; this.iyy = iyy; this.izz = izz; return this;
+        this.ixx = ixx; this.iyy = iyy; this.izz = izz;
+        this.inertiaExplicit = true;
+        return this;
     }
 
     // Collider shortcuts
@@ -157,7 +160,7 @@ public final class SimBodyBuilder {
      */
     public SimBodyBuilder sphereCollider(double radius) {
         collider = new SphereCollider(radius);
-        return estimateInertiaIfNeeded(radius);
+        return this;
     }
 
     /**
@@ -170,7 +173,7 @@ public final class SimBodyBuilder {
      */
     public SimBodyBuilder boxCollider(double halfX, double halfY, double halfZ) {
         collider = new BoxCollider(halfX, halfY, halfZ);
-        return estimateInertiaIfNeeded(halfX, halfY, halfZ);
+        return this;
     }
 
     /**
@@ -258,6 +261,19 @@ public final class SimBodyBuilder {
         body.omX = omX; body.omY = omY; body.omZ = omZ;
         body.collider = collider;
 
+        if (!inertiaExplicit && collider != null) {
+            if (collider instanceof SphereCollider) {
+                double r = ((SphereCollider) collider).radius;
+                double v = 0.4 * mass * r * r;
+                ixx = iyy = izz = v;
+            } else if (collider instanceof BoxCollider) {
+                BoxCollider bc = (BoxCollider) collider;
+                ixx = mass / 3.0 * (bc.halfY * bc.halfY + bc.halfZ * bc.halfZ);
+                iyy = mass / 3.0 * (bc.halfX * bc.halfX + bc.halfZ * bc.halfZ);
+                izz = mass / 3.0 * (bc.halfX * bc.halfX + bc.halfY * bc.halfY);
+            }
+        }
+
         if (RigidBodyFlags.isSet(flags, RigidBodyFlags.STATIC)) {
             body.setStatic();
         } else {
@@ -268,20 +284,4 @@ public final class SimBodyBuilder {
         return new SimBody(body, actuator, robotId);
     }
 
-    // Inertia estimation
-
-    private SimBodyBuilder estimateInertiaIfNeeded(double radius) {
-        // Solid sphere: I = 2/5 * m * r²
-        double v = 0.4 * mass * radius * radius;
-        ixx = iyy = izz = v;
-        return this;
-    }
-
-    private SimBodyBuilder estimateInertiaIfNeeded(double hx, double hy, double hz) {
-        // Solid box: I_xx = m/12 * (4hy² + 4hz²) with half-extents
-        ixx = mass / 3.0 * (hy * hy + hz * hz);
-        iyy = mass / 3.0 * (hx * hx + hz * hz);
-        izz = mass / 3.0 * (hx * hx + hy * hy);
-        return this;
-    }
 }
