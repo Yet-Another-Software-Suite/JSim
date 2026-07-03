@@ -131,8 +131,17 @@ class FieldLayoutTest {
     void addField_customDimensions() {
         SimWorld world = new SimWorld(0.02, 10);
         FieldLayout.addField(world, 10.0, 5.0);
-        // Should still add 5 bodies without throwing
         assertEquals(5, world.getBodies().size());
+        for (SimBody b : world.getBodies()) {
+            assertTrue(b.isStatic());
+        }
+    }
+
+    @Test
+    void addWalls_addsExactlyFourBodies() {
+        SimWorld world = new SimWorld(0.02, 10);
+        FieldLayout.addWalls(world, 16.0, 8.0);
+        assertEquals(4, world.getBodies().size());
         for (SimBody b : world.getBodies()) {
             assertTrue(b.isStatic());
         }

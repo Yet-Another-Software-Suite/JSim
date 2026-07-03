@@ -6,13 +6,17 @@ import jsim.material.Material;
 
 /**
  * Utility for populating a {@link SimWorld} with FRC field geometry: a carpet floor
- * (infinite plane) and four perimeter wall segments (box colliders).
+ * and four perimeter wall planes.
  *
  * <p>All bodies added by this class are static — they deflect game pieces and robots
  * but cannot themselves be moved.
  *
- * <p>Coordinate frame: X points from the blue alliance wall toward the red alliance wall;
- * Y points across the field; Z points up. This matches AdvantageScope's field rendering.
+ * <p><b>Coordinate frame:</b> X points from the blue alliance wall toward the red alliance
+ * wall; Y points across the field; Z points up. This matches AdvantageScope's field rendering.
+ *
+ * <p><b>Wall implementation:</b> Each wall is an infinite half-space {@link jsim.collision.PlaneCollider}.
+ * Infinite planes are always in the broadphase and use signed-distance narrowphase, so they are
+ * completely immune to tunneling even when game pieces are launched at very high velocities.
  */
 public final class FieldLayout {
     /** FRC 2025/2026 field length (blue to red) in metres (54 ft). */
@@ -20,13 +24,10 @@ public final class FieldLayout {
     /** FRC 2025/2026 field width in metres (27 ft). */
     public static final double FRC_WIDTH_M  =  8.2296;
 
-    private static final double WALL_THICK  = 0.05;
-    private static final double WALL_HEIGHT = 0.5;
-
     private FieldLayout() {}
 
     /**
-     * Add a standard FRC field (carpet floor + four perimeter walls) to {@code world}.
+     * Add a standard FRC field (carpet floor + four perimeter wall planes) to {@code world}.
      *
      * @param world the world to populate
      */
@@ -35,7 +36,8 @@ public final class FieldLayout {
     }
 
     /**
-     * Add a configurable rectangular field (carpet floor + four perimeter walls) to {@code world}.
+     * Add a configurable rectangular field (carpet floor + four perimeter wall planes) to
+     * {@code world}.
      *
      * @param world    the world to populate
      * @param lengthM  field length along X (metres)
@@ -43,7 +45,7 @@ public final class FieldLayout {
      */
     public static void addField(SimWorld world, double lengthM, double widthM) {
         addFloor(world);
-        addWalls(world, lengthM, widthM, WALL_THICK, WALL_HEIGHT);
+        addWalls(world, lengthM, widthM);
     }
 
     /**
@@ -58,53 +60,43 @@ public final class FieldLayout {
     }
 
     /**
-     * Add four perimeter wall segments to {@code world}.
+     * Add four perimeter wall planes to {@code world}.
      *
-     * <p>The blue and red end walls are extended in Y to cover the field corners,
-     * so no gap exists at any corner of the boundary.
+     * <p>Each wall is a {@link jsim.collision.PlaneCollider} (infinite half-space) anchored
+     * at the corresponding field boundary and oriented so its normal points into the field.
+     * Plane colliders have unbounded AABBs and use signed-distance collision tests, making
+     * them immune to tunneling at any projectile speed.
      *
-     * @param world     the world to populate
-     * @param lengthM   field length along X (metres)
-     * @param widthM    field width along Y (metres)
-     * @param thickM    wall thickness (metres)
-     * @param heightM   wall height above the floor (metres)
+     * @param world    the world to populate
+     * @param lengthM  field length along X (metres)
+     * @param widthM   field width along Y (metres)
      */
-    public static void addWalls(SimWorld world,
-                                 double lengthM, double widthM,
-                                 double thickM,  double heightM) {
-        double t2  = thickM  / 2.0;
-        double h2  = heightM / 2.0;
-        double l2  = lengthM / 2.0;
-        double w2  = widthM  / 2.0;
-
-        // Blue alliance wall — inner face at x = 0, box extends into x < 0.
-        // halfY is w2+thickM so it overlaps the adjacent Near/Far wall thickness,
-        // closing the corner gap.
+    public static void addWalls(SimWorld world, double lengthM, double widthM) {
+        // Blue alliance wall — inner face at x = 0, normal points +X into field.
+        // Blocks the half-space x < 0.
         world.addBody(new SimBodyBuilder("Field/WallBlue")
-            .position(-t2, w2, h2)
-            .boxCollider(t2, w2 + thickM, h2)
-            .material(Material.WALL)
-            .isStatic());
+            .planeCollider(1, 0, 0, 0)
+            .material(Material.WALL));
 
-        // Red alliance wall — inner face at x = lengthM.
+        // Red alliance wall — inner face at x = lengthM, normal points -X into field.
+        // Body is placed at (lengthM, 0, 0); offset = 0, so the plane passes through
+        // that point.  Blocks the half-space x > lengthM.
         world.addBody(new SimBodyBuilder("Field/WallRed")
-            .position(lengthM + t2, w2, h2)
-            .boxCollider(t2, w2 + thickM, h2)
-            .material(Material.WALL)
-            .isStatic());
+            .position(lengthM, 0, 0)
+            .planeCollider(-1, 0, 0, 0)
+            .material(Material.WALL));
 
-        // Near wall — inner face at y = 0, box extends into y < 0.
+        // Near wall — inner face at y = 0, normal points +Y into field.
+        // Blocks the half-space y < 0.
         world.addBody(new SimBodyBuilder("Field/WallNear")
-            .position(l2, -t2, h2)
-            .boxCollider(l2, t2, h2)
-            .material(Material.WALL)
-            .isStatic());
+            .planeCollider(0, 1, 0, 0)
+            .material(Material.WALL));
 
-        // Far wall — inner face at y = widthM.
+        // Far wall — inner face at y = widthM, normal points -Y into field.
+        // Blocks the half-space y > widthM.
         world.addBody(new SimBodyBuilder("Field/WallFar")
-            .position(l2, widthM + t2, h2)
-            .boxCollider(l2, t2, h2)
-            .material(Material.WALL)
-            .isStatic());
+            .position(0, widthM, 0)
+            .planeCollider(0, -1, 0, 0)
+            .material(Material.WALL));
     }
 }
