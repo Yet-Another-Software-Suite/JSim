@@ -113,6 +113,7 @@ class FieldSimulatorTest {
     }
 
     @Test
+    
     void removeGamePiece_reducesWorldBodyCount() {
         GamePiece note = sim.spawnGamePiece("Note", new SimBodyBuilder("N0")
             .position(8, 4, 0.18).mass(0.235).sphereCollider(0.18).material(Material.RUBBER));

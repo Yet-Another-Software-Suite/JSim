@@ -21,11 +21,11 @@ import jsim.api.SimBody;
  * <pre>{@code
  * GamePieceGripper gripper = sim.createGripper(robot, new Translation3d(0.45, 0, 0.1));
  *
- * // Robot drives up to a note and intakes it
- * gripper.grab(note);
+ * // Robot drives up to a game piece and intakes it
+ * gripper.grab(gamePiece);
  *
  * // ... robot drives to the speaker, then shoots ...
- * gripper.eject(0, 0, 8);   // launch straight up at 8 m/s
+ * gripper.eject(0, 0, 8);   launch straight up at 8 m/s
  * }</pre>
  */
 public final class GamePieceGripper {
