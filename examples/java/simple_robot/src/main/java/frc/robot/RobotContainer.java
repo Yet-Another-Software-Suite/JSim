@@ -36,11 +36,11 @@ public class RobotContainer
 //    xboxController.button(3).whileTrue(drive.setRobotRelativeChassisSpeeds(new ChassisSpeeds(0, 0.5, 0)));
 //    xboxController.button(4).whileTrue(drive.setRobotRelativeChassisSpeeds(new ChassisSpeeds(0, -0.5, 0)));
         xboxController.button(5).whileTrue(drive.driveToPose(new Pose2d(Meters.of(3),
-                Meters.of(3),
-                Rotation2d.fromDegrees(30))));
+                                                                        Meters.of(3),
+                                                                        Rotation2d.fromDegrees(30))));
         xboxController.button(6).whileTrue(drive.driveToPose(new Pose2d(Meters.of(5),
-                Meters.of(6),
-                Rotation2d.fromDegrees(70))));
+                                                                        Meters.of(6),
+                                                                        Rotation2d.fromDegrees(70))));
 
         // A — grab the nearest free game piece within intake range.
         // B — eject / shoot the held piece forward with a loft.
