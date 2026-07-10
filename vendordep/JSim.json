@@ -14,5 +14,7 @@
             "artifactId": "${artifactId}-java",
             "version": "${version}"
         }
-    ]
+    ],
+    "jniDependencies": [],
+    "cppDependencies": []
 }
