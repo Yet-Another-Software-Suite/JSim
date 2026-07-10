@@ -14,5 +14,6 @@
             "artifactId": "JSim-java",
             "version": "2026.07.10-p1"
         }
-    ]
+    ],
+    "cppDependencies": []
 }
