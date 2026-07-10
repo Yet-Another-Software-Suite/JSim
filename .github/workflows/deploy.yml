@@ -266,7 +266,7 @@ jobs:
 
   deploy:
     name: Deploy
-    needs: [ build-docs, build-site ]
+    needs: [ build-docs, build-site, combine, build-maven ]
     if: always() && !failure() && !cancelled()
     runs-on: ubuntu-latest
     steps:
