@@ -23,8 +23,11 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -35,7 +38,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import jsim.api.RobotId;
 import jsim.api.SimBody;
 import jsim.api.SimBodyBuilder;
-import jsim.api.SimWorld;
+import jsim.field.FieldLoader;
+import jsim.field.FieldSimulator;
+import jsim.field.GamePiece;
+import jsim.field.GamePieceGripper;
 import jsim.material.Material;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -51,14 +57,26 @@ import yams.motorcontrollers.local.SparkWrapper;
 
 public class SwerveSubsystem extends SubsystemBase
 {
+    // Intake geometry — front-center of the robot, just above carpet.
+    private static final double INTAKE_FORWARD_M = 0.35;
+    private static final double INTAKE_HEIGHT_M  = 0.05;
+    // Any free game piece whose centre is within this distance of the intake point is grabbable.
+    private static final double INTAKE_RADIUS_M  = 0.55;
+    // Eject velocity: forward at 3.5 m/s, lofted at 1.5 m/s upward.
+    private static final double EJECT_SPEED_XY   = 3.5;
+    private static final double EJECT_SPEED_Z    = 1.5;
+
     private final Pigeon2     gyro  = new Pigeon2(14);
     private final SwerveDrive drive;
     private final Field2d     field = new Field2d();
 
-    // JSim physics world — owns the floor and the robot body.
-    private final SimWorld simWorld;
-    // Handle to the robot's physics body, tagged as Blue alliance station 1.
-    private final SimBody  simBody;
+    // JSim field simulator — owns the FRC perimeter, robot body, and all game pieces.
+    private final FieldSimulator               fieldSim;
+    private final SimBody                      simBody;
+    private final GamePieceGripper             gripper;
+    // NT4 Pose3d[] publishers that AdvantageScope reads for game-piece 3D rendering.
+    private final StructArrayPublisher<Pose3d> coralPublisher;
+    private final StructArrayPublisher<Pose3d> algaePublisher;
 
     private AngularVelocity maximumChassisSpeedsAngularVelocity = DegreesPerSecond.of(360);
     private LinearVelocity  maximumChassisSpeedsLinearVelocity  = MetersPerSecond.of(1);
@@ -162,21 +180,20 @@ public class SwerveSubsystem extends SubsystemBase
                 new Translation2d(Inches.of(-24).in(Meters), Inches.of(-24).in(Meters)));
         SwerveDriveConfig config = new SwerveDriveConfig(this, fl, fr, bl, br)
                 .withGyro(gyro.getYaw().asSupplier())
-                .withStartingPose(new Pose2d(0, 0, Rotation2d.fromDegrees(0)))
+                .withStartingPose(new Pose2d(2.0, 2.0, Rotation2d.fromDegrees(0)))
                 .withTranslationController(new PIDController(1, 0, 0))
                 .withRotationController(new PIDController(1, 0, 0));
         drive = new SwerveDrive(config);
 
-        // Build the JSim world: carpet floor + the robot body tagged as Blue 1.
-        simWorld = new SimWorld();
-        simWorld.addBody(new SimBodyBuilder("Floor")
-                .planeCollider(0, 0, 1, 0)
-                .material(Material.CARPET));
+        // Load the 2025 Reefscape field: perimeter walls, reef hitboxes, and pre-staged
+        // game pieces (Coral + Algae) from the bundled JSON resource.
+        fieldSim = FieldLoader.fromResource("2025-reefscape");
+
         // 24"×24" chassis (~0.6 m square), centre height 0.1 m, 54 kg typical swerve.
         // noGravity + fixedRotation: we drive kinematically by setting velocity each tick.
-        simBody = simWorld.addBody(new SimBodyBuilder("Robot")
+        simBody = fieldSim.addRobot(new SimBodyBuilder("Robot")
                 .robotId(RobotId.BLUE_1)
-                .position(0, 0, 0.1)
+                .position(2.0, 2.0, 0.1)
                 .mass(Kilograms.of(54))
                 .boxCollider(Inches.of(24).in(Meters) / 2,
                              Inches.of(24).in(Meters) / 2,
@@ -185,7 +202,60 @@ public class SwerveSubsystem extends SubsystemBase
                 .fixedRotation()
                 .material(Material.CARPET));
 
+        // Gripper mounted on the robot's front face, just off the carpet.
+        gripper = fieldSim.createGripper(simBody,
+                new Translation3d(INTAKE_FORWARD_M, 0, INTAKE_HEIGHT_M));
+
+        // NT4 struct-array publishers — AdvantageScope reads these as Pose3d[] for
+        // game-piece rendering. In the 3D view, drag the key onto the field and choose
+        // the appropriate game-piece model (Coral / Algae from the 2025 asset pack).
+        var nt = NetworkTableInstance.getDefault();
+        coralPublisher = nt.getStructArrayTopic("FieldSimulation/Coral", Pose3d.struct).publish();
+        algaePublisher = nt.getStructArrayTopic("FieldSimulation/Algae", Pose3d.struct).publish();
+
         SmartDashboard.putData("Field", field);
+    }
+
+    /**
+     * Find the closest free game piece within {@link #INTAKE_RADIUS_M} of the robot's intake
+     * point and grab it. No-op if the gripper is already holding a piece.
+     *
+     * @return a one-shot {@link Command} suitable for binding to a button
+     */
+    public Command intakeNearest()
+    {
+        return runOnce(() -> {
+            if (gripper.isHolding()) return;
+            Pose3d robotPose = simBody.getPose();
+            Translation3d intakePt = new Translation3d(INTAKE_FORWARD_M, 0, INTAKE_HEIGHT_M)
+                    .rotateBy(robotPose.getRotation())
+                    .plus(robotPose.getTranslation());
+            GamePiece closest = null;
+            double minDist = INTAKE_RADIUS_M;
+            for (GamePiece gp : fieldSim.getGamePieces()) {
+                if (gp.isHeld()) continue;
+                double dist = gp.getPose().getTranslation().getDistance(intakePt);
+                if (dist < minDist) { minDist = dist; closest = gp; }
+            }
+            if (closest != null) gripper.grab(closest);
+        });
+    }
+
+    /**
+     * Eject the currently held game piece forward in the robot's heading direction with a
+     * slight upward loft. No-op if nothing is held.
+     *
+     * @return a one-shot {@link Command} suitable for binding to a button
+     */
+    public Command ejectPiece()
+    {
+        return runOnce(() -> {
+            Rotation2d heading = simBody.getPose().getRotation().toRotation2d();
+            gripper.eject(
+                    heading.getCos() * EJECT_SPEED_XY,
+                    heading.getSin() * EJECT_SPEED_XY,
+                    EJECT_SPEED_Z);
+        });
     }
 
     /**
@@ -232,7 +302,6 @@ public class SwerveSubsystem extends SubsystemBase
         drive.simIterate();
 
         // Push the odometry chassis speeds (robot-relative) into the physics body.
-        // Rotate to world frame using the current heading reported by the drive.
         ChassisSpeeds speeds = drive.getRobotRelativeSpeed();
         Rotation2d heading = drive.getPose().getRotation();
         double cosH = heading.getCos();
@@ -242,12 +311,16 @@ public class SwerveSubsystem extends SubsystemBase
         simBody.setLinearVelocity(worldVx, worldVy, 0);
         simBody.setAngularVelocity(0, 0, speeds.omegaRadiansPerSecond);
 
-        // Advance the physics simulation one fixed timestep (default 20 ms).
-        simWorld.step();
+        // Advance physics one fixed timestep; gripper update is included inside step().
+        fieldSim.step();
 
-        // Read the physics pose back and feed it to the field widget.
+        // Mirror physics robot pose back to the 2D field widget.
         Pose3d p = simBody.getPose();
         Pose2d jsimPose = new Pose2d(p.getX(), p.getY(), p.getRotation().toRotation2d());
         field.getObject("JSimPose").setPose(jsimPose);
+
+        // Publish game-piece pose arrays for AdvantageScope 3D rendering.
+        coralPublisher.set(fieldSim.getGamePiecePoses("Coral"));
+        algaePublisher.set(fieldSim.getGamePiecePoses("Algae"));
     }
 }

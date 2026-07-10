@@ -114,24 +114,15 @@ public final class NarrowPhase {
         wp[0] += plane.posX; wp[1] += plane.posY; wp[2] += plane.posZ;
 
         double[] Rb = Mat3.fromQuaternion(box.qW, box.qX, box.qY, box.qZ);
-        double[] corners = {-1, 1};
-        double deepest = Double.POSITIVE_INFINITY;
-        double[] deepestCorner = null;
-
-        for (double sx : corners) for (double sy : corners) for (double sz : corners) {
-            // Corner in body space
+        double[] signs = {-1, 1};
+        for (double sx : signs) for (double sy : signs) for (double sz : signs) {
             double[] lc = Vec3.of(sx * bc.halfX, sy * bc.halfY, sz * bc.halfZ);
-            // Corner in world space
             double[] wc = Mat3.mulVec(Rb, lc);
             wc[0] += box.posX; wc[1] += box.posY; wc[2] += box.posZ;
-            // Signed distance to plane
             double d = Vec3.dot(Vec3.sub(wc, wp), wn);
-            if (d < deepest) { deepest = d; deepestCorner = wc; }
-        }
-
-        if (deepest < 0 && deepestCorner != null) {
-            emit(box, plane, deepestCorner[0], deepestCorner[1], deepestCorner[2],
-                 wn[0], wn[1], wn[2], -deepest, out);
+            if (d < 0) {
+                emit(box, plane, wc[0], wc[1], wc[2], wn[0], wn[1], wn[2], -d, out);
+            }
         }
     }
 
@@ -158,24 +149,32 @@ public final class NarrowPhase {
 
         double dist = Math.sqrt(distSq);
         double[] localNormal;
+        double pen;
         if (dist < 1e-8) {
-            // Sphere centre inside box — push along shallowest axis
+            // Sphere centre inside box — push out along the shallowest face axis.
+            // Penetration = sphere radius + distance from centre to that face.
             double dx = bc.halfX - Math.abs(local[0]);
             double dy = bc.halfY - Math.abs(local[1]);
             double dz = bc.halfZ - Math.abs(local[2]);
-            if (dx <= dy && dx <= dz) localNormal = Vec3.of(Math.signum(local[0]), 0, 0);
-            else if (dy <= dz)        localNormal = Vec3.of(0, Math.signum(local[1]), 0);
-            else                      localNormal = Vec3.of(0, 0, Math.signum(local[2]));
+            if (dx <= dy && dx <= dz) {
+                localNormal = Vec3.of(Math.signum(local[0]), 0, 0);
+                pen = sc.radius + dx;
+            } else if (dy <= dz) {
+                localNormal = Vec3.of(0, Math.signum(local[1]), 0);
+                pen = sc.radius + dy;
+            } else {
+                localNormal = Vec3.of(0, 0, Math.signum(local[2]));
+                pen = sc.radius + dz;
+            }
         } else {
             localNormal = Vec3.scale(diff, 1.0 / dist);
+            pen = sc.radius - dist;
         }
 
         // Transform normal back to world frame (sphere is bodyA for convention)
         double[] wn = Mat3.mulVec(Rb, localNormal);
         double[] wClosest = Mat3.mulVec(Rb, closest);
         wClosest[0] += box.posX; wClosest[1] += box.posY; wClosest[2] += box.posZ;
-
-        double pen = sc.radius - dist;
         // Normal points from box toward sphere (sphere = bodyA)
         emit(sphere, box, wClosest[0], wClosest[1], wClosest[2], wn[0], wn[1], wn[2], pen, out);
     }
@@ -190,7 +189,6 @@ public final class NarrowPhase {
 
         double[] t = Vec3.of(b.posX - a.posX, b.posY - a.posY, b.posZ - a.posZ);
 
-        // Build axes for SAT: 3 face-normals from A, 3 from B (9 edge cross axes omitted for brevity)
         double[][] axesA = {colOf(Ra, 0), colOf(Ra, 1), colOf(Ra, 2)};
         double[][] axesB = {colOf(Rb, 0), colOf(Rb, 1), colOf(Rb, 2)};
         double[] halfsA = {ba.halfX, ba.halfY, ba.halfZ};
@@ -200,26 +198,10 @@ public final class NarrowPhase {
         double[] bestAxis = null;
         int bestAxisSign = 1;
 
-        // Test A's face normals
+        // Test A's 3 face normals
         for (int i = 0; i < 3; i++) {
             double[] ax = axesA[i];
-            double projA = halfsA[i];
-            double projB = projectBox(ax, Rb, halfsB);
-            double dist = Math.abs(Vec3.dot(t, ax)) - (projA + projB);
-            if (dist > 0) return; // separating axis found
-            if (-dist < minPen) {
-                minPen = -dist;
-                bestAxis = ax;
-                // normal must point from B toward A: negate axis if it aligns with t (A→B)
-                bestAxisSign = (Vec3.dot(t, ax) < 0) ? 1 : -1;
-            }
-        }
-        // Test B's face normals
-        for (int i = 0; i < 3; i++) {
-            double[] ax = axesB[i];
-            double projA = projectBox(ax, Ra, halfsA);
-            double projB = halfsB[i];
-            double dist = Math.abs(Vec3.dot(t, ax)) - (projA + projB);
+            double dist = Math.abs(Vec3.dot(t, ax)) - (halfsA[i] + projectBox(ax, Rb, halfsB));
             if (dist > 0) return;
             if (-dist < minPen) {
                 minPen = -dist;
@@ -227,14 +209,60 @@ public final class NarrowPhase {
                 bestAxisSign = (Vec3.dot(t, ax) < 0) ? 1 : -1;
             }
         }
+        // Test B's 3 face normals
+        for (int i = 0; i < 3; i++) {
+            double[] ax = axesB[i];
+            double dist = Math.abs(Vec3.dot(t, ax)) - (projectBox(ax, Ra, halfsA) + halfsB[i]);
+            if (dist > 0) return;
+            if (-dist < minPen) {
+                minPen = -dist;
+                bestAxis = ax;
+                bestAxisSign = (Vec3.dot(t, ax) < 0) ? 1 : -1;
+            }
+        }
+        // Test 9 edge cross-product axes (required for edge-edge contacts on rotated boxes)
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                double[] ax = Vec3.cross(axesA[i], axesB[j]);
+                double len = Vec3.length(ax);
+                if (len < 1e-8) continue; // parallel edges — already covered by face axes
+                ax = Vec3.scale(ax, 1.0 / len);
+                double dist = Math.abs(Vec3.dot(t, ax))
+                        - (projectBox(ax, Ra, halfsA) + projectBox(ax, Rb, halfsB));
+                if (dist > 0) return;
+                if (-dist < minPen) {
+                    minPen = -dist;
+                    bestAxis = ax;
+                    bestAxisSign = (Vec3.dot(t, ax) < 0) ? 1 : -1;
+                }
+            }
+        }
 
         if (bestAxis == null) return;
 
         // Contact normal points from B to A
         double[] n = Vec3.scale(bestAxis, bestAxisSign);
-        // Contact point: deepest corner of B in direction n (toward A)
-        double[] corner = deepestCorner(b, Rb, bb, n);
-        emit(a, b, corner[0], corner[1], corner[2], n[0], n[1], n[2], minPen, out);
+
+        // Emit one contact point per corner of B that lies inside A along n.
+        // pen_corner = dot(c_B - a.pos, n) + projA gives per-corner penetration depth.
+        double projA = projectBox(n, Ra, halfsA);
+        boolean emitted = false;
+        double[] sv = {-1.0, 1.0};
+        for (double sx : sv) for (double sy : sv) for (double sz : sv) {
+            double[] localB = Vec3.of(sx * bb.halfX, sy * bb.halfY, sz * bb.halfZ);
+            double[] wc = Mat3.mulVec(Rb, localB);
+            wc[0] += b.posX; wc[1] += b.posY; wc[2] += b.posZ;
+            double pen = Vec3.dot(Vec3.of(wc[0] - a.posX, wc[1] - a.posY, wc[2] - a.posZ), n) + projA;
+            if (pen > 0) {
+                emit(a, b, wc[0], wc[1], wc[2], n[0], n[1], n[2], pen, out);
+                emitted = true;
+            }
+        }
+        // Fallback for edge-edge contacts where no corner of B is inside A
+        if (!emitted) {
+            double[] corner = deepestCorner(b, Rb, bb, n);
+            emit(a, b, corner[0], corner[1], corner[2], n[0], n[1], n[2], minPen, out);
+        }
     }
 
     // SAT helpers

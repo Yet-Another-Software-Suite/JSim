@@ -42,6 +42,10 @@ public class RobotContainer
                 Meters.of(6),
                 Rotation2d.fromDegrees(70))));
 
+        // A — grab the nearest free game piece within intake range.
+        // B — eject / shoot the held piece forward with a loft.
+        xboxController.a().onTrue(drive.intakeNearest());
+        xboxController.b().onTrue(drive.ejectPiece());
     }
 
     public Command getAutonomousCommand()
