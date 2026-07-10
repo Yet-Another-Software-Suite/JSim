@@ -15,5 +15,6 @@
             "version": "2026.07.10-p1"
         }
     ],
+    "jniDependencies": [],
     "cppDependencies": []
 }
