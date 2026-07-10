@@ -147,15 +147,17 @@ class NarrowPhaseTest {
     // Box vs Plane
     @Test
     void boxPlane_cornerBelowFloor_contact() {
-        // Box at z=0.4, half-height 0.5 → bottom corners at z=-0.1 (penetrating)
+        // Box at z=0.4, half-height 0.5 → all 4 bottom corners at z=-0.1 (penetrating)
         RigidBody b = box(0, 0, 0.4, 0.3, 0.3, 0.5);
         RigidBody floor = staticFloor();
         List<CollisionPair> pairs = new ArrayList<>();
         pairs.add(new CollisionPair(b, floor));
         List<ContactPoint> out = new ArrayList<>();
         NarrowPhase.generateContacts(pairs, out);
-        assertEquals(1, out.size());
-        assertTrue(out.get(0).penetration > 0, "box corner should be penetrating floor");
+        assertEquals(4, out.size(), "All 4 bottom corners should generate contacts");
+        for (ContactPoint cp : out) {
+            assertTrue(cp.penetration > 0, "each contact should have positive penetration");
+        }
     }
 
     @Test
@@ -203,8 +205,10 @@ class NarrowPhaseTest {
         pairs.add(new CollisionPair(a, b));
         List<ContactPoint> out = new ArrayList<>();
         NarrowPhase.generateContacts(pairs, out);
-        assertEquals(1, out.size());
-        assertTrue(out.get(0).penetration > 0);
+        assertTrue(out.size() >= 1, "Should generate at least one contact");
+        for (ContactPoint cp : out) {
+            assertTrue(cp.penetration > 0, "each contact should have positive penetration");
+        }
     }
 
     @Test

@@ -10,7 +10,7 @@ simWorld.addBody(new SimBodyBuilder("Floor")
     .planeCollider(0, 0, 1, 0)
     .material(Material.CARPET));
 
-// 2025 Crescendo Note — 36 cm diameter ring, ~0.23 kg
+// 2024 Crescendo Note — 36 cm diameter ring, ~0.23 kg
 SimBody note = simWorld.addBody(new SimBodyBuilder("Note")
     .position(4.5, 2.0, 0.18)         // 18 cm off the floor (radius)
     .mass(0.235)
