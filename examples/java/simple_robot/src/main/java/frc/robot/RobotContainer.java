@@ -13,10 +13,15 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.SwerveSubsystem;
+import jsim.wpilib.SimulatedField;
 
 public class RobotContainer
 {
-    private final SwerveSubsystem drive = new SwerveSubsystem();
+    private final SwerveSubsystem drive    = new SwerveSubsystem();
+    private final SimulatedField  fieldSim = new SimulatedField(
+            "2025-reefscape",
+            drive::getRobotRelativeSpeeds,
+            drive::getPose);
 
     private final CommandXboxController xboxController = new CommandXboxController(0);
 
@@ -31,10 +36,6 @@ public class RobotContainer
 
     private void configureBindings()
     {
-//    xboxController.button(1).whileTrue(drive.setRobotRelativeChassisSpeeds(new ChassisSpeeds(0.5, 0, 0)));
-//    xboxController.button(2).whileTrue(drive.setRobotRelativeChassisSpeeds(new ChassisSpeeds(-0.5, 0, 0)));
-//    xboxController.button(3).whileTrue(drive.setRobotRelativeChassisSpeeds(new ChassisSpeeds(0, 0.5, 0)));
-//    xboxController.button(4).whileTrue(drive.setRobotRelativeChassisSpeeds(new ChassisSpeeds(0, -0.5, 0)));
         xboxController.button(5).whileTrue(drive.driveToPose(new Pose2d(Meters.of(3),
                                                                         Meters.of(3),
                                                                         Rotation2d.fromDegrees(30))));
@@ -42,10 +43,8 @@ public class RobotContainer
                                                                         Meters.of(6),
                                                                         Rotation2d.fromDegrees(70))));
 
-        // A — grab the nearest free game piece within intake range.
-        // B — eject / shoot the held piece forward with a loft.
-        xboxController.a().onTrue(drive.intakeNearest());
-        xboxController.b().onTrue(drive.ejectPiece());
+        xboxController.a().onTrue(fieldSim.intakeNearest());
+        xboxController.b().onTrue(fieldSim.ejectPiece());
     }
 
     public Command getAutonomousCommand()
