@@ -2,6 +2,7 @@ package jsim.simulation;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -62,5 +63,12 @@ class SimulatedArenaTest {
 
         int after = arena.getFieldSimulator().getGamePieces().size();
         assertFalse(after > before);
+    }
+
+    @Test
+    void seasonPackWithCanonicalSchemaLoads() {
+        SimulatedArena arena = SimulatedArena.fromSeason("2026-hubrush");
+        assertNotNull(arena.getFieldSimulator().getSeasonFieldSpec());
+        assertTrue(arena.getFieldSimulator().getGamePiecePoses("Fuel").length > 0);
     }
 }

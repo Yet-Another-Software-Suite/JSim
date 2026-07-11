@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "season": {
+    "id": "hubrush2026",
+    "year": 2026,
+    "game": "Hub Rush"
+  },
+  "field": {
+    "lengthMeters": 16.4592,
+    "widthMeters": 8.2296
+  },
+  "render": {
+    "fieldAsset": "hubrush2026",
+    "aprilTagLayout": "2026-official"
+  },
+  "aprilTags": [
+    { "id": 26, "x": 2.11, "y": 4.1148, "z": 1.44, "rollRadians": 0.0, "pitchRadians": 0.0, "yawRadians": 0.0 },
+    { "id": 20, "x": 3.28, "y": 4.1148, "z": 1.44, "rollRadians": 0.0, "pitchRadians": 0.0, "yawRadians": 3.141592653589793 }
+  ],
+  "elements": [
+    {
+      "name": "Hub",
+      "kind": "goal",
+      "pose": { "x": 2.70, "y": 4.1148, "z": 0.9144, "rollRadians": 0.0, "pitchRadians": 0.0, "yawRadians": 0.0 },
+      "collider": { "shape": "box", "halfX": 0.5969, "halfY": 0.5969, "halfZ": 0.9144 },
+      "material": { "name": "WALL", "friction": 0.2, "restitution": 0.05 },
+      "mirrorAcrossCenterline": false,
+      "zoneTags": ["goal", "hub"],
+      "metadata": { "source": "2026-fieldconstants" }
+    },
+    {
+      "name": "Bump",
+      "kind": "terrain",
+      "pose": { "x": 2.70, "y": 6.20, "z": 0.0827, "rollRadians": 0.0, "pitchRadians": 0.0, "yawRadians": 0.0 },
+      "collider": { "shape": "box", "halfX": 0.5639, "halfY": 0.9271, "halfZ": 0.0827 },
+      "material": { "name": "WALL", "friction": 0.2, "restitution": 0.05 },
+      "mirrorAcrossCenterline": true,
+      "zoneTags": ["bump"],
+      "metadata": { "pair": "left-right" }
+    }
+  ],
+  "gamePieceSets": [
+    {
+      "variant": "Fuel",
+      "radius": 0.075,
+      "mass": 0.12,
+      "friction": 0.50,
+      "restitution": 0.45,
+      "poses": [
+        { "x": 7.8, "y": 4.1, "z": 0.075 },
+        { "x": 8.3, "y": 4.1, "z": 0.075 },
+        { "x": 8.8, "y": 4.1, "z": 0.075 }
+      ]
+    }
+  ]
+}

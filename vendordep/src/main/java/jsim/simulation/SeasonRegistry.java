@@ -17,11 +17,14 @@ public final class SeasonRegistry {
     private static final Map<String, String> ALIASES = new HashMap<>();
 
     static {
-        register(new SeasonConfig("reefscape2025", 1, "2025-reefscape", List.of("Coral", "Algae")));
-        register(new SeasonConfig("crescendo2024", 1, "2025-reefscape", List.of("Note")));
+        register(new SeasonConfig("reefscape2025", 1, "2025-reefscape", null, List.of("Coral", "Algae")));
+        register(new SeasonConfig("crescendo2024", 1, "2025-reefscape", null, List.of("Note")));
+        register(new SeasonConfig("hubrush2026", 1, "2026-hubrush", null, List.of("Fuel")));
         registerAlias("reefscape2025", "reefscape2025@v1");
         registerAlias("2025-reefscape", "reefscape2025@v1");
         registerAlias("crescendo2024", "crescendo2024@v1");
+        registerAlias("hubrush2026", "hubrush2026@v1");
+        registerAlias("2026-hubrush", "hubrush2026@v1");
     }
 
     private SeasonRegistry() {}

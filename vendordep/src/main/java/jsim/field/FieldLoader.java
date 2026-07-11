@@ -5,9 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import jsim.api.SimBodyBuilder;
 import jsim.core.SimConstants;
-import jsim.material.Material;
 
 /**
  * Loads a JSim field definition from a JSON resource or file, producing a fully-configured
@@ -86,7 +84,7 @@ public final class FieldLoader {
                 throw new IllegalArgumentException(
                         "No bundled field resource found at classpath:" + resourcePath);
             }
-            return parse(MAPPER.readTree(is));
+            return parse(MAPPER.readTree(is), name);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load field resource: " + resourcePath, e);
         }
@@ -101,59 +99,32 @@ public final class FieldLoader {
      */
     public static FieldSimulator fromFile(Path jsonPath) {
         try {
-            return parse(MAPPER.readTree(jsonPath.toFile()));
+            String fileName = jsonPath.getFileName() == null ? "custom-field" : jsonPath.getFileName().toString();
+            return parse(MAPPER.readTree(jsonPath.toFile()), fileName);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load field file: " + jsonPath, e);
         }
     }
 
-    private static FieldSimulator parse(JsonNode root) {
-        // Field dimensions — fall back to standard FRC constants if absent.
-        JsonNode fieldNode = root.path("field");
-        double lengthM = fieldNode.path("lengthMeters").asDouble(FieldLayout.FRC_LENGTH_M);
-        double widthM  = fieldNode.path("widthMeters").asDouble(FieldLayout.FRC_WIDTH_M);
+    /** Build a field simulator by ingesting a season FieldConstants class via reflection. */
+    public static FieldSimulator fromFieldConstantsClass(String className, String seasonId) {
+        SeasonFieldSpec spec = FieldConstantsSeasonSpecIngestor.fromClassName(className, seasonId);
+        return fromSpec(spec);
+    }
 
-        FieldSimulator sim = new FieldSimulator(SimConstants.DEFAULT_DT, lengthM, widthM);
+    static FieldSimulator parse(JsonNode root, String fallbackId) {
+        SeasonFieldSpec spec = SeasonFieldSpecParser.parse(root, fallbackId);
+        return fromSpec(spec);
+    }
 
-        // Static obstacle hitboxes (reef structures, coral stations, etc.).
-        // Each becomes a static box body that absorbs collisions without moving.
-        for (JsonNode obs : root.path("obstacles")) {
-            String name  = obs.path("name").asText("Obstacle");
-            double x     = obs.path("x").asDouble();
-            double y     = obs.path("y").asDouble();
-            double z     = obs.path("z").asDouble();
-            double halfX = obs.path("halfX").asDouble();
-            double halfY = obs.path("halfY").asDouble();
-            double halfZ = obs.path("halfZ").asDouble();
-            sim.getWorld().addBody(new SimBodyBuilder(name)
-                    .position(x, y, z)
-                    .boxCollider(halfX, halfY, halfZ)
-                    .isStatic()
-                    .material(Material.WALL));
-        }
-
-        // Dynamic game piece bodies tracked for AdvantageScope output.
-        for (JsonNode type : root.path("gamePieces")) {
-            String   variant     = type.path("variant").asText();
-            double   radius      = type.path("radius").asDouble();
-            double   mass        = type.path("mass").asDouble();
-            double   friction    = type.path("friction").asDouble(0.5);
-            double   restitution = type.path("restitution").asDouble(0.3);
-            Material mat         = new Material(friction, restitution);
-            int      i           = 0;
-            for (JsonNode pose : type.path("poses")) {
-                double px = pose.path("x").asDouble();
-                double py = pose.path("y").asDouble();
-                double pz = pose.path("z").asDouble();
-                sim.spawnGamePiece(variant, new SimBodyBuilder(variant + i)
-                        .position(px, py, pz)
-                        .mass(mass)
-                        .sphereCollider(radius)
-                        .material(mat));
-                i++;
-            }
-        }
-
+    private static FieldSimulator fromSpec(SeasonFieldSpec spec) {
+        FieldSimulator sim = new FieldSimulator(
+                SimConstants.DEFAULT_DT,
+                spec.field().lengthMeters(),
+                spec.field().widthMeters());
+        sim.setSeasonFieldSpec(spec);
+        FieldCollisionGenerator.addElementColliders(sim, spec);
+        SeasonFieldSpecSpawner.spawnGamePieces(sim, spec);
         return sim;
     }
 }

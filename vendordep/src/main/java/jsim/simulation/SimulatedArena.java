@@ -30,7 +30,10 @@ public final class SimulatedArena {
 
     public SimulatedArena(SeasonConfig seasonConfig) {
         this.seasonConfig = seasonConfig;
-        this.fieldSimulator = FieldLoader.fromResource(seasonConfig.fieldResource());
+        this.fieldSimulator =
+                seasonConfig.fieldConstantsClass() == null
+                        ? FieldLoader.fromResource(seasonConfig.fieldResource())
+                        : FieldLoader.fromFieldConstantsClass(seasonConfig.fieldConstantsClass(), seasonConfig.id());
         this.battery = new SimulatedBattery();
     }
 
