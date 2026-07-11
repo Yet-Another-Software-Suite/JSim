@@ -1,0 +1,9 @@
+jsim.api
+jsim.collision
+jsim.core
+jsim.dynamics
+jsim.field
+jsim.forces
+jsim.material
+jsim.solver
+jsim.wpilib
