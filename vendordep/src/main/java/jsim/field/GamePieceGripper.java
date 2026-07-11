@@ -105,6 +105,9 @@ public final class GamePieceGripper {
     /** @return {@code true} if this gripper is currently holding a piece */
     public boolean isHolding() { return held != null; }
 
+    /** @return robot body this gripper is mounted on */
+    public SimBody getRobotBody() { return robot; }
+
     // Internals
 
     private void snapToIntake() {

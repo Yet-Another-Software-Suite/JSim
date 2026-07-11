@@ -47,6 +47,7 @@ nav:
       - getting_started.md
       - API Usage: api_usage.md
       - Architecture: architecture.md
+      - Maple-Sim Parity Matrix: maple_parity_matrix.md
   - Walkthroughs:
       - Swerve Drive Simulation: walkthroughs/swerve_drive.md
       - Gamepiece Simulation: walkthroughs/gamepiece_simulation.md
