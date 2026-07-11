@@ -2,6 +2,8 @@
 
 JSim can simulate any rigid game piece — balls, rings, notes, coral — with realistic contact physics.
 
+For a Maple-style lifecycle API, use `SimulatedArena` + `GamePieceProjectile` to spawn and despawn projectiles automatically.
+
 ## Ball on carpet floor
 
 ```java

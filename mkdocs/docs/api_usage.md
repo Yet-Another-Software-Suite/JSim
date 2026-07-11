@@ -9,6 +9,17 @@
 | [`SimBody`](api/sim_body.md) | Handle to a registered body. Read/write pose and velocity; access the actuator. |
 | [`BodyTracker`](api/body_tracker.md) | Optional utility for recording pose/velocity history and distance traveled. |
 
+## Maple-style simulation layers
+
+| Class | Role |
+|---|---|
+| `SimulatedArena` | Arena lifecycle wrapper that updates drivetrain hooks, field simulation, projectiles, and battery publishing each tick. |
+| `SeasonRegistry` + `SeasonConfig` | Versioned season-pack lookup with alias-based migration compatibility. |
+| `IntakeSimulation` | Intake helper for nearest-piece acquisition and ejection built on `GamePieceGripper`. |
+| `GamePieceProjectile` | Projectile lifecycle/despawn wrapper for spawned game pieces. |
+| `DriveTrainSimulation` / `OpponentSimulation` | WPILib supplier-based hooks for robot and opponent chassis motion. |
+| `MotorSimulation` + `SimulatedBattery` | Deterministic motor-current and battery-voltage simulation primitives. |
+
 ---
 
 ## Lifecycle pattern

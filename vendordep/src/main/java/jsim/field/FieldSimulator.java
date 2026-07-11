@@ -49,6 +49,7 @@ import jsim.core.SimConstants;
  */
 public final class FieldSimulator {
     private final SimWorld world;
+    private SeasonFieldSpec seasonFieldSpec;
     private final List<GamePiece>        pieces   = new ArrayList<>();
     private final List<GamePieceGripper> grippers = new ArrayList<>();
 
@@ -214,4 +215,12 @@ public final class FieldSimulator {
      * @return the underlying physics world
      */
     public SimWorld getWorld() { return world; }
+
+    public SeasonFieldSpec getSeasonFieldSpec() {
+        return seasonFieldSpec;
+    }
+
+    void setSeasonFieldSpec(SeasonFieldSpec seasonFieldSpec) {
+        this.seasonFieldSpec = seasonFieldSpec;
+    }
 }

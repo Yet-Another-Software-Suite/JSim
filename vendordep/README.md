@@ -52,6 +52,27 @@ JsonNode field = FieldDefinitionCatalog.loadFieldNode(2024);
 This avoids requiring teams/students to run external Python scripts just to
 load or move field elements.
 
+### Adding a New Season Field Pack
+
+1. Create a canonical season spec JSON in `vendordep/src/main/resources/jsim/field/` using:
+   - `schemaVersion`
+   - `season` (`id`, `year`, `game`)
+   - `field` dimensions
+   - `elements` (collider shape + metadata + optional symmetry)
+   - `aprilTags`
+   - `gamePieceSets`
+2. Register the season in `jsim.simulation.SeasonRegistry` with a versioned `SeasonConfig`.
+3. Add tests validating:
+   - loadability through `FieldLoader` and `SimulatedArena`
+   - expected generated colliders
+   - expected game-piece spawn counts
+4. Run:
+   - `./scripts/build-all.sh`
+   - `./scripts/run-tests.sh`
+
+If your upstream game code has a `FieldConstants` class, you can also ingest it using
+`FieldLoader.fromFieldConstantsClass(...)` to bootstrap a canonical season spec.
+
 ### C++
 
 Use `jsim::PhysicsWorld` from `src/main/driver/include/driverheader.h`.
