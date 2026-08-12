@@ -1,0 +1,29 @@
+{
+  "$schema": "https://example.com/schemas/module.json",
+  "drive": {
+    "type": "sparkmax_neo",
+    "id": 4,
+    "canbus": ""
+  },
+  "angle": {
+    "type": "sparkmax_neo",
+    "id": 5,
+    "canbus": ""
+  },
+  "inverted": {
+    "drive": false,
+    "angle": false
+  },
+  "absoluteEncoder": {
+    "type": "cancoder_can",
+    "id": 6,
+    "channel": 0,
+    "canbus": ""
+  },
+  "absoluteEncoderOffset": 0,
+  "absoluteEncoderInverted": false,
+  "location": {
+    "front": 10,
+    "left": -10
+  }
+}
