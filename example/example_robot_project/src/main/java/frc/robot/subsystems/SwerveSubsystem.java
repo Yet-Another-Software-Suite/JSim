@@ -62,7 +62,9 @@ import yams.motorcontrollers.local.SparkWrapper;
 public class SwerveSubsystem extends SubsystemBase
 {
   private final SwerveDrive drive;
+  private final Pigeon2     gyro;
   private final Field2d     field = new Field2d();
+  
 
   // 360 deg/s gives comfortable spin speed without overshooting in teleop.
   private AngularVelocity maximumChassisSpeedsAngularVelocity = DegreesPerSecond.of(360);
@@ -176,7 +178,8 @@ public class SwerveSubsystem extends SubsystemBase
   public SwerveSubsystem()
   {
     // CAN ID 14 is arbitrary; assign it to match your robot's Pigeon2 CAN ID.
-    Pigeon2 gyro = new Pigeon2(14);
+     gyro = new Pigeon2(14);
+     
     /*
      * Module locations use the WPILib coordinate frame: +X toward the front of the robot,
      * +Y toward the left side. The 24-inch offsets assume the module centers sit 24 inches
