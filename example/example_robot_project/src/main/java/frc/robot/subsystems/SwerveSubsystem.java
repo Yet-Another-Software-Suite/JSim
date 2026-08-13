@@ -42,6 +42,9 @@ import yams.mechanisms.swerve.utility.SwerveInputStream;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.local.SparkWrapper;
+// import jsim.physics.SwerveDrivePhysics;
+// import jsim.physics.layers.Dyn4jCollisionLayer;
+// import yams.physics.layers.Dyn4jCollisionLayer.FieldLayout;EvergreenFieldLayout
 
 /**
  * Swerve drive subsystem built with YAMS. This example shows how to wire up four NEO-driven modules
@@ -217,11 +220,12 @@ public class SwerveSubsystem extends SubsystemBase
         .withRotationController(new PIDController(1, 0, 0));
     drive = new SwerveDrive(config);
 
-    // Initializing physics engine:
-    // Automatically extracts kinematics, pose, and default field boundary collision from 'drive',
-    // then chains the dyn4j physics layer for dynamic collisions.
+    // Explicitly configure the dyn4j collision layer (Option A)
     // physicsSim = new SwerveDrivePhysics(drive)
-    //    .addLayer(new Dyn4jCollisionLayer());
+    //     .addLayer(new Dyn4jCollisionLayer(
+    //         Kilograms.of(50.0),            // Simulated robot mass
+    //         FieldLayout.LOAD_2026_FIELD     // Pre-configured field walls & static obstacles
+    //     ));
 
     SmartDashboard.putData("Field", field);
   }
