@@ -217,6 +217,12 @@ public class SwerveSubsystem extends SubsystemBase
         .withRotationController(new PIDController(1, 0, 0));
     drive = new SwerveDrive(config);
 
+    // Initializing physics engine:
+    // Automatically extracts kinematics, pose, and default field boundary collision from 'drive',
+    // then chains the dyn4j physics layer for dynamic collisions.
+    // physicsSim = new SwerveDrivePhysics(drive)
+    //    .addLayer(new Dyn4jCollisionLayer());
+
     SmartDashboard.putData("Field", field);
   }
 
@@ -272,5 +278,6 @@ public class SwerveSubsystem extends SubsystemBase
   public void simulationPeriodic()
   {
     drive.simIterate();
+    // physicsSim.update();
   }
 }
