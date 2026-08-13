@@ -64,7 +64,7 @@ public class SwerveSubsystem extends SubsystemBase
   private final SwerveDrive drive;
   private final Pigeon2     gyro;
   private final Field2d     field = new Field2d();
-  
+  // private final SwerveDrivePhysics physicsSim;
 
   // 360 deg/s gives comfortable spin speed without overshooting in teleop.
   private AngularVelocity maximumChassisSpeedsAngularVelocity = DegreesPerSecond.of(360);
