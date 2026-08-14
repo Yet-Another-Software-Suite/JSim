@@ -284,5 +284,7 @@ public class SwerveSubsystem extends SubsystemBase
   {
     drive.simIterate();
     // physicsSim.update();
+
+    // field.getObject("PhysicsPose").setPose(physicsSim.getPose());
   }
 }
