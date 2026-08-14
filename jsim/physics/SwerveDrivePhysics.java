@@ -8,34 +8,40 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.units.measure.Distance;
+import yams.mechanisms.swerve.SwerveDrive;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Central manager for physics simulation, encapsulating WPILib Kinematics, 
- * Odometry, and environmental collision layers.
- */
 public class SwerveDrivePhysics {
 
-    // Internal references for single-source access
     private static SwerveDriveKinematics kinematics;
     private static SwerveDriveOdometry odometry;
 
-    private final Translation2d robotDimensions; // Half-length (X) and half-width (Y) including bumpers
+    private final Translation2d robotDimensions;
     private final List<PhysicsLayer> layers = new ArrayList<>();
+    private final SwerveDrive yamsDrive; // Reference to YAMS drivebase if provided
 
     private Pose2d currentPose = new Pose2d();
     private ChassisSpeeds currentPhysicalSpeeds = new ChassisSpeeds();
 
     /**
-     * Constructs SwerveDrivePhysics and initializes internal Kinematics and Odometry.
-     *
-     * @param moduleLocations Locations of swerve modules relative to robot center.
-     * @param lengthWithBumpers Total robot length (X-axis) including bumpers.
-     * @param widthWithBumpers Total robot width (Y-axis) including bumpers.
-     * @param initialPose Starting pose on the field.
-     * @param initialPositions Initial module wheel positions.
+     * YAMS Constructor: Automatically pulls kinematics, module locations, and pose from YAMS.
+     */
+    public SwerveDrivePhysics(SwerveDrive drive) {
+        this.yamsDrive = drive;
+        
+        // Extract kinematics & initial state directly from YAMS
+        kinematics = drive.getKinematics();
+        odometry = drive.getOdometry();
+        this.currentPose = drive.getPose();
+        
+        // Extract footprint dimensions from module offsets (or default estimates)
+        this.robotDimensions = drive.getRobotDimensions();
+    }
+
+    /**
+     * Standard WPILib Constructor (Without YAMS wrapper).
      */
     public SwerveDrivePhysics(
             Translation2d[] moduleLocations,
@@ -44,7 +50,7 @@ public class SwerveDrivePhysics {
             Pose2d initialPose,
             SwerveModulePosition[] initialPositions) {
 
-        // Construct WPILib Kinematics & Odometry simultaneously
+        this.yamsDrive = null;
         kinematics = new SwerveDriveKinematics(moduleLocations);
         odometry = new SwerveDriveOdometry(kinematics, initialPose.getRotation(), initialPositions, initialPose);
 
@@ -55,30 +61,31 @@ public class SwerveDrivePhysics {
         );
     }
 
-    /** Get the single source of truth for SwerveDriveKinematics. */
-    public static SwerveDriveKinematics getKinematics() {
-        return kinematics;
-    }
+    public static SwerveDriveKinematics getKinematics() { return kinematics; }
+    public static SwerveDriveOdometry getOdometry() { return odometry; }
 
-    /** Get the single source of truth for SwerveDriveOdometry. */
-    public static SwerveDriveOdometry getOdometry() {
-        return odometry;
-    }
-
-    /** Attaches a physics processing layer to the pipeline. */
     public SwerveDrivePhysics addLayer(PhysicsLayer layer) {
         layers.add(layer);
         return this;
     }
 
     /**
-     * Updates physics, applies all collision/constraint layers, and advances robot pose.
-     *
-     * @param inputSpeeds       Desired robot-relative ChassisSpeeds commanded by robot logic.
-     * @param currentGyroAngle  Current simulated gyro heading.
-     * @param modulePositions   Current simulated module encoder positions.
-     * @param dtSeconds         Time delta since last update cycle (typically 0.02s).
-     * @return                  Calculated physical state containing pose and physical speeds.
+     * Zero-argument update call used inside Subsystem.simulationPeriodic() when using YAMS.
+     */
+    public PhysicsState update() {
+        if (yamsDrive == null) {
+            throw new IllegalStateException("Cannot call update() without parameters unless instantiated with a YAMS SwerveDrive!");
+        }
+        return update(
+            yamsDrive.getDesiredChassisSpeeds(),
+            yamsDrive.getHeading(),
+            yamsDrive.getModulePositions(),
+            0.020 // Standard WPILib loop period
+        );
+    }
+
+    /**
+     * Explicit update step with custom parameters.
      */
     public PhysicsState update(
             ChassisSpeeds inputSpeeds,
@@ -86,7 +93,7 @@ public class SwerveDrivePhysics {
             SwerveModulePosition[] modulePositions,
             double dtSeconds) {
 
-        // 1. Pipeline processing: Pass desired speeds sequentially through all layers
+        // 1. Process desired speeds through all registered physics layers
         ChassisSpeeds processedSpeeds = inputSpeeds;
         for (PhysicsLayer layer : layers) {
             processedSpeeds = layer.process(currentPose, processedSpeeds, robotDimensions);
@@ -94,7 +101,7 @@ public class SwerveDrivePhysics {
 
         this.currentPhysicalSpeeds = processedSpeeds;
 
-        // 2. Integrate pose step based on physics-adjusted robot-relative chassis speeds
+        // 2. Step integration
         double deltaX = processedSpeeds.vxMetersPerSecond * dtSeconds;
         double deltaY = processedSpeeds.vyMetersPerSecond * dtSeconds;
         double deltaTheta = processedSpeeds.omegaRadiansPerSecond * dtSeconds;
@@ -105,20 +112,14 @@ public class SwerveDrivePhysics {
             currentPose.getRotation().plus(Rotation2d.fromRadians(deltaTheta))
         );
 
-        // 3. Update internal single-source Odometry
+        // 3. Update odometry
         odometry.update(currentGyroAngle, modulePositions);
 
         return new PhysicsState(currentPose, currentPhysicalSpeeds);
     }
 
-    public Pose2d getPose() {
-        return currentPose;
-    }
+    public Pose2d getPose() { return currentPose; }
+    public ChassisSpeeds getPhysicalSpeeds() { return currentPhysicalSpeeds; }
 
-    public ChassisSpeeds getPhysicalSpeeds() {
-        return currentPhysicalSpeeds;
-    }
-
-    /** Data record returning output physics state. */
     public record PhysicsState(Pose2d pose, ChassisSpeeds physicalSpeeds) {}
 }
