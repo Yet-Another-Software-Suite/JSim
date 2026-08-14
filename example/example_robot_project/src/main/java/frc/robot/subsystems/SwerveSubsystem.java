@@ -12,7 +12,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
-// import static edu.wpi.first.units.Units.Kilograms;
+import static edu.wpi.first.units.Units.Kilograms;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -45,7 +45,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.local.SparkWrapper;
 // import jsim.physics.SwerveDrivePhysics;
 // import jsim.physics.layers.Dyn4jCollisionLayer;
-// import yams.physics.layers.Dyn4jCollisionLayer.FieldLayout;
+// import jsim.physics.layers.Dyn4jCollisionLayer.FieldLayout;
 
 /**
  * Swerve drive subsystem built with YAMS. This example shows how to wire up four NEO-driven modules
