@@ -3,6 +3,7 @@ package jsim.physics;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -15,10 +16,12 @@ import java.util.List;
 
 /**
  * Central orchestrator and manager for swerve drivetrain physics simulation within JSIM.
- * * <p>Standard WPILib simulation models ideal kinematic movement where commanded speeds directly
+ *
+ * <p>Standard WPILib simulation models ideal kinematic movement where commanded speeds directly
  * translate to ground position. {@code SwerveDrivePhysics} bridges the gap between ideal kinematics
  * and physical field environments by providing:
- * * <ul>
+ *
+ * <ul>
  * <li><b>Single Source Kinematics & Odometry:</b> Instantiates and encapsulates WPILib's
  * {@link SwerveDriveKinematics} and {@link SwerveDriveOdometry} to prevent state synchronization
  * mismatches across subsystem classes.</li>
@@ -28,12 +31,14 @@ import java.util.List;
  * ({@code currentPose}) after accounting for collisions, while simultaneously feeding wheel encoder
  * data into internal odometry for sensor estimation.</li>
  * </ul>
- * * <h3>Usage Example (YAMS Drivetrain Integration)</h3>
+ *
+ * <h3>Usage Example (YAMS Drivetrain Integration)</h3>
  * <pre>{@code
  * public class SwerveSubsystem extends SubsystemBase {
  * private final SwerveDrive drive;
  * private final SwerveDrivePhysics physicsSim;
- * * public SwerveSubsystem() {
+ *
+ * public SwerveSubsystem() {
  * // ... initialize YAMS drive ...
  * physicsSim = new SwerveDrivePhysics(drive)
  * .addLayer(new Dyn4jCollisionLayer(
@@ -41,23 +46,25 @@ import java.util.List;
  * FieldLayout.LOAD_2026_FIELD
  * ));
  * }
- * * @Override
+ *
+ * @Override
  * public void simulationPeriodic() {
  * drive.simIterate();
  * physicsSim.update(); // Steps physical world and updates pose ground truth
  * }
  * }
  * }</pre>
- * * @see PhysicsLayer
+ *
+ * @see PhysicsLayer
  * @see PhysicsState
  */
 public class SwerveDrivePhysics {
 
-    /** Single-source static instance of WPILib kinematics derived during instantiation. */
-    private static SwerveDriveKinematics kinematics;
+    /** Single-source final instance of WPILib kinematics derived during instantiation. */
+    private final SwerveDriveKinematics kinematics;
 
-    /** Single-source static instance of WPILib odometry derived during instantiation. */
-    private static SwerveDriveOdometry odometry;
+    /** Single-source final instance of WPILib odometry derived during instantiation. */
+    private final SwerveDriveOdometry odometry;
 
     /** Half-length (X) and half-width (Y) bumper footprint dimensions in meters. */
     private final Translation2d robotDimensions;
@@ -76,7 +83,8 @@ public class SwerveDrivePhysics {
 
     /**
      * Constructs a {@code SwerveDrivePhysics} manager bound to a YAMS {@link SwerveDrive} chassis.
-     * * <p>This constructor automatically extracts kinematic configurations, module locations,
+     *
+     * <p>This constructor automatically extracts kinematic configurations, module locations,
      * initial starting pose, and robot outer bumper dimensions directly from the YAMS abstraction,
      * eliminating duplicated geometry constants.
      *
@@ -96,11 +104,11 @@ public class SwerveDrivePhysics {
      * Constructs a standalone {@code SwerveDrivePhysics} manager using raw WPILib structures
      * without a YAMS dependency wrapper.
      *
-     * @param moduleLocations    Array of module positions relative to robot center (in WPILib frame: +X forward, +Y left).
+     * @param moduleLocations   Array of module positions relative to robot center (in WPILib frame: +X forward, +Y left).
      * @param lengthWithBumpers Total robot bumper-to-bumper length along the X-axis.
      * @param widthWithBumpers  Total robot bumper-to-bumper width along the Y-axis.
-     * @param initialPose        Starting pose of the robot on the field.
-     * @param initialPositions   Initial module wheel positions (distances and angles).
+     * @param initialPose       Starting pose of the robot on the field.
+     * @param initialPositions  Initial module wheel positions (distances and angles).
      */
     public SwerveDrivePhysics(
             Translation2d[] moduleLocations,
@@ -123,24 +131,25 @@ public class SwerveDrivePhysics {
     /**
      * Returns the single-source-of-truth {@link SwerveDriveKinematics} instance created during initialization.
      *
-     * @return The static kinematics object shared across the drivetrain.
+     * @return The final kinematics object shared across the drivetrain.
      */
-    public static SwerveDriveKinematics getKinematics() { 
+    public final SwerveDriveKinematics getKinematics() { 
         return kinematics; 
     }
 
     /**
      * Returns the single-source-of-truth {@link SwerveDriveOdometry} instance created during initialization.
      *
-     * @return The static odometry object shared across the drivetrain.
+     * @return The final odometry object shared across the drivetrain.
      */
-    public static SwerveDriveOdometry getOdometry() { 
+    public final SwerveDriveOdometry getOdometry() { 
         return odometry; 
     }
 
     /**
      * Registers a new functional {@link PhysicsLayer} into the execution pipeline.
-     * * <p>Layers process sequentially in the order they are added. For example, adding a floor friction layer
+     *
+     * <p>Layers process sequentially in the order they are added. For example, adding a floor friction layer
      * before a wall collision layer ensures speed reductions due to carpet drag are evaluated before collision
      * impulse dynamics.
      *
@@ -155,7 +164,8 @@ public class SwerveDrivePhysics {
     /**
      * Advances the physics simulation by a single standard loop cycle (20ms) using parameters
      * automatically queried from the bound YAMS {@link SwerveDrive}.
-     * * <p>This convenience method is designed for use inside {@code Subsystem.simulationPeriodic()}
+     *
+     * <p>This convenience method is designed for use inside {@code Subsystem.simulationPeriodic()}
      * when using YAMS drivetrain abstractions.
      *
      * @return A {@link PhysicsState} record containing updated ground-truth pose and physics-adjusted chassis speeds.
@@ -175,12 +185,13 @@ public class SwerveDrivePhysics {
 
     /**
      * Advances the physics simulation step-by-step using explicit input parameters.
-     * * <p>Execution follows a three-stage pipeline:
+     *
+     * <p>Execution follows a three-stage pipeline:
      * <ol>
      * <li><b>Layer Processing:</b> Passes {@code inputSpeeds} sequentially through all registered
      * {@link PhysicsLayer} instances to produce physics-constrained speeds.</li>
      * <li><b>Ground-Truth Integration:</b> Integrates the constrained chassis speeds over {@code dtSeconds}
-     * to step the true physical field {@link Pose2d}.</li>
+     * using exponential twist integration to step the true physical field {@link Pose2d}.</li>
      * <li><b>Odometry Update:</b> Updates the internal WPILib odometry tracker using simulated encoder feedback.</li>
      * </ol>
      *
@@ -204,16 +215,13 @@ public class SwerveDrivePhysics {
 
         this.currentPhysicalSpeeds = processedSpeeds;
 
-        // 2. Step integration: Transform robot-relative delta velocities into field-relative displacement
-        double deltaX = processedSpeeds.vxMetersPerSecond * dtSeconds;
-        double deltaY = processedSpeeds.vyMetersPerSecond * dtSeconds;
-        double deltaTheta = processedSpeeds.omegaRadiansPerSecond * dtSeconds;
-
-        Translation2d translationStep = new Translation2d(deltaX, deltaY).rotateBy(currentPose.getRotation());
-        currentPose = new Pose2d(
-            currentPose.getTranslation().plus(translationStep),
-            currentPose.getRotation().plus(Rotation2d.fromRadians(deltaTheta))
+        // 2. Step integration: Exponential arc step (eliminates rotational/translational drift)
+        Twist2d twist = new Twist2d(
+            processedSpeeds.vxMetersPerSecond * dtSeconds,
+            processedSpeeds.vyMetersPerSecond * dtSeconds,
+            processedSpeeds.omegaRadiansPerSecond * dtSeconds
         );
+        currentPose = currentPose.exp(twist);
 
         // 3. Update internal single-source Odometry
         odometry.update(currentGyroAngle, modulePositions);
