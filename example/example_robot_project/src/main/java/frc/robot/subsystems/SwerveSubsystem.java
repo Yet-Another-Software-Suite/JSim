@@ -44,8 +44,8 @@ import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.local.SparkWrapper;
 import frc.robot.jsim.physics.SwerveDrivePhysics;
-// import jsim.physics.layers.Dyn4jCollisionLayer;
-// import jsim.physics.layers.Dyn4jCollisionLayer.FieldLayout;
+import frc.robot.jsim.physics.layers.Dyn4jCollisionLayer;
+import frc.robot.jsim.physics.layers.FieldLayout;
 
 /**
  * Swerve drive subsystem built with YAMS. This example shows how to wire up four NEO-driven modules
