@@ -69,7 +69,7 @@ public class SwerveSubsystem extends SubsystemBase
   private final SwerveDrive drive;
   private final Pigeon2     gyro;
   private final Field2d     field = new Field2d();
-  // private final SwerveDrivePhysics physicsSim;
+  private final SwerveDrivePhysics physicsSim;
 
   // 360 deg/s gives comfortable spin speed without overshooting in teleop.
   private AngularVelocity maximumChassisSpeedsAngularVelocity = DegreesPerSecond.of(360);
@@ -223,11 +223,11 @@ public class SwerveSubsystem extends SubsystemBase
     drive = new SwerveDrive(config);
 
     // Explicitly configure the dyn4j collision layer
-    // physicsSim = new SwerveDrivePhysics(drive)
-    //     .addLayer(new Dyn4jCollisionLayer(
-    //         Kilograms.of(50.0),            // Simulated robot mass
-    //         FieldLayout.LOAD_2026_FIELD     // Pre-configured field walls & static obstacles
-    //     ));
+    physicsSim = new SwerveDrivePhysics(drive)
+         .addLayer(new Dyn4jCollisionLayer(
+            Kilograms.of(50.0),            // Simulated robot mass
+            FieldLayout.LOAD_2026_FIELD     // Pre-configured field walls & static obstacles
+        ));
 
     SmartDashboard.putData("Field", field);
   }
@@ -284,8 +284,8 @@ public class SwerveSubsystem extends SubsystemBase
   public void simulationPeriodic()
   {
     drive.simIterate();
-    // physicsSim.update();
+    physicsSim.update();
 
-    // field.getObject("PhysicsPose").setPose(physicsSim.getPose());
+    field.getObject("PhysicsPose").setPose(physicsSim.getPose());
   }
 }
