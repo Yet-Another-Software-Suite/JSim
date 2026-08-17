@@ -221,7 +221,7 @@ public class SwerveSubsystem extends SubsystemBase
         .withRotationController(new PIDController(1, 0, 0));
     drive = new SwerveDrive(config);
 
-    // Explicitly configure the dyn4j collision layer (Option A)
+    // Explicitly configure the dyn4j collision layer
     // physicsSim = new SwerveDrivePhysics(drive)
     //     .addLayer(new Dyn4jCollisionLayer(
     //         Kilograms.of(50.0),            // Simulated robot mass
