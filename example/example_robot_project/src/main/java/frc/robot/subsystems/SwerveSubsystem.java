@@ -63,6 +63,7 @@ import frc.robot.jsim.physics.SwerveDrivePhysics;
  *       real SysId routines once you have hardware to characterize.</li>
  * </ul>
  */
+@SuppressWarnings("unused")
 public class SwerveSubsystem extends SubsystemBase
 {
   private final SwerveDrive drive;
