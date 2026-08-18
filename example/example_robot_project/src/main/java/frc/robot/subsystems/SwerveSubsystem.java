@@ -32,6 +32,10 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import jsim.physics.SwerveDrivePhysics;
+import jsim.physics.layers.Dyn4jCollisionLayer;
+import jsim.physics.layers.FieldLayout;
+
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import yams.gearing.MechanismGearing;
@@ -43,9 +47,6 @@ import yams.mechanisms.swerve.utility.SwerveInputStream;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.local.SparkWrapper;
-import frc.robot.jsim.physics.SwerveDrivePhysics;
-import frc.robot.jsim.physics.layers.Dyn4jCollisionLayer;
-import frc.robot.jsim.physics.layers.FieldLayout;
 
 /**
  * Swerve drive subsystem built with YAMS. This example shows how to wire up four NEO-driven modules

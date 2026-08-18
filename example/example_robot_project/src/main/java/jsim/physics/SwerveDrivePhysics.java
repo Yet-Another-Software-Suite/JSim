@@ -1,5 +1,6 @@
-package frc.robot.jsim.physics;
+package jsim.physics;
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -11,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.units.measure.Distance;
 import yams.mechanisms.swerve.SwerveDrive;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +66,7 @@ public class SwerveDrivePhysics {
     private final SwerveDriveKinematics kinematics;
 
     /** Single-source final instance of WPILib odometry derived during instantiation. */
-    private final SwerveDriveOdometry odometry;
+    private final SwerveDrivePoseEstimator odometry;
 
     /** Half-length (X) and half-width (Y) bumper footprint dimensions in meters. */
     private final Translation2d robotDimensions;
@@ -80,6 +82,7 @@ public class SwerveDrivePhysics {
 
     /** Current physical robot-relative chassis velocity after layer transformation. */
     private ChassisSpeeds currentPhysicalSpeeds = new ChassisSpeeds();
+    Field desiredChassisField;
 
     /**
      * Constructs a {@code SwerveDrivePhysics} manager bound to a YAMS {@link SwerveDrive} chassis.
@@ -92,12 +95,25 @@ public class SwerveDrivePhysics {
      */
     public SwerveDrivePhysics(SwerveDrive drive) {
         this.yamsDrive = drive;
-        
+
+        // Reflective hackery
+        try{
+            Field poseEstimateField = SwerveDrive.class.getDeclaredField("m_poseEstimator");
+            poseEstimateField.setAccessible(true);
+            desiredChassisField = SwerveDrive.class.getDeclaredField("m_desiredChassisSpeeds");
+            desiredChassisField.setAccessible(true);
+            odometry = (SwerveDrivePoseEstimator)poseEstimateField.get(drive);
+        }catch(Exception e)
+        {
+            throw new RuntimeException(e);
+        }
         kinematics = drive.getKinematics();
-        odometry = drive.getOdometry();
         this.currentPose = drive.getPose();
+        // fl, fr, bl, br
+        Translation2d fl = drive.getConfig().getModules()[0].getConfig().getLocation().orElseThrow();
+        Translation2d br = drive.getConfig().getModules()[3].getConfig().getLocation().orElseThrow();
         
-        this.robotDimensions = drive.getRobotDimensions();
+        this.robotDimensions = new Translation2d(Math.abs(fl.getX())+Math.abs(br.getX())/2.0,Math.abs(fl.getY())+Math.abs(br.getY())/2.0);
     }
 
     /**
@@ -118,8 +134,14 @@ public class SwerveDrivePhysics {
             SwerveModulePosition[] initialPositions) {
 
         this.yamsDrive = null;
+        try{
+            desiredChassisField = SwerveDrive.class.getDeclaredField("m_desiredChassisSpeeds");
+            desiredChassisField.setAccessible(true);
+        }catch(Exception e){
+            throw new RuntimeException(e);
+        }
         kinematics = new SwerveDriveKinematics(moduleLocations);
-        odometry = new SwerveDriveOdometry(kinematics, initialPose.getRotation(), initialPositions, initialPose);
+        odometry = new SwerveDrivePoseEstimator(kinematics, initialPose.getRotation(), initialPositions, initialPose);
 
         this.currentPose = initialPose;
         this.robotDimensions = new Translation2d(
@@ -142,7 +164,7 @@ public class SwerveDrivePhysics {
      *
      * @return The final odometry object shared across the drivetrain.
      */
-    public final SwerveDriveOdometry getOdometry() { 
+    public final SwerveDrivePoseEstimator getOdometry() { 
         return odometry; 
     }
 
@@ -161,6 +183,7 @@ public class SwerveDrivePhysics {
         return this;
     }
 
+
     /**
      * Advances the physics simulation by a single standard loop cycle (20ms) using parameters
      * automatically queried from the bound YAMS {@link SwerveDrive}.
@@ -175,12 +198,21 @@ public class SwerveDrivePhysics {
         if (yamsDrive == null) {
             throw new IllegalStateException("Cannot call update() without parameters unless instantiated with a YAMS SwerveDrive!");
         }
-        return update(
-            yamsDrive.getDesiredChassisSpeeds(),
-            yamsDrive.getHeading(),
-            yamsDrive.getModulePositions(),
-            0.020
-        );
+        desiredChassisField.setAccessible(true);
+        try {
+            return update(
+                (ChassisSpeeds)desiredChassisField.get(yamsDrive),
+                new Rotation2d(yamsDrive.getGyroAngle()),
+                yamsDrive.getModulePositions(),
+                0.020
+            );
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     /**

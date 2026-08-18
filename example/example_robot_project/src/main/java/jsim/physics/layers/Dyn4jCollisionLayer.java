@@ -1,4 +1,4 @@
-package frc.robot.jsim.physics.layers;
+package jsim.physics.layers;
 
 import static edu.wpi.first.units.Units.Kilograms;
 
@@ -6,7 +6,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Mass;
-import frc.robot.jsim.physics.PhysicsLayer;
+import jsim.physics.PhysicsLayer;
 
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
@@ -68,7 +68,7 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
     fixture.setRestitution(0.1);
     
     robotBody.setMass(MassType.NORMAL);
-    robotBody.getMass().setMass(mass.in(Kilograms));
+    robotBody.setMass(new org.dyn4j.geometry.Mass(Vector2.create(0, 0),mass.in(Kilograms),0)); // TODO: Fix to be realistic.
     
     world.addBody(robotBody);
 
