@@ -11,6 +11,7 @@ import org.dyn4j.dynamics.Body;
 import org.dyn4j.world.World;
 
 import jsim.physics.layers.FieldLayout;
+// use element for 2d bump sim?
 import jsim.physics.layers.FieldLayout.Element;
 
 /**
@@ -35,6 +36,7 @@ public class Field2026 implements FieldLayout {
   private static final double HUB_SIZE = Inches.of(47.0).in(Meters);
   private static final double HUB_DISTANCE_FROM_WALL = Inches.of(158.6).in(Meters);
 
+  // TODO: 2d bump simulation that just impacts velocity speed and heading
   private static final double BUMP_WIDTH = Inches.of(73.0).in(Meters); // along field width (Y)
   private static final double BUMP_DEPTH = Inches.of(44.4).in(Meters); // along field length (X)
 
