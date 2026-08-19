@@ -80,8 +80,8 @@ public class Field2026 implements FieldLayout {
 
     return Arrays.asList(
         FieldLayout.rectangle(rowX, centerY, HUB_SIZE, HUB_SIZE),
-        FieldLayout.rectangle(rowX, centerY + bumpOffset, BUMP_DEPTH, BUMP_WIDTH),
-        FieldLayout.rectangle(rowX, centerY - bumpOffset, BUMP_DEPTH, BUMP_WIDTH),
+        // FieldLayout.rectangle(rowX, centerY + bumpOffset, BUMP_DEPTH, BUMP_WIDTH),
+        // FieldLayout.rectangle(rowX, centerY - bumpOffset, BUMP_DEPTH, BUMP_WIDTH),
         FieldLayout.rectangle(towerX, centerY, TOWER_DEPTH, TOWER_WIDTH));
   }
 }
