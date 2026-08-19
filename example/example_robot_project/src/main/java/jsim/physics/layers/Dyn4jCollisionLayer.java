@@ -68,7 +68,7 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
     fixture.setRestitution(0.1);
     
     robotBody.setMass(MassType.NORMAL);
-    robotBody.setMass(new org.dyn4j.geometry.Mass(Vector2.create(0, 0),mass.in(Kilograms),0)); // TODO: Fix to be realistic.
+    robotBody.setMass(new org.dyn4j.geometry.Mass(Vector2.create(0, 0), mass.in(Kilograms),0)); // TODO: Fix to be realistic.
     
     world.addBody(robotBody);
 

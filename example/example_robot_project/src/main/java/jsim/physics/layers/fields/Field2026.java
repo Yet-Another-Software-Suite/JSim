@@ -21,7 +21,7 @@ import jsim.physics.layers.FieldLayout.Element;
  * structures large enough to matter for drive collisions are modeled (HUB, BUMP, TOWER base, and
  * the field perimeter) -- thin items like tape lines, AprilTag panels, and the ~1in DEPOT barrier
  * are omitted. TRENCHES are also omitted since robots drive underneath them (22.25in of
- * clearance) rather than colliding with them.
+ * clearance) rather than colliding with them. BUMPS are omitted since the robots drive over them.
  *
  * <p>Field coordinate convention (matches WPILib): origin at the blue ALLIANCE WALL corner at the
  * Y=0 guardrail, +X towards the red ALLIANCE WALL, +Y across the width of the FIELD.
