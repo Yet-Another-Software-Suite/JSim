@@ -45,7 +45,7 @@ import java.util.List;
  * physicsSim = new SwerveDrivePhysics(drive)
  * .addLayer(new Dyn4jCollisionLayer(
  * Kilograms.of(50.0),
- * FieldLayout.LOAD_2026_FIELD
+ * new Field2026()
  * ));
  * }
  *

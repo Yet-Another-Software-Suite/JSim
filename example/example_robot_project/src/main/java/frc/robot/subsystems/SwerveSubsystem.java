@@ -34,7 +34,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import jsim.physics.SwerveDrivePhysics;
 import jsim.physics.layers.Dyn4jCollisionLayer;
-import jsim.physics.layers.FieldLayout;
+import jsim.physics.layers.Field2026;
 
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -227,7 +227,7 @@ public class SwerveSubsystem extends SubsystemBase
     physicsSim = new SwerveDrivePhysics(drive)
          .addLayer(new Dyn4jCollisionLayer(
             Kilograms.of(50.0),            // Simulated robot mass
-            FieldLayout.LOAD_2026_FIELD     // Pre-configured field walls & static obstacles
+            new Field2026()                 // Pre-configured field walls & static obstacles
         ));
 
     SmartDashboard.putData("Field", field);
