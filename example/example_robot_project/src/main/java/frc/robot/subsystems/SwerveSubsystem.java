@@ -34,7 +34,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import jsim.physics.SwerveDrivePhysics;
 import jsim.physics.layers.Dyn4jCollisionLayer;
-import jsim.physics.layers.Field2026;
+import jsim.physics.layers.fields.Field2026;
 
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;

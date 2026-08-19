@@ -11,6 +11,7 @@ import org.dyn4j.world.World;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Mass;
+import jsim.physics.layers.fields.Field2026;
 
 /**
  * Strategy interface for a season's static field geometry.

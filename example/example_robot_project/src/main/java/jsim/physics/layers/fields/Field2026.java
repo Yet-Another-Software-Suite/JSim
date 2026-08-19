@@ -1,4 +1,4 @@
-package jsim.physics.layers;
+package jsim.physics.layers.fields;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
@@ -10,6 +10,7 @@ import java.util.List;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.world.World;
 
+import jsim.physics.layers.FieldLayout;
 import jsim.physics.layers.FieldLayout.Element;
 
 /**
