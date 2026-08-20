@@ -26,6 +26,9 @@ import org.dyn4j.world.World;
  */
 public class Dyn4jCollisionLayer implements PhysicsLayer {
 
+  /** Default loop step period in seconds (20ms / 50Hz standard robot loop). */
+  public static final double DEFAULT_DT_SECONDS = 0.020;
+
   /**
    * Default sentinel constant indicating that rotational inertia should be automatically calculated.
    */
@@ -40,6 +43,7 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
   private final Body robotBody;
   private final Mass mass;
   private final FieldLayout fieldLayout;
+  private final double dtSeconds;
 
   /** Custom moment of inertia override in kg·m². A non-positive value indicates auto-calculation. */
   private final double explicitInertia;
@@ -52,14 +56,11 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
   /**
    * Constructs a collision layer using <b>automatic mass properties (default)</b>.
    *
-   * <p>Rotational inertia ({@code I = (1/12) * m * (L² + W²)}) and center of mass (0, 0) are derived
-   * automatically by dyn4j using bumper dimensions and total robot mass.
-   *
    * @param mass Total robot mass including bumpers and battery.
    * @param fieldLayout Static environment geometry to inject into the simulation world.
    */
   public Dyn4jCollisionLayer(Mass mass, FieldLayout fieldLayout) {
-    this(mass, AUTO_INERTIA, DEFAULT_CENTER_OF_MASS, fieldLayout);
+    this(mass, AUTO_INERTIA, DEFAULT_CENTER_OF_MASS, fieldLayout, DEFAULT_DT_SECONDS);
   }
 
   /**
@@ -71,17 +72,15 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
    * @param fieldLayout Static environment geometry to inject into the simulation world.
    */
   public Dyn4jCollisionLayer(Mass mass, double customInertiaKgM2, FieldLayout fieldLayout) {
-    this(mass, customInertiaKgM2, DEFAULT_CENTER_OF_MASS, fieldLayout);
+    this(mass, customInertiaKgM2, DEFAULT_CENTER_OF_MASS, fieldLayout, DEFAULT_DT_SECONDS);
   }
 
   /**
    * Constructs a collision layer with full manual overrides for physical mass properties.
    *
    * @param mass Total robot mass.
-   * @param customInertiaKgM2 Custom moment of inertia in kg·m². Pass {@link #AUTO_INERTIA}
-   *                          or any non-positive value to retain automatic calculation.
+   * @param customInertiaKgM2 Custom moment of inertia in kg·m².
    * @param centerOfMass Offset vector of center of mass relative to robot center in meters.
-   *                     Pass {@code null} or {@link #DEFAULT_CENTER_OF_MASS} for default centered mass.
    * @param fieldLayout Static environment geometry to inject into the simulation world.
    */
   public Dyn4jCollisionLayer(
@@ -89,10 +88,29 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
       double customInertiaKgM2,
       Vector2 centerOfMass,
       FieldLayout fieldLayout) {
+    this(mass, customInertiaKgM2, centerOfMass, fieldLayout, DEFAULT_DT_SECONDS);
+  }
+
+  /**
+   * Constructs a collision layer with full manual overrides and custom loop timing.
+   *
+   * @param mass Total robot mass.
+   * @param customInertiaKgM2 Custom moment of inertia in kg·m².
+   * @param centerOfMass Offset vector of center of mass relative to robot center in meters.
+   * @param fieldLayout Static environment geometry to inject into the simulation world.
+   * @param dtSeconds Physics engine update time step in seconds.
+   */
+  public Dyn4jCollisionLayer(
+      Mass mass,
+      double customInertiaKgM2,
+      Vector2 centerOfMass,
+      FieldLayout fieldLayout,
+      double dtSeconds) {
     this.mass = mass;
     this.explicitInertia = customInertiaKgM2;
     this.explicitCenterOfMass = (centerOfMass != null) ? centerOfMass : DEFAULT_CENTER_OF_MASS;
     this.fieldLayout = fieldLayout;
+    this.dtSeconds = dtSeconds;
 
     this.world = new World<>();
     this.world.setGravity(World.ZERO_GRAVITY);
@@ -125,8 +143,8 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
     robotBody.setLinearVelocity(new Vector2(fieldRelVel.getX(), fieldRelVel.getY()));
     robotBody.setAngularVelocity(inputSpeeds.omegaRadiansPerSecond);
 
-    // 3. Advance physics engine by standard loop step (20ms)
-    world.update(0.020);
+    // 3. Advance physics engine by dynamic step period
+    world.update(dtSeconds);
 
     // 4. Extract post-collision velocities
     Vector2 postLinearVel = robotBody.getLinearVelocity();
@@ -157,14 +175,11 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
     fixture.setRestitution(0.1);
 
     // 1. AUTOMATIC MASS CALCULATION (DEFAULT BASELINE)
-    // Assign uniform density (kg/m²) across bumper footprint. Dyn4j calculates exact mass,
-    // centered center-of-mass (0,0), and rotational inertia via: I = (1/12) * m * (L² + W²)
     double footprintArea = length * width;
     fixture.setDensity(totalMassKg / footprintArea);
     robotBody.setMass(MassType.NORMAL);
 
     // 2. MANUAL OVERRIDE EVALUATION
-    // Evaluates whether custom parameters deviate from defaults. If modified, override body mass logic.
     boolean hasCustomInertia = explicitInertia > 0.0;
     boolean hasCustomCoM = !explicitCenterOfMass.equals(DEFAULT_CENTER_OF_MASS);
 
