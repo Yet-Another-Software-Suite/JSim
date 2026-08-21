@@ -11,7 +11,8 @@ import org.dyn4j.dynamics.Body;
 import org.dyn4j.world.World;
 
 import jsim.physics.layers.FieldLayout;
-import jsim.physics.layers.FieldLayout.Element;
+// use element for 2d bump sim?
+// import jsim.physics.layers.FieldLayout.Element;
 
 /**
  * Static field geometry for the 2026 FIRST Robotics Competition game, REBUILT.
