@@ -1,8 +1,9 @@
-package jsim.physics;
+package jsim.physics.layers;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import jsim.physics.SwerveDrivePhysics;
 
 /**
  * Common interface for modular simulation layers that alter or constrain chassis velocities.
