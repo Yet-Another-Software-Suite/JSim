@@ -3,7 +3,6 @@ package jsim.physics;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
@@ -76,9 +75,6 @@ public class SwerveDrivePhysics {
     /** Field2d object for SmartDashboard visualization of the robot's ground-truth pose. */
     private final Field2d field2d = new Field2d();
 
-    /** Name of the field object on the SmartDashboard for visualization. */
-    private final String dashboardFieldName = "simulation field";
-
     /** Sequential processing pipeline containing active physics layers. */
     private final List<PhysicsLayer> layers = new ArrayList<>();
 
@@ -124,8 +120,6 @@ public class SwerveDrivePhysics {
         Translation2d br = drive.getConfig().getModules()[3].getConfig().getLocation().orElseThrow();
 
         this.robotDimensions = new Translation2d(Math.abs(fl.getX()) + Math.abs(br.getX()) / 2.0, Math.abs(fl.getY()) + Math.abs(br.getY()) / 2.0);
-
-        SmartDashboard.putData(dashboardFieldName, field2d);
     }
 
     /**
@@ -160,8 +154,6 @@ public class SwerveDrivePhysics {
         this.robotDimensions = new Translation2d(
                 lengthWithBumpers.in(edu.wpi.first.units.Units.Meters) / 2.0,
                 widthWithBumpers.in(edu.wpi.first.units.Units.Meters) / 2.0);
-
-        SmartDashboard.putData(dashboardFieldName, field2d);
     }
 
     /**
