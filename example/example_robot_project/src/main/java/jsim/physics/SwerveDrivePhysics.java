@@ -72,6 +72,9 @@ public class SwerveDrivePhysics {
     /** Half-length (X) and half-width (Y) bumper footprint dimensions in meters. */
     private final Translation2d robotDimensions;
 
+    /** Field2d object for SmartDashboard visualization of the robot's ground-truth pose. */
+    private final Field2d field2d = new Field2d();
+
     /** Sequential processing pipeline containing active physics layers. */
     private final List<PhysicsLayer> layers = new ArrayList<>();
 
