@@ -123,8 +123,7 @@ public class SwerveDrivePhysics {
         Translation2d fl = drive.getConfig().getModules()[0].getConfig().getLocation().orElseThrow();
         Translation2d br = drive.getConfig().getModules()[3].getConfig().getLocation().orElseThrow();
 
-        this.robotDimensions =
-                new Translation2d(Math.abs(fl.getX()) + Math.abs(br.getX()) / 2.0, Math.abs(fl.getY()) + Math.abs(br.getY()) / 2.0);
+        this.robotDimensions = new Translation2d(Math.abs(fl.getX()) + Math.abs(br.getX()) / 2.0, Math.abs(fl.getY()) + Math.abs(br.getY()) / 2.0);
 
         SmartDashboard.putData(dashboardFieldName, field2d);
     }
