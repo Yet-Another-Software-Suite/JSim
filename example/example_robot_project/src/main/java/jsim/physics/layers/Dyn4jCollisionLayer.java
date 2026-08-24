@@ -6,7 +6,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Mass;
-import jsim.physics.PhysicsLayer;
 
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
