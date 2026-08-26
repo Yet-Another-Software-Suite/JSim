@@ -1,6 +1,5 @@
 package jsim.physics.layers.fields;
 
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
 import java.util.List;
@@ -66,75 +65,65 @@ public class Field2026 implements FieldLayout {
   private static final Element NORTH_GUARDRAIL =
       FieldLayout.rectangle(FIELD_LENGTH / 2.0, FIELD_WIDTH, FIELD_LENGTH, WALL_THICKNESS);
 
-  /** Blue alliance's HUB: a 47in square base (Section 5.11). */
-  private static final Element BLUE_HUB = new Element(
-      new Translation2d(4.0219, 3.4377),
-      new Translation2d(5.2157, 3.4377),
-      new Translation2d(5.2157, 4.6315),
-      new Translation2d(4.0219, 4.6315));
+  /** The HUB's square base footprint (both axes), per Section 5.11. */
+  private static final double HUB_WIDTH = 1.1938;
 
-  /** Red alliance's HUB: a 47in square base (Section 5.11). */
-  private static final Element RED_HUB = new Element(
-      new Translation2d(11.3119, 3.4377),
-      new Translation2d(12.5057, 3.4377),
-      new Translation2d(12.5057, 4.6315),
-      new Translation2d(11.3119, 4.6315));
+  /** Blue alliance's HUB: a {@link #HUB_WIDTH} square base (Section 5.11). */
+  private static final Element BLUE_HUB =
+      FieldLayout.rectangle(4.6188, 4.0346, HUB_WIDTH, HUB_WIDTH);
+
+  /** Red alliance's HUB: a {@link #HUB_WIDTH} square base (Section 5.11). */
+  private static final Element RED_HUB =
+      FieldLayout.rectangle(11.9088, 4.0346, HUB_WIDTH, HUB_WIDTH);
+
+  /** Each TOWER UPRIGHT's X-axis cross-section (~3.5in), per Section 5.8. */
+  private static final double UPRIGHT_DEPTH = 0.0889;
+
+  /** Each TOWER UPRIGHT's Y-axis cross-section (~1.5in), per Section 5.8. */
+  private static final double UPRIGHT_THICKNESS = 0.0381;
 
   /** Blue alliance's TOWER, south (nearer Y=0) UPRIGHT (Section 5.8). */
-  private static final Element BLUE_TOWER_UPRIGHT_SOUTH = new Element(
-      new Translation2d(1.0607, 3.5139),
-      new Translation2d(1.1496, 3.5139),
-      new Translation2d(1.1496, 3.5520),
-      new Translation2d(1.0607, 3.5520));
+  private static final Element BLUE_TOWER_UPRIGHT_SOUTH =
+      FieldLayout.rectangle(1.10515, 3.53295, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
 
   /** Blue alliance's TOWER, north (nearer Y=FIELD_WIDTH) UPRIGHT (Section 5.8). */
-  private static final Element BLUE_TOWER_UPRIGHT_NORTH = new Element(
-      new Translation2d(1.0607, 4.3712),
-      new Translation2d(1.1496, 4.3712),
-      new Translation2d(1.1496, 4.4093),
-      new Translation2d(1.0607, 4.4093));
+  private static final Element BLUE_TOWER_UPRIGHT_NORTH =
+      FieldLayout.rectangle(1.10515, 4.39025, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
 
   /** Red alliance's TOWER, south (nearer Y=0) UPRIGHT (Section 5.8). */
-  private static final Element RED_TOWER_UPRIGHT_SOUTH = new Element(
-      new Translation2d(15.3914, 3.6600),
-      new Translation2d(15.4803, 3.6600),
-      new Translation2d(15.4803, 3.6981),
-      new Translation2d(15.3914, 3.6981));
+  private static final Element RED_TOWER_UPRIGHT_SOUTH =
+      FieldLayout.rectangle(15.43585, 3.67905, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
 
   /** Red alliance's TOWER, north (nearer Y=FIELD_WIDTH) UPRIGHT (Section 5.8). */
-  private static final Element RED_TOWER_UPRIGHT_NORTH = new Element(
-      new Translation2d(15.3914, 4.5172),
-      new Translation2d(15.4803, 4.5172),
-      new Translation2d(15.4803, 4.5553),
-      new Translation2d(15.3914, 4.5553));
+  private static final Element RED_TOWER_UPRIGHT_NORTH =
+      FieldLayout.rectangle(15.43585, 4.53625, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
+
+  /**
+   * Each TRENCH GATE's X-axis extent (~44.4in), per Section 5.6. Note: the manual describes the
+   * gate's dimensions as a 15.31in width parallel to the guardrail and a 44.4in depth perpendicular
+   * to it -- these two constants preserve the field's already-baked axis mapping rather than the
+   * manual's own width/depth labels (which appear swapped from that mapping); see the class javadoc.
+   */
+  private static final double TRENCH_GATE_WIDTH = 1.1277;
+
+  /** Each TRENCH GATE's Y-axis extent (~15.31in), per Section 5.6. See {@link #TRENCH_GATE_WIDTH}. */
+  private static final double TRENCH_GATE_DEPTH = 0.3889;
 
   /** Blue alliance's south (Y=0 guardrail side) TRENCH GATE (Section 5.6). */
-  private static final Element BLUE_SOUTH_TRENCH_GATE = new Element(
-      new Translation2d(4.0549, 1.2141),
-      new Translation2d(5.1826, 1.2141),
-      new Translation2d(5.1826, 1.6030),
-      new Translation2d(4.0549, 1.6030));
+  private static final Element BLUE_SOUTH_TRENCH_GATE =
+      FieldLayout.rectangle(4.61875, 1.40855, TRENCH_GATE_WIDTH, TRENCH_GATE_DEPTH);
 
   /** Blue alliance's north (Y=FIELD_WIDTH guardrail side) TRENCH GATE (Section 5.6). */
-  private static final Element BLUE_NORTH_TRENCH_GATE = new Element(
-      new Translation2d(4.0549, 6.4663),
-      new Translation2d(5.1826, 6.4663),
-      new Translation2d(5.1826, 6.8552),
-      new Translation2d(4.0549, 6.8552));
+  private static final Element BLUE_NORTH_TRENCH_GATE =
+      FieldLayout.rectangle(4.61875, 6.66075, TRENCH_GATE_WIDTH, TRENCH_GATE_DEPTH);
 
   /** Red alliance's south (Y=0 guardrail side) TRENCH GATE (Section 5.6). */
-  private static final Element RED_SOUTH_TRENCH_GATE = new Element(
-      new Translation2d(11.3449, 1.2141),
-      new Translation2d(12.4726, 1.2141),
-      new Translation2d(12.4726, 1.6030),
-      new Translation2d(11.3449, 1.6030));
+  private static final Element RED_SOUTH_TRENCH_GATE =
+      FieldLayout.rectangle(11.90875, 1.40855, TRENCH_GATE_WIDTH, TRENCH_GATE_DEPTH);
 
   /** Red alliance's north (Y=FIELD_WIDTH guardrail side) TRENCH GATE (Section 5.6). */
-  private static final Element RED_NORTH_TRENCH_GATE = new Element(
-      new Translation2d(11.3449, 6.4663),
-      new Translation2d(12.4726, 6.4663),
-      new Translation2d(12.4726, 6.8552),
-      new Translation2d(11.3449, 6.8552));
+  private static final Element RED_NORTH_TRENCH_GATE =
+      FieldLayout.rectangle(11.90875, 6.66075, TRENCH_GATE_WIDTH, TRENCH_GATE_DEPTH);
 
   private static final List<Element> ELEMENTS = List.of(
       WEST_ALLIANCE_WALL, EAST_ALLIANCE_WALL, SOUTH_GUARDRAIL, NORTH_GUARDRAIL,
