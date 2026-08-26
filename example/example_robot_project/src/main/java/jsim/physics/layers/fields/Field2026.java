@@ -1,16 +1,8 @@
 package jsim.physics.layers.fields;
 
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
-
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import java.util.ArrayList;
+
 import java.util.List;
 
 import org.dyn4j.dynamics.Body;
@@ -21,20 +13,12 @@ import jsim.physics.layers.FieldLayout;
 /**
  * Static field geometry for the 2026 FIRST Robotics Competition game, REBUILT.
  *
- * <p>The field boundary and the HUB/TOWER structures are derived directly from an
- * {@link AprilTagFieldLayout} rather than hand-measured constants, since the welded and AndyMark
- * variants of the field actually differ by a few centimeters in both overall size and structure
- * placement (see {@link AprilTagFields#k2026RebuiltWelded} vs {@link AprilTagFields#k2026RebuiltAndymark}).
- * Building from whichever layout a team is actually competing on keeps this in sync automatically
- * instead of relying on a single nominal guess.
- *
- * <p>The HUB's collision shape is a square built from its known {@link #HUB_WIDTH} base footprint
- * (Section 5.11) plus a single offset from one reference AprilTag to the HUB's center: since an
- * AprilTag faces directly outward from the structure it's mounted on, the center always sits
- * exactly {@code HUB_WIDTH / 2} behind the tag along the tag's own facing direction, regardless of
- * which alliance or field variant. The TOWER's wall-mounted AprilTags similarly only pin down a
- * mount position, not the structure's full footprint, so its UPRIGHTS are placed using the nominal
- * dimensions and the known {@link #TOWER_FRONT_FACE_OFFSET_FROM_WALL} from Section 5.8.
+ * <p>Every collision element below is a hardcoded, field-relative vertex list (in meters). These
+ * were computed once from the official welded-field AprilTag layout plus the Game Manual's known
+ * structure dimensions, then baked in directly -- this class has no runtime dependency on {@code
+ * AprilTagFieldLayout}. The welded and AndyMark field variants only differ in AprilTag mounting
+ * position, not in the physical structures modeled here (walls, HUB, TOWER uprights, TRENCH
+ * gates), so a single hardcoded layout covers both.
  *
  * <p>Per Section 5.8, a TOWER is <b>not</b> a solid obstacle: robots drive underneath/between its
  * RUNGS and TOWER BASE plate (which is only ~0.5-0.8cm tall), and can only actually collide with
@@ -48,136 +32,123 @@ import jsim.physics.layers.FieldLayout;
  *
  * <p>Only structures large enough to matter for drive collisions are modeled (HUB, TOWER UPRIGHTS,
  * TRENCH GATEs, and the field perimeter) -- thin items like tape lines, AprilTag panels, and the
- * ~1in DEPOT barrier are omitted. BUMPS are omitted since robots drive over them (their nominal
- * footprint is still used to anchor each TRENCH GATE's position, since BUMPS aren't otherwise
- * modeled here).
+ * ~1in DEPOT barrier are omitted. BUMPS themselves are also omitted since robots drive over them;
+ * each TRENCH GATE below is still positioned immediately outside its BUMP's footprint, matching
+ * where that gate's hardware actually attaches.
  *
  * <p>Field coordinate convention (matches WPILib): origin at the blue ALLIANCE WALL corner at the
  * Y=0 guardrail, +X towards the red ALLIANCE WALL, +Y across the width of the FIELD.
  */
 public class Field2026 implements FieldLayout {
 
+  /** Full field length (X axis), alliance wall to alliance wall, in meters. */
+  private static final double FIELD_LENGTH = 16.541;
+
+  /** Full field width (Y axis), guardrail to guardrail, in meters. */
+  private static final double FIELD_WIDTH = 8.069;
+
   /** Thickness of the modeled boundary walls (guardrails and alliance walls), in meters. */
-  private static final double WALL_THICKNESS = Inches.of(2.0).in(Meters);
+  private static final double WALL_THICKNESS = 0.0508;
 
-  /**
-   * The HUB's square base footprint (both axes), per Section 5.11. The HUB's collision shape is
-   * this square, centered on the point derived in {@link #hubElementFromReferenceTag}.
-   */
-  private static final double HUB_WIDTH = Inches.of(47.0).in(Meters);
+  /** 2in-thick boundary wall along the blue (X=0) alliance wall, spanning the full field width. */
+  private static final Element WEST_ALLIANCE_WALL =
+      FieldLayout.rectangle(0, FIELD_WIDTH / 2.0, WALL_THICKNESS, FIELD_WIDTH);
 
-  /** Nominal UPRIGHT cross-section depth (X axis), per Section 5.8. */
-  private static final double UPRIGHT_DEPTH = Inches.of(3.5).in(Meters);
+  /** 2in-thick boundary wall along the red (X=FIELD_LENGTH) alliance wall, spanning the full field width. */
+  private static final Element EAST_ALLIANCE_WALL =
+      FieldLayout.rectangle(FIELD_LENGTH, FIELD_WIDTH / 2.0, WALL_THICKNESS, FIELD_WIDTH);
 
-  /** Nominal UPRIGHT cross-section thickness (Y axis), per Section 5.8. */
-  private static final double UPRIGHT_THICKNESS = Inches.of(1.5).in(Meters);
+  /** 2in-thick boundary wall along the Y=0 guardrail, spanning the full field length. */
+  private static final Element SOUTH_GUARDRAIL =
+      FieldLayout.rectangle(FIELD_LENGTH / 2.0, 0, FIELD_LENGTH, WALL_THICKNESS);
 
-  /**
-   * Clear opening (Y axis) between the INNER faces of a TOWER's two UPRIGHTS -- i.e. the gap a
-   * robot's climbing mechanism must actually fit through, per Section 5.8. This is NOT the
-   * center-to-center spacing: each upright's centerline sits a further {@code UPRIGHT_THICKNESS / 2}
-   * outward from this opening on top of half the opening itself (see where this is used below).
-   */
-  private static final double UPRIGHT_INNER_OPENING_WIDTH = Inches.of(32.25).in(Meters);
+  /** 2in-thick boundary wall along the Y=FIELD_WIDTH guardrail, spanning the full field length. */
+  private static final Element NORTH_GUARDRAIL =
+      FieldLayout.rectangle(FIELD_LENGTH / 2.0, FIELD_WIDTH, FIELD_LENGTH, WALL_THICKNESS);
 
-  /**
-   * Distance (X axis) from a TOWER's own alliance wall to its UPRIGHTS' front-face plane, per
-   * Section 5.8. The wall-mounted reference AprilTags sit essentially flush against the wall itself
-   * (not at the TOWER's own position), so this offset is measured from the wall, not the tag.
-   */
-  private static final double TOWER_FRONT_FACE_OFFSET_FROM_WALL = Inches.of(43.51).in(Meters);
+  /** Blue alliance's HUB: a 47in square base (Section 5.11). */
+  private static final Element BLUE_HUB = new Element(
+      new Translation2d(4.0219, 3.4377),
+      new Translation2d(5.2157, 3.4377),
+      new Translation2d(5.2157, 4.6315),
+      new Translation2d(4.0219, 4.6315));
 
-  /**
-   * Non-passable width (X axis, parallel to the guardrail) of each TRENCH GATE -- the difference
-   * between a TRENCH's full 65.65in width and its 50.34in clear driving corridor (Section 5.6).
-   */
-  private static final double TRENCH_GATE_WIDTH = Inches.of(15.31).in(Meters);
+  /** Red alliance's HUB: a 47in square base (Section 5.11). */
+  private static final Element RED_HUB = new Element(
+      new Translation2d(11.3119, 3.4377),
+      new Translation2d(12.5057, 3.4377),
+      new Translation2d(12.5057, 4.6315),
+      new Translation2d(11.3119, 4.6315));
 
-  /** Depth (Y axis, perpendicular to the guardrail) of each TRENCH GATE, per Section 5.6. */
-  private static final double TRENCH_GATE_DEPTH = Inches.of(44.4).in(Meters);
+  /** Blue alliance's TOWER, south (nearer Y=0) UPRIGHT (Section 5.8). */
+  private static final Element BLUE_TOWER_UPRIGHT_SOUTH = new Element(
+      new Translation2d(1.0607, 3.5139),
+      new Translation2d(1.1496, 3.5139),
+      new Translation2d(1.1496, 3.5520),
+      new Translation2d(1.0607, 3.5520));
 
-  /**
-   * Nominal BUMP width (Y axis) used only to anchor each TRENCH GATE's position against the BUMP
-   * it's next to -- BUMPS themselves aren't modeled as collision elements (robots drive over them).
-   */
-  private static final double BUMP_WIDTH = Inches.of(73.0).in(Meters);
+  /** Blue alliance's TOWER, north (nearer Y=FIELD_WIDTH) UPRIGHT (Section 5.8). */
+  private static final Element BLUE_TOWER_UPRIGHT_NORTH = new Element(
+      new Translation2d(1.0607, 4.3712),
+      new Translation2d(1.1496, 4.3712),
+      new Translation2d(1.1496, 4.4093),
+      new Translation2d(1.0607, 4.4093));
 
-  // Single reference AprilTag ID per HUB, mounted centered on one of its faces (Section 5.11) --
-  // only one is needed since the HUB's center is derived from its known width and the tag's own
-  // facing direction (see hubElementFromReferenceTag). TOWER WALL tags are 2 per alliance, mounted
-  // on the wall itself, so both are still averaged for the TOWER's Y centerline.
-  private static final int BLUE_HUB_REFERENCE_TAG_ID = 26;
-  private static final int RED_HUB_REFERENCE_TAG_ID = 4;
-  private static final int[] BLUE_TOWER_WALL_TAG_IDS = {31, 32};
-  private static final int[] RED_TOWER_WALL_TAG_IDS = {15, 16};
+  /** Red alliance's TOWER, south (nearer Y=0) UPRIGHT (Section 5.8). */
+  private static final Element RED_TOWER_UPRIGHT_SOUTH = new Element(
+      new Translation2d(15.3914, 3.6600),
+      new Translation2d(15.4803, 3.6600),
+      new Translation2d(15.4803, 3.6981),
+      new Translation2d(15.3914, 3.6981));
 
-  private final double fieldLength;
-  private final double fieldWidth;
-  private final Element blueHub;
-  private final Element redHub;
-  private final Element[] blueTowerUprights;
-  private final Element[] redTowerUprights;
-  private final Element blueSouthTrenchGate;
-  private final Element blueNorthTrenchGate;
-  private final Element redSouthTrenchGate;
-  private final Element redNorthTrenchGate;
-  private final Element westAllianceWall;
-  private final Element eastAllianceWall;
-  private final Element southGuardrail;
-  private final Element northGuardrail;
-  private final List<Element> elements;
+  /** Red alliance's TOWER, north (nearer Y=FIELD_WIDTH) UPRIGHT (Section 5.8). */
+  private static final Element RED_TOWER_UPRIGHT_NORTH = new Element(
+      new Translation2d(15.3914, 4.5172),
+      new Translation2d(15.4803, 4.5172),
+      new Translation2d(15.4803, 4.5553),
+      new Translation2d(15.3914, 4.5553));
+
+  /** Blue alliance's south (Y=0 guardrail side) TRENCH GATE (Section 5.6). */
+  private static final Element BLUE_SOUTH_TRENCH_GATE = new Element(
+      new Translation2d(4.0549, 1.2141),
+      new Translation2d(5.1826, 1.2141),
+      new Translation2d(5.1826, 1.6030),
+      new Translation2d(4.0549, 1.6030));
+
+  /** Blue alliance's north (Y=FIELD_WIDTH guardrail side) TRENCH GATE (Section 5.6). */
+  private static final Element BLUE_NORTH_TRENCH_GATE = new Element(
+      new Translation2d(4.0549, 6.4663),
+      new Translation2d(5.1826, 6.4663),
+      new Translation2d(5.1826, 6.8552),
+      new Translation2d(4.0549, 6.8552));
+
+  /** Red alliance's south (Y=0 guardrail side) TRENCH GATE (Section 5.6). */
+  private static final Element RED_SOUTH_TRENCH_GATE = new Element(
+      new Translation2d(11.3449, 1.2141),
+      new Translation2d(12.4726, 1.2141),
+      new Translation2d(12.4726, 1.6030),
+      new Translation2d(11.3449, 1.6030));
+
+  /** Red alliance's north (Y=FIELD_WIDTH guardrail side) TRENCH GATE (Section 5.6). */
+  private static final Element RED_NORTH_TRENCH_GATE = new Element(
+      new Translation2d(11.3449, 6.4663),
+      new Translation2d(12.4726, 6.4663),
+      new Translation2d(12.4726, 6.8552),
+      new Translation2d(11.3449, 6.8552));
+
+  private static final List<Element> ELEMENTS = List.of(
+      WEST_ALLIANCE_WALL, EAST_ALLIANCE_WALL, SOUTH_GUARDRAIL, NORTH_GUARDRAIL,
+      BLUE_HUB, RED_HUB,
+      BLUE_TOWER_UPRIGHT_SOUTH, BLUE_TOWER_UPRIGHT_NORTH, RED_TOWER_UPRIGHT_SOUTH, RED_TOWER_UPRIGHT_NORTH,
+      BLUE_SOUTH_TRENCH_GATE, BLUE_NORTH_TRENCH_GATE, RED_SOUTH_TRENCH_GATE, RED_NORTH_TRENCH_GATE);
+
+  /** SmartDashboard field visualization; replaceable by callers (e.g. {@code field.field = drive.getField2d()}). */
   public Field2d field = new Field2d();
-
-  /** Builds the 2026 REBUILT field from WPILib's official welded-field AprilTag layout. */
-  public Field2026() {
-    this(AprilTagFields.k2026RebuiltWelded);
-  }
-
-  /**
-   * Builds the 2026 REBUILT field from the given official AprilTag field variant.
-   *
-   * @param variant {@link AprilTagFields#k2026RebuiltWelded} or {@link AprilTagFields#k2026RebuiltAndymark}.
-   */
-  public Field2026(AprilTagFields variant) {
-    this(AprilTagFieldLayout.loadField(variant));
-  }
-
-  /**
-   * Builds the 2026 REBUILT field's collision geometry directly from {@code layout}.
-   *
-   * @param layout AprilTag field layout to derive the field boundary and HUB/TOWER collision
-   *               geometry from.
-   */
-  public Field2026(AprilTagFieldLayout layout) {
-    this.fieldLength = layout.getFieldLength();
-    this.fieldWidth = layout.getFieldWidth();
-
-    this.blueHub = hubElementFromReferenceTag(layout, BLUE_HUB_REFERENCE_TAG_ID);
-    this.redHub = hubElementFromReferenceTag(layout, RED_HUB_REFERENCE_TAG_ID);
-    this.blueTowerUprights = towerUprightsFromTags(layout, BLUE_TOWER_WALL_TAG_IDS, fieldLength);
-    this.redTowerUprights = towerUprightsFromTags(layout, RED_TOWER_WALL_TAG_IDS, fieldLength);
-
-    this.blueSouthTrenchGate = trenchGateElement(bounds(blueHub), -1);
-    this.blueNorthTrenchGate = trenchGateElement(bounds(blueHub), 1);
-    this.redSouthTrenchGate = trenchGateElement(bounds(redHub), -1);
-    this.redNorthTrenchGate = trenchGateElement(bounds(redHub), 1);
-
-    this.westAllianceWall = FieldLayout.rectangle(0, fieldWidth / 2.0, WALL_THICKNESS, fieldWidth);
-    this.eastAllianceWall = FieldLayout.rectangle(fieldLength, fieldWidth / 2.0, WALL_THICKNESS, fieldWidth);
-    this.southGuardrail = FieldLayout.rectangle(fieldLength / 2.0, 0, fieldLength, WALL_THICKNESS);
-    this.northGuardrail = FieldLayout.rectangle(fieldLength / 2.0, fieldWidth, fieldLength, WALL_THICKNESS);
-
-    elements = new ArrayList<>(List.of(
-        westAllianceWall, eastAllianceWall, southGuardrail, northGuardrail, blueHub, redHub,
-        blueSouthTrenchGate, blueNorthTrenchGate, redSouthTrenchGate, redNorthTrenchGate));
-    elements.addAll(List.of(blueTowerUprights));
-    elements.addAll(List.of(redTowerUprights));
-  }
 
   @Override
   public void populateWorld(World<Body> world) {
     int i = 0;
-    for (Element element : elements) {
+    for (Element element : ELEMENTS) {
       world.addBody(element.toBody());
       field.getObject(String.valueOf(i++)).setPoses(element.getPoses());
     }
@@ -185,172 +156,77 @@ public class Field2026 implements FieldLayout {
 
   /** Full field length (X axis), alliance wall to alliance wall, in meters. */
   public double getFieldLength() {
-    return fieldLength;
+    return FIELD_LENGTH;
   }
 
   /** Full field width (Y axis), guardrail to guardrail, in meters. */
   public double getFieldWidth() {
-    return fieldWidth;
+    return FIELD_WIDTH;
   }
 
-  /** The blue alliance's HUB collision element (a {@link #HUB_WIDTH} square, 4 corners). */
+  /** The blue alliance's HUB collision element (a 47in square, 4 corners). */
   public Element getBlueHub() {
-    return blueHub;
+    return BLUE_HUB;
   }
 
-  /** The red alliance's HUB collision element (a {@link #HUB_WIDTH} square, 4 corners). */
+  /** The red alliance's HUB collision element (a 47in square, 4 corners). */
   public Element getRedHub() {
-    return redHub;
+    return RED_HUB;
   }
 
   /**
-   * The blue alliance's TOWER UPRIGHT collision elements (2, nominal cross-section, centered on
-   * their derived mount position). Robots can pass beneath/between the TOWER otherwise.
+   * The blue alliance's TOWER UPRIGHT collision elements (south, then north).
+   * Robots can pass beneath/between the TOWER otherwise.
    */
   public Element[] getBlueTowerUprights() {
-    return blueTowerUprights.clone();
+    return new Element[] {BLUE_TOWER_UPRIGHT_SOUTH, BLUE_TOWER_UPRIGHT_NORTH};
   }
 
   /**
-   * The red alliance's TOWER UPRIGHT collision elements (2, nominal cross-section, centered on
-   * their derived mount position). Robots can pass beneath/between the TOWER otherwise.
+   * The red alliance's TOWER UPRIGHT collision elements (south, then north).
+   * Robots can pass beneath/between the TOWER otherwise.
    */
   public Element[] getRedTowerUprights() {
-    return redTowerUprights.clone();
+    return new Element[] {RED_TOWER_UPRIGHT_SOUTH, RED_TOWER_UPRIGHT_NORTH};
   }
 
   /** The blue alliance's south (Y=0 guardrail) TRENCH GATE collision element. */
   public Element getBlueSouthTrenchGate() {
-    return blueSouthTrenchGate;
+    return BLUE_SOUTH_TRENCH_GATE;
   }
 
   /** The blue alliance's north (Y=field width guardrail) TRENCH GATE collision element. */
   public Element getBlueNorthTrenchGate() {
-    return blueNorthTrenchGate;
+    return BLUE_NORTH_TRENCH_GATE;
   }
 
   /** The red alliance's south (Y=0 guardrail) TRENCH GATE collision element. */
   public Element getRedSouthTrenchGate() {
-    return redSouthTrenchGate;
+    return RED_SOUTH_TRENCH_GATE;
   }
 
   /** The red alliance's north (Y=field width guardrail) TRENCH GATE collision element. */
   public Element getRedNorthTrenchGate() {
-    return redNorthTrenchGate;
+    return RED_NORTH_TRENCH_GATE;
   }
 
   /** The blue (X=0) alliance wall collision element. */
   public Element getWestAllianceWall() {
-    return westAllianceWall;
+    return WEST_ALLIANCE_WALL;
   }
 
   /** The red (far, X=field length) alliance wall collision element. */
   public Element getEastAllianceWall() {
-    return eastAllianceWall;
+    return EAST_ALLIANCE_WALL;
   }
 
   /** The Y=0 guardrail collision element. */
   public Element getSouthGuardrail() {
-    return southGuardrail;
+    return SOUTH_GUARDRAIL;
   }
 
   /** The Y=field width guardrail collision element. */
   public Element getNorthGuardrail() {
-    return northGuardrail;
-  }
-
-  /**
-   * Builds a HUB's square collision footprint (4 corners, {@link #HUB_WIDTH} per side) from a
-   * single reference AprilTag mounted centered on one of its faces. An AprilTag always faces
-   * directly outward from the structure it's mounted on, so the HUB's center sits exactly
-   * {@code HUB_WIDTH / 2} behind the tag along the OPPOSITE of the tag's own facing direction --
-   * this holds regardless of which specific face the reference tag happens to be on, or which
-   * field variant is loaded, since it's derived from the tag's actual measured pose each time.
-   */
-  private static Element hubElementFromReferenceTag(AprilTagFieldLayout layout, int tagId) {
-    Pose2d tagPose = referenceTagPose(layout, tagId);
-    Rotation2d towardHubCenter = tagPose.getRotation().rotateBy(Rotation2d.fromDegrees(180));
-    Translation2d offsetToCenter = new Translation2d(HUB_WIDTH / 2.0, 0).rotateBy(towardHubCenter);
-    Translation2d center = tagPose.getTranslation().plus(offsetToCenter);
-
-    return FieldLayout.rectangle(center.getX(), center.getY(), HUB_WIDTH, HUB_WIDTH);
-  }
-
-  /**
-   * Builds a TOWER's two UPRIGHT collision boxes (nominal {@link #UPRIGHT_DEPTH}/
-   * {@link #UPRIGHT_THICKNESS} cross-section), positioned from its (mount-only) AprilTags.
-   *
-   * <p>X: the wall-mounted reference tags sit essentially flush against the alliance wall itself,
-   * not at the TOWER's own position, so the UPRIGHTS are placed {@link
-   * #TOWER_FRONT_FACE_OFFSET_FROM_WALL} in from whichever alliance wall this TOWER is nearest,
-   * rather than relative to the tags' own (near-zero) offset from that wall.
-   *
-   * <p>Y: centered on the average of both wall tags (still a reasonable centerline reference even
-   * though neither tag alone marks it), each pushed out from {@link #UPRIGHT_INNER_OPENING_WIDTH}
-   * by a further {@code UPRIGHT_THICKNESS / 2} -- that opening is the CLEAR gap between the
-   * uprights' inner faces, not center-to-center spacing, so the centerline of each upright sits
-   * half its own thickness beyond the opening's edge on top of half the opening itself.
-   */
-  private static Element[] towerUprightsFromTags(AprilTagFieldLayout layout, int[] tagIds, double fieldLength) {
-    List<Translation2d> points = tagTranslations(layout, tagIds);
-    double mountX = points.stream().mapToDouble(Translation2d::getX).average().orElseThrow();
-    double centerY = points.stream().mapToDouble(Translation2d::getY).average().orElseThrow();
-    boolean nearWestWall = mountX < fieldLength / 2.0;
-    double centerX = nearWestWall
-        ? TOWER_FRONT_FACE_OFFSET_FROM_WALL
-        : fieldLength - TOWER_FRONT_FACE_OFFSET_FROM_WALL;
-    double uprightCenterToCenterSpacing = UPRIGHT_INNER_OPENING_WIDTH + UPRIGHT_THICKNESS;
-    return new Element[] {
-        FieldLayout.rectangle(centerX, centerY - uprightCenterToCenterSpacing / 2.0, UPRIGHT_DEPTH, UPRIGHT_THICKNESS),
-        FieldLayout.rectangle(centerX, centerY + uprightCenterToCenterSpacing / 2.0, UPRIGHT_DEPTH, UPRIGHT_THICKNESS)
-    };
-  }
-
-  /**
-   * Builds one TRENCH's GATE collision box: {@link #TRENCH_GATE_WIDTH} x {@link #TRENCH_GATE_DEPTH},
-   * X-centered on the given HUB (matching the manual's "attached at the middle of the BUMP
-   * length-wise", since the BUMP shares the HUB's row), and Y-positioned just outside the BUMP's
-   * nominal {@link #BUMP_WIDTH} footprint on the given guardrail's side of that HUB -- i.e. within
-   * the TRENCH's own space, immediately next to the (unmodeled) BUMP it connects to.
-   *
-   * @param hubBounds            {minX, maxX, minY, maxY} of the HUB this TRENCH's BUMP is next to.
-   * @param towardGuardrailSign  {@code -1} for the south (Y=0) guardrail, {@code +1} for the north.
-   */
-  private static Element trenchGateElement(double[] hubBounds, double towardGuardrailSign) {
-    double hubCenterX = (hubBounds[0] + hubBounds[1]) / 2.0;
-    double hubEdgeY = towardGuardrailSign < 0 ? hubBounds[2] : hubBounds[3];
-    double bumpOuterEdgeY = hubEdgeY + towardGuardrailSign * BUMP_WIDTH;
-    double gateCenterY = bumpOuterEdgeY + towardGuardrailSign * (TRENCH_GATE_DEPTH / 2.0);
-    return FieldLayout.rectangle(hubCenterX, gateCenterY - (TRENCH_GATE_WIDTH * towardGuardrailSign), TRENCH_GATE_DEPTH, TRENCH_GATE_WIDTH);
-  }
-
-  /** Returns {minX, maxX, minY, maxY} over an element's vertices, in field-relative meters. */
-  private static double[] bounds(Element element) {
-    double minX = Double.POSITIVE_INFINITY;
-    double maxX = Double.NEGATIVE_INFINITY;
-    double minY = Double.POSITIVE_INFINITY;
-    double maxY = Double.NEGATIVE_INFINITY;
-    for (Translation2d v : element.getVertices()) {
-      minX = Math.min(minX, v.getX());
-      maxX = Math.max(maxX, v.getX());
-      minY = Math.min(minY, v.getY());
-      maxY = Math.max(maxY, v.getY());
-    }
-    return new double[] {minX, maxX, minY, maxY};
-  }
-
-  private static List<Translation2d> tagTranslations(AprilTagFieldLayout layout, int[] tagIds) {
-    List<Translation2d> points = new ArrayList<>();
-    for (int id : tagIds) {
-      points.add(referenceTagPose(layout, id).getTranslation());
-    }
-    return points;
-  }
-
-  private static Pose2d referenceTagPose(AprilTagFieldLayout layout, int tagId) {
-    return layout.getTagPose(tagId)
-        .orElseThrow(() -> new IllegalStateException(
-            "AprilTag field layout is missing tag " + tagId + " required to build Field2026"))
-        .toPose2d();
+    return NORTH_GUARDRAIL;
   }
 }

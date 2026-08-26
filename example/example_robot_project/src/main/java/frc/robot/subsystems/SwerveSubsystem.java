@@ -10,7 +10,6 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -115,7 +114,7 @@ public class SwerveSubsystem extends SubsystemBase {
             .withRotationController(new PIDController(1,0,0));
 
     drive = new SwerveDrive(config);
-    var field = new Field2026(AprilTagFields.k2026RebuiltAndymark);
+    var field = new Field2026();
     field.field = drive.getField2d();
     physicsSim =
         new SwerveDrivePhysics(drive)
