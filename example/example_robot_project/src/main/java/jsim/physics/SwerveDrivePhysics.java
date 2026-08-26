@@ -125,7 +125,9 @@ public class SwerveDrivePhysics {
         Translation2d fl = drive.getConfig().getModules()[0].getConfig().getLocation().orElseThrow();
         Translation2d br = drive.getConfig().getModules()[3].getConfig().getLocation().orElseThrow();
 
-        this.robotDimensions = new Translation2d(Math.abs(fl.getX()) + Math.abs(br.getX()) / 2.0, Math.abs(fl.getY()) + Math.abs(br.getY()) / 2.0);
+        this.robotDimensions = new Translation2d(
+                (Math.abs(fl.getX()) + Math.abs(br.getX())) / 2.0,
+                (Math.abs(fl.getY()) + Math.abs(br.getY())) / 2.0);
     }
 
     /**
@@ -198,6 +200,12 @@ public class SwerveDrivePhysics {
      * real elapsed time since the previous call via {@link Timer#getFPGATimestamp()} (falling
      * back to {@link #DEFAULT_DT_SECONDS} on the first call).
      *
+     * <p>Uses {@link SwerveDrive#getRobotRelativeSpeed()} (the drive's actual measured module
+     * velocities) rather than {@link SwerveDrive#getDesiredChassisSpeeds()} (the raw commanded
+     * setpoint) as the ground-truth input, so this pose tracks the drive's real simulated motion
+     * -- including any PID/feedforward ramp-up or current-limit lag -- instead of assuming the
+     * commanded speed is achieved instantly.
+     *
      * <p>This convenience method is designed for use inside {@code Subsystem.simulationPeriodic()}
      * when using YAMS drivetrain abstractions.
      *
@@ -216,7 +224,7 @@ public class SwerveDrivePhysics {
         lastUpdateTimestampSeconds = now;
 
         return update(
-                yamsDrive.getDesiredChassisSpeeds(),
+                yamsDrive.getRobotRelativeSpeed(),
                 new Rotation2d(yamsDrive.getGyroAngle()),
                 yamsDrive.getModulePositions(),
                 dtSeconds);
