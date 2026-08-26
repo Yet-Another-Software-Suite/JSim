@@ -34,15 +34,6 @@ public interface FieldLayout {
    */
   void populateWorld(World<Body> world);
 
-  /** Builds a {@link FieldLayout} from a fixed set of elements. */
-  static FieldLayout of(Element... elements) {
-    return world -> {
-      for (Element element : elements) {
-        world.addBody(element.toBody());
-      }
-    };
-  }
-
   /**
    * Builds an axis-aligned rectangular {@link Element}, wound counter-clockwise, from its center
    * and full width/depth. Covers the vast majority of field structures (hubs, bumps, trenches,
@@ -97,7 +88,16 @@ public interface FieldLayout {
       this.weight = weight;
     }
 
-    private Body toBody() {
+    /**
+     * Returns this element's polygon vertices, in field-relative meters, wound counter-clockwise.
+     *
+     * @return A copy of the vertex array.
+     */
+    public Translation2d[] getVertices() {
+      return vertices.clone();
+    }
+
+    public Body toBody() {
       Vector2[] points = new Vector2[vertices.length];
       for (int i = 0; i < vertices.length; i++) {
         points[i] = new Vector2(vertices[i].getX(), vertices[i].getY());

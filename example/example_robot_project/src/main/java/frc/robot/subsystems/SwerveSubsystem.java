@@ -10,6 +10,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -117,7 +118,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     physicsSim =
         new SwerveDrivePhysics(drive)
-            .addLayer(new Dyn4jCollisionLayer(SwerveConstants.kRobotMass, new Field2026()));
+            .addLayer(new Dyn4jCollisionLayer(SwerveConstants.kRobotMass, new Field2026(AprilTagFields.k2026RebuiltAndymark)));
 
     configurePathPlanner();
   }
