@@ -2,6 +2,9 @@ package jsim.physics;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.struct.Pose2dStruct;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -102,6 +105,11 @@ public class SwerveDrivePhysics {
     /** Most recently supplied module positions, cached so {@link #resetOdometry} can re-baseline {@link #odometry}. */
     private SwerveModulePosition[] lastModulePositions;
 
+  /**
+   * NetworkTable publisher for pose data.
+   */
+  private StructPublisher<Pose2d> posePublisher;
+
     /**
      * Constructs a {@code SwerveDrivePhysics} manager bound to a YAMS {@link SwerveDrive} chassis.
      *
@@ -113,6 +121,8 @@ public class SwerveDrivePhysics {
      */
     public SwerveDrivePhysics(SwerveDrive drive) {
         this.yamsDrive = drive;
+        var ntEntry = NetworkTableInstance.getDefault().getTable("Mechanisms").getSubTable(drive.getName()).getStructTopic("physics", Pose2d.struct);
+        posePublisher = ntEntry.publish();
         field2d = drive.getField2d();
         odometry = new SwerveDrivePoseEstimator(drive.getKinematics(), new Rotation2d(drive.getGyroAngle()), drive.getModulePositions(), drive.getConfig().getInitialPose());
 
@@ -149,6 +159,8 @@ public class SwerveDrivePhysics {
 
         this.yamsDrive = null;
         field2d = new Field2d();
+        var ntEntry = NetworkTableInstance.getDefault().getTable("Mechanisms").getSubTable("swerve").getStructTopic("physics", Pose2d.struct);
+        posePublisher = ntEntry.publish();
 
         kinematics = new SwerveDriveKinematics(moduleLocations);
         odometry = new SwerveDrivePoseEstimator(kinematics, initialPose.getRotation(), initialPositions, initialPose);
@@ -263,11 +275,22 @@ public class SwerveDrivePhysics {
         this.currentPhysicalSpeeds = processedSpeeds;
 
         // 2. Step integration: Exponential arc step (eliminates rotational/translational drift)
+        //
+        // Heading is taken directly from currentGyroAngle rather than integrating
+        // processedSpeeds.omegaRadiansPerSecond. A real swerve chassis's orientation is governed by
+        // its own drivetrain (independently steerable, gripped wheels resisting unwanted rotation)
+        // and read from a real gyro -- it isn't a passive box that spins freely from contact torque.
+        // Letting collision-layer torque feed back into the ground-truth heading creates a runaway
+        // loop: an off-center contact (e.g. a corner hit) imparts angular velocity within one dyn4j
+        // step, that rotates currentPose, which then reinterprets the next frame's *robot-relative*
+        // command along a new field direction, compounding every frame until the robot appears to
+        // slide/orbit around the obstacle instead of stopping against it.
         Twist2d twist = new Twist2d(
                 processedSpeeds.vxMetersPerSecond * dtSeconds,
                 processedSpeeds.vyMetersPerSecond * dtSeconds,
                 processedSpeeds.omegaRadiansPerSecond * dtSeconds);
-        currentPose = currentPose.exp(twist);
+        Pose2d integratedPose = currentPose.exp(twist);
+        currentPose = new Pose2d(integratedPose.getTranslation(), currentGyroAngle);
 
         // 3. Update internal single-source Odometry
         odometry.update(currentGyroAngle, modulePositions);
@@ -276,6 +299,7 @@ public class SwerveDrivePhysics {
 
         // 4. Publish physics pose to SmartDashboard
         field2d.getObject("jsim").setPose(currentPose);
+        posePublisher.accept(currentPose);
 //        field2d.getObject("odometry").setPose(odometry.getEstimatedPosition());
 
         return new PhysicsState(currentPose, currentPhysicalSpeeds);
@@ -319,6 +343,7 @@ public class SwerveDrivePhysics {
 
         odometry.resetPosition(lastGyroAngle, lastModulePositions, pose);
         field2d.getObject("jsim").setPose(pose);
+        posePublisher.accept(pose);
 //        field2d.getObject("odometry").setPose(odometry.getEstimatedPosition());
     }
 
