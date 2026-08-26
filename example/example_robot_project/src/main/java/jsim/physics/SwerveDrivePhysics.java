@@ -254,6 +254,16 @@ public class SwerveDrivePhysics {
      * <li><b>Odometry Update:</b> Updates the internal WPILib odometry tracker using simulated encoder feedback.</li>
      * </ol>
      *
+     * <p>Stages 1-2 run as one or more substeps of at most {@link #DEFAULT_DT_SECONDS} each rather
+     * than a single {@code dtSeconds}-sized step. Collision layers like {@code Dyn4jCollisionLayer}
+     * use discrete detection -- overlap is only checked at the end of a step, not along the swept
+     * path -- so if {@code dtSeconds} ever spikes well above its normal ~20ms (e.g. a debugger
+     * breakpoint, a sim GUI pause, or just a slow frame), a single big step could let the robot's
+     * travel distance skip clean over a thin element (a TOWER upright, a TRENCH gate) without ever
+     * registering contact. Chunking into known-safe-sized substeps keeps every individual step
+     * within the same regime already validated by the {@code DEFAULT_DT_SECONDS}-per-call tests,
+     * regardless of how much real time a single {@link #update()} call actually covers.
+     *
      * @param inputSpeeds      Desired robot-relative chassis speeds commanded by robot logic.
      * @param currentGyroAngle Current simulated gyro orientation reading.
      * @param modulePositions  Current simulated swerve module positions (wheel distance and module angle).
@@ -266,31 +276,26 @@ public class SwerveDrivePhysics {
             SwerveModulePosition[] modulePositions,
             double dtSeconds) {
 
-        // 1. Pipeline processing: Pass desired speeds sequentially through all layers
-        ChassisSpeeds processedSpeeds = inputSpeeds;
-        for (PhysicsLayer layer : layers) {
-            processedSpeeds = layer.process(currentPose, processedSpeeds, robotDimensions, dtSeconds);
+        int substeps = Math.max(1, (int) Math.ceil(dtSeconds / DEFAULT_DT_SECONDS));
+        double substepDtSeconds = dtSeconds / substeps;
+
+        ChassisSpeeds processedSpeeds = currentPhysicalSpeeds;
+        for (int i = 0; i < substeps; i++) {
+            // 1. Pipeline processing: Pass desired speeds sequentially through all layers
+            processedSpeeds = inputSpeeds;
+            for (PhysicsLayer layer : layers) {
+                processedSpeeds = layer.process(currentPose, processedSpeeds, robotDimensions, substepDtSeconds);
+            }
+
+            // 2. Step integration: Exponential arc step (eliminates rotational/translational drift)
+            Twist2d twist = new Twist2d(
+                    processedSpeeds.vxMetersPerSecond * substepDtSeconds,
+                    processedSpeeds.vyMetersPerSecond * substepDtSeconds,
+                    processedSpeeds.omegaRadiansPerSecond * substepDtSeconds);
+            Pose2d integratedPose = currentPose.exp(twist);
+            currentPose = new Pose2d(integratedPose.getTranslation(), currentGyroAngle);
         }
-
         this.currentPhysicalSpeeds = processedSpeeds;
-
-        // 2. Step integration: Exponential arc step (eliminates rotational/translational drift)
-        //
-        // Heading is taken directly from currentGyroAngle rather than integrating
-        // processedSpeeds.omegaRadiansPerSecond. A real swerve chassis's orientation is governed by
-        // its own drivetrain (independently steerable, gripped wheels resisting unwanted rotation)
-        // and read from a real gyro -- it isn't a passive box that spins freely from contact torque.
-        // Letting collision-layer torque feed back into the ground-truth heading creates a runaway
-        // loop: an off-center contact (e.g. a corner hit) imparts angular velocity within one dyn4j
-        // step, that rotates currentPose, which then reinterprets the next frame's *robot-relative*
-        // command along a new field direction, compounding every frame until the robot appears to
-        // slide/orbit around the obstacle instead of stopping against it.
-        Twist2d twist = new Twist2d(
-                processedSpeeds.vxMetersPerSecond * dtSeconds,
-                processedSpeeds.vyMetersPerSecond * dtSeconds,
-                processedSpeeds.omegaRadiansPerSecond * dtSeconds);
-        Pose2d integratedPose = currentPose.exp(twist);
-        currentPose = new Pose2d(integratedPose.getTranslation(), currentGyroAngle);
 
         // 3. Update internal single-source Odometry
         odometry.update(currentGyroAngle, modulePositions);

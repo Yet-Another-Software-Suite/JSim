@@ -2,6 +2,10 @@ package jsim.physics.layers;
 
 import static edu.wpi.first.units.Units.Kilograms;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import java.util.ArrayList;
+import java.util.List;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Geometry;
@@ -33,15 +37,6 @@ public interface FieldLayout {
    * @param world The dyn4j simulation world instance.
    */
   void populateWorld(World<Body> world);
-
-  /** Builds a {@link FieldLayout} from a fixed set of elements. */
-  static FieldLayout of(Element... elements) {
-    return world -> {
-      for (Element element : elements) {
-        world.addBody(element.toBody());
-      }
-    };
-  }
 
   /**
    * Builds an axis-aligned rectangular {@link Element}, wound counter-clockwise, from its center
@@ -97,7 +92,16 @@ public interface FieldLayout {
       this.weight = weight;
     }
 
-    private Body toBody() {
+    /**
+     * Returns this element's polygon vertices, in field-relative meters, wound counter-clockwise.
+     *
+     * @return A copy of the vertex array.
+     */
+    public Translation2d[] getVertices() {
+      return vertices.clone();
+    }
+
+    public Body toBody() {
       Vector2[] points = new Vector2[vertices.length];
       for (int i = 0; i < vertices.length; i++) {
         points[i] = new Vector2(vertices[i].getX(), vertices[i].getY());
@@ -115,6 +119,16 @@ public interface FieldLayout {
         body.setMass(new org.dyn4j.geometry.Mass(body.getWorldCenter(), weight.in(Kilograms), 0));
       }
       return body;
+    }
+
+    public List<Pose2d> getPoses()
+    {
+      var arrayList = new ArrayList<Pose2d>();
+      for(var vert : vertices)
+      {
+        arrayList.add(new Pose2d(vert.getX(), vert.getY(), Rotation2d.kZero));
+      }
+      return arrayList;
     }
   }
 }

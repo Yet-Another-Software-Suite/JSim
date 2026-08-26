@@ -2,12 +2,6 @@ package jsim.physics;
 
 import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
-import static jsim.physics.layers.fields.Field2026.FIELD_LENGTH;
-import static jsim.physics.layers.fields.Field2026.FIELD_WIDTH;
-import static jsim.physics.layers.fields.Field2026.HUB_DISTANCE_FROM_WALL;
-import static jsim.physics.layers.fields.Field2026.HUB_SIZE;
-import static jsim.physics.layers.fields.Field2026.TOWER_DEPTH;
-import static jsim.physics.layers.fields.Field2026.WALL_THICKNESS;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -16,6 +10,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import jsim.physics.layers.Dyn4jCollisionLayer;
+import jsim.physics.layers.FieldLayout;
 import jsim.physics.layers.fields.Field2026;
 import org.junit.jupiter.api.Test;
 
@@ -37,8 +32,16 @@ import org.junit.jupiter.api.Test;
  * corner, which is what originally triggered this) and assert the heading never drifts away from
  * the commanded (constant, zero-rotation) gyro angle, and that the robot never ends up on the wrong
  * side of what it hit.
+ *
+ * <p>Expected geometry is read directly off the real {@link Field2026} instance's collision
+ * elements (via their vertex bounds) rather than separate hand-picked constants.
  */
 class SwerveDrivePhysicsAngledImpactTest {
+
+  private static final Field2026 FIELD = new Field2026();
+  private static final double FIELD_LENGTH = FIELD.getFieldLength();
+  private static final double FIELD_WIDTH = FIELD.getFieldWidth();
+  private static final double CENTER_Y = FIELD_WIDTH / 2.0;
 
   private static final double ROBOT_SIZE = 0.9;
   private static final double ROBOT_HALF = ROBOT_SIZE / 2.0;
@@ -46,9 +49,20 @@ class SwerveDrivePhysicsAngledImpactTest {
   private static final int STEPS = 300; // 6s of sim time at DEFAULT_DT_SECONDS
   private static final double HEADING_DRIFT_TOLERANCE_DEGREES = 0.01;
 
-  private static final double CENTER_Y = FIELD_WIDTH / 2.0;
-  private static final double BLUE_HUB_X = HUB_DISTANCE_FROM_WALL;
-  private static final double BLUE_TOWER_X = TOWER_DEPTH / 2.0;
+  /** Returns {minX, maxX, minY, maxY} over an element's vertices, in field-relative meters. */
+  private static double[] bounds(FieldLayout.Element element) {
+    double minX = Double.POSITIVE_INFINITY;
+    double maxX = Double.NEGATIVE_INFINITY;
+    double minY = Double.POSITIVE_INFINITY;
+    double maxY = Double.NEGATIVE_INFINITY;
+    for (Translation2d v : element.getVertices()) {
+      minX = Math.min(minX, v.getX());
+      maxX = Math.max(maxX, v.getX());
+      minY = Math.min(minY, v.getY());
+      maxY = Math.max(maxY, v.getY());
+    }
+    return new double[] {minX, maxX, minY, maxY};
+  }
 
   private static SwerveDrivePhysics newPhysics(Pose2d initialPose) {
     Translation2d[] moduleLocations = {
@@ -57,7 +71,7 @@ class SwerveDrivePhysicsAngledImpactTest {
     };
     SwerveDrivePhysics physics = new SwerveDrivePhysics(
         moduleLocations, Meters.of(ROBOT_SIZE), Meters.of(ROBOT_SIZE), initialPose, zeroModulePositions());
-    return physics.addLayer(new Dyn4jCollisionLayer(Kilograms.of(50.0), new Field2026()));
+    return physics.addLayer(new Dyn4jCollisionLayer(Kilograms.of(50.0), FIELD));
   }
 
   private static SwerveModulePosition[] zeroModulePositions() {
@@ -69,6 +83,10 @@ class SwerveDrivePhysicsAngledImpactTest {
 
   /** Axis-aligned solid-obstacle bounds a robot's center must never enter (that would mean tunneling). */
   private record SolidBounds(double minX, double maxX, double minY, double maxY) {
+    static SolidBounds of(double[] b) {
+      return new SolidBounds(b[0], b[1], b[2], b[3]);
+    }
+
     boolean contains(Pose2d pose) {
       return pose.getX() > minX && pose.getX() < maxX && pose.getY() > minY && pose.getY() < maxY;
     }
@@ -122,7 +140,8 @@ class SwerveDrivePhysicsAngledImpactTest {
     ChassisSpeeds commanded = new ChassisSpeeds(-APPROACH_SPEED * Math.cos(angle), APPROACH_SPEED * Math.sin(angle), 0);
 
     Pose2d finalPose = driveAndAssertNoHeadingDrift(physics, commanded);
-    assertTrue(finalPose.getX() >= WALL_THICKNESS / 2.0 + ROBOT_HALF - 0.25,
+    double expectedStopX = bounds(FIELD.getWestAllianceWall())[1] + ROBOT_HALF;
+    assertTrue(finalPose.getX() >= expectedStopX - 0.25,
         "Robot tunneled through the west alliance wall: " + finalPose);
   }
 
@@ -134,7 +153,8 @@ class SwerveDrivePhysicsAngledImpactTest {
     ChassisSpeeds commanded = new ChassisSpeeds(-diag, diag, 0);
 
     Pose2d finalPose = driveAndAssertNoHeadingDrift(physics, commanded);
-    assertTrue(finalPose.getX() >= WALL_THICKNESS / 2.0 + ROBOT_HALF - 0.25,
+    double expectedStopX = bounds(FIELD.getWestAllianceWall())[1] + ROBOT_HALF;
+    assertTrue(finalPose.getX() >= expectedStopX - 0.25,
         "Robot tunneled through the west alliance wall: " + finalPose);
   }
 
@@ -146,7 +166,8 @@ class SwerveDrivePhysicsAngledImpactTest {
     ChassisSpeeds commanded = new ChassisSpeeds(-APPROACH_SPEED * Math.cos(angle), APPROACH_SPEED * Math.sin(angle), 0);
 
     Pose2d finalPose = driveAndAssertNoHeadingDrift(physics, commanded);
-    assertTrue(finalPose.getX() >= WALL_THICKNESS / 2.0 + ROBOT_HALF - 0.25,
+    double expectedStopX = bounds(FIELD.getWestAllianceWall())[1] + ROBOT_HALF;
+    assertTrue(finalPose.getX() >= expectedStopX - 0.25,
         "Robot tunneled through the west alliance wall: " + finalPose);
   }
 
@@ -158,40 +179,35 @@ class SwerveDrivePhysicsAngledImpactTest {
     ChassisSpeeds commanded = new ChassisSpeeds(diag, diag, 0);
 
     Pose2d finalPose = driveAndAssertNoHeadingDrift(physics, commanded);
-    assertTrue(finalPose.getY() <= FIELD_WIDTH - WALL_THICKNESS / 2.0 - ROBOT_HALF + 0.25,
+    double expectedStopY = bounds(FIELD.getNorthGuardrail())[2] - ROBOT_HALF;
+    assertTrue(finalPose.getY() <= expectedStopY + 0.25,
         "Robot tunneled through the north guardrail: " + finalPose);
   }
 
   @Test
-  void blueTowerCornerAt45DegreesDoesNotSpinOutOrTunnel() {
-    // This exact corner-on-45-degree hit is what originally triggered the runaway heading spin.
-    double targetX = BLUE_TOWER_X - TOWER_DEPTH / 2.0;
-    double targetY = CENTER_Y - Field2026.TOWER_WIDTH / 2.0;
-    Pose2d start = new Pose2d(targetX + 2.0, targetY - 2.0, Rotation2d.kZero);
+  void blueTowerUprightCornerAt45DegreesDoesNotSpinOutOrTunnel() {
+    // This exact corner-on-45-degree hit (against one of the TOWER's UPRIGHT poles) is what
+    // originally triggered the runaway heading spin. The upright sits right against the alliance
+    // wall, so approach from its far (field-facing) corner to keep the start pose on the field.
+    double[] uprightBounds = bounds(FIELD.getBlueTowerUprights()[0]);
+    Pose2d start = new Pose2d(uprightBounds[1] + 2.0, uprightBounds[3] + 2.0, Rotation2d.kZero);
     SwerveDrivePhysics physics = newPhysics(start);
     double diag = APPROACH_SPEED / Math.sqrt(2);
-    ChassisSpeeds commanded = new ChassisSpeeds(diag, diag, 0);
+    ChassisSpeeds commanded = new ChassisSpeeds(-diag, -diag, 0);
 
     // A glancing hit legitimately sliding far away along a wall afterward is fine (and expected);
-    // the robot's center must simply never pass through the tower's own solid footprint.
-    SolidBounds tower = new SolidBounds(
-        BLUE_TOWER_X - TOWER_DEPTH / 2.0, BLUE_TOWER_X + TOWER_DEPTH / 2.0,
-        CENTER_Y - Field2026.TOWER_WIDTH / 2.0, CENTER_Y + Field2026.TOWER_WIDTH / 2.0);
-    driveAndAssertNoHeadingDrift(physics, commanded, tower);
+    // the robot's center must simply never pass through the upright's own solid footprint.
+    driveAndAssertNoHeadingDrift(physics, commanded, SolidBounds.of(uprightBounds));
   }
 
   @Test
   void blueHubCornerAt45DegreesDoesNotSpinOutOrTunnel() {
-    double targetX = BLUE_HUB_X - HUB_SIZE / 2.0;
-    double targetY = CENTER_Y - HUB_SIZE / 2.0;
-    Pose2d start = new Pose2d(targetX + 2.0, targetY - 2.0, Rotation2d.kZero);
+    double[] hubBounds = bounds(FIELD.getBlueHub());
+    Pose2d start = new Pose2d(hubBounds[0] - 2.0, hubBounds[2] - 2.0, Rotation2d.kZero);
     SwerveDrivePhysics physics = newPhysics(start);
     double diag = APPROACH_SPEED / Math.sqrt(2);
     ChassisSpeeds commanded = new ChassisSpeeds(diag, diag, 0);
 
-    SolidBounds hub = new SolidBounds(
-        BLUE_HUB_X - HUB_SIZE / 2.0, BLUE_HUB_X + HUB_SIZE / 2.0,
-        CENTER_Y - HUB_SIZE / 2.0, CENTER_Y + HUB_SIZE / 2.0);
-    driveAndAssertNoHeadingDrift(physics, commanded, hub);
+    driveAndAssertNoHeadingDrift(physics, commanded, SolidBounds.of(hubBounds));
   }
 }

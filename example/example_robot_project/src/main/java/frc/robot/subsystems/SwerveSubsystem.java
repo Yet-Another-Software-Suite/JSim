@@ -114,10 +114,11 @@ public class SwerveSubsystem extends SubsystemBase {
             .withRotationController(new PIDController(1,0,0));
 
     drive = new SwerveDrive(config);
-
+    var field = new Field2026();
+    field.field = drive.getField2d();
     physicsSim =
         new SwerveDrivePhysics(drive)
-            .addLayer(new Dyn4jCollisionLayer(SwerveConstants.kRobotMass, new Field2026()));
+            .addLayer(new Dyn4jCollisionLayer(SwerveConstants.kRobotMass, field));
 
     configurePathPlanner();
   }

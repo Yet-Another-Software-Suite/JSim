@@ -2,8 +2,6 @@ package jsim.physics;
 
 import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
-import static jsim.physics.layers.fields.Field2026.FIELD_LENGTH;
-import static jsim.physics.layers.fields.Field2026.FIELD_WIDTH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import jsim.physics.layers.Dyn4jCollisionLayer;
+import jsim.physics.layers.FieldLayout;
 import jsim.physics.layers.fields.Field2026;
 import org.junit.jupiter.api.Test;
 
@@ -24,10 +23,29 @@ import org.junit.jupiter.api.Test;
  */
 class SwerveDrivePhysicsResetOdometryTest {
 
+  private static final Field2026 FIELD = new Field2026();
+  private static final double FIELD_LENGTH = FIELD.getFieldLength();
+  private static final double FIELD_WIDTH = FIELD.getFieldWidth();
+
   private static final double ROBOT_SIZE = 0.9;
   private static final double ROBOT_HALF = ROBOT_SIZE / 2.0;
   private static final double APPROACH_SPEED = 4.0; // m/s
   private static final double DT = Dyn4jCollisionLayer.DEFAULT_DT_SECONDS;
+
+  /** Returns {minX, maxX, minY, maxY} over an element's vertices, in field-relative meters. */
+  private static double[] bounds(FieldLayout.Element element) {
+    double minX = Double.POSITIVE_INFINITY;
+    double maxX = Double.NEGATIVE_INFINITY;
+    double minY = Double.POSITIVE_INFINITY;
+    double maxY = Double.NEGATIVE_INFINITY;
+    for (Translation2d v : element.getVertices()) {
+      minX = Math.min(minX, v.getX());
+      maxX = Math.max(maxX, v.getX());
+      minY = Math.min(minY, v.getY());
+      maxY = Math.max(maxY, v.getY());
+    }
+    return new double[] {minX, maxX, minY, maxY};
+  }
 
   private static SwerveDrivePhysics newPhysics(Pose2d initialPose) {
     Translation2d[] moduleLocations = {
@@ -42,7 +60,7 @@ class SwerveDrivePhysicsResetOdometryTest {
         Meters.of(ROBOT_SIZE),
         initialPose,
         zeroModulePositions());
-    return physics.addLayer(new Dyn4jCollisionLayer(Kilograms.of(50.0), new Field2026()));
+    return physics.addLayer(new Dyn4jCollisionLayer(Kilograms.of(50.0), FIELD));
   }
 
   private static SwerveModulePosition[] zeroModulePositions() {
@@ -158,7 +176,7 @@ class SwerveDrivePhysicsResetOdometryTest {
 
     Pose2d finalPose = step(physics, new ChassisSpeeds(0, -APPROACH_SPEED, 0), 150);
 
-    double expectedStopY = Field2026.WALL_THICKNESS / 2.0 + ROBOT_HALF;
+    double expectedStopY = bounds(FIELD.getSouthGuardrail())[3] + ROBOT_HALF;
     assertTrue(finalPose.getY() >= expectedStopY - 0.25,
         "Robot tunneled through the south guardrail after reset: y=" + finalPose.getY());
     assertTrue(finalPose.getY() <= expectedStopY + 0.25,

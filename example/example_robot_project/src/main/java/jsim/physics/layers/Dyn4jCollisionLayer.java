@@ -9,10 +9,13 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Mass;
 
+import org.dyn4j.collision.narrowphase.Penetration;
+import org.dyn4j.collision.narrowphase.Sat;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
+import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
 import org.dyn4j.world.World;
 
@@ -44,10 +47,25 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
    */
   public static final Vector2 DEFAULT_CENTER_OF_MASS = new Vector2(0, 0);
 
+  /**
+   * Number of relaxation passes {@link #resolveResidualPenetration()} runs each step to converge
+   * multiple simultaneous contacts (e.g. a corner wedged into two obstacles at once), where pushing
+   * the robot out of one can reintroduce a small overlap with another.
+   */
+  private static final int PENETRATION_RESOLUTION_ITERATIONS = 4;
+
+  /**
+   * Allowed residual overlap, in meters, below which {@link #resolveResidualPenetration()} leaves
+   * a contact alone. Matches dyn4j's own default linear slop so this pass doesn't fight the
+   * engine's contact solver over sub-millimeter jitter every frame.
+   */
+  private static final double PENETRATION_SLOP_METERS = 0.0005;
+
   private final World<Body> world;
   private final Body robotBody;
   private final Mass mass;
   private final FieldLayout fieldLayout;
+  private final Sat narrowphase = new Sat();
 
   /** Custom moment of inertia override in kg·m². A non-positive value indicates auto-calculation. */
   private final double explicitInertia;
@@ -119,6 +137,10 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
       initialized = true;
     }
 
+    if (dtSeconds <= 0) {
+      return inputSpeeds;
+    }
+
     // 1. Sync dyn4j body pose with WPILib ground-truth pose
     robotBody.getTransform().setTranslation(currentPose.getX(), currentPose.getY());
     robotBody.getTransform().setRotation(currentPose.getRotation().getRadians());
@@ -129,16 +151,75 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
     robotBody.setLinearVelocity(new Vector2(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond));
     robotBody.setAngularVelocity(fieldRelSpeeds.omegaRadiansPerSecond);
 
-    // 3. Advance physics engine by the caller's real elapsed step period
-    world.update(dtSeconds);
+    // 3. Advance physics engine by exactly one step of the caller's real elapsed step period.
+    world.update(dtSeconds, 0.00001);
 
-    // 4. Extract post-collision velocities
-    Vector2 postLinearVel = robotBody.getLinearVelocity();
-    double postAngularVel = robotBody.getAngularVelocity();
+    // 4. dyn4j's discrete narrow-phase can leave a small residual overlap after a single step
+    resolveResidualPenetration();
 
-    // 5. Convert field-relative response vector back to robot-relative speeds
-    ChassisSpeeds postFieldSpeeds = new ChassisSpeeds(postLinearVel.x, postLinearVel.y, postAngularVel);
+    // 5. Derive the effective velocity from dyn4j's
+    Vector2 velocity = robotBody.getLinearVelocity();
+    ChassisSpeeds postFieldSpeeds = new ChassisSpeeds(velocity.x, velocity.y, robotBody.getAngularVelocity());
     return ChassisSpeeds.fromFieldRelativeSpeeds(postFieldSpeeds, currentPose.getRotation());
+  }
+
+  /**
+   * Explicitly zeroes out any overlap left between the robot and any other body after
+   * {@link org.dyn4j.world.World#update(double, double)} has already run its own (only partial)
+   * contact correction pass, so a single step's residual penetration never has anything to
+   * accumulate from frame to frame.
+   *
+   * <p>For each overlapping fixture pair, the robot is pushed directly out along the SAT-reported
+   * minimum-translation-vector normal by the full remaining depth (down to {@link
+   * #PENETRATION_SLOP_METERS}), and any velocity component still driving further into that
+   * obstacle is zeroed so the same overlap doesn't simply reappear next step. Runs several
+   * relaxation passes since resolving one contact can reintroduce a small overlap with another
+   * (e.g. a corner wedged into two obstacles at once).
+   */
+  private void resolveResidualPenetration() {
+    Transform robotTransform = robotBody.getTransform();
+    Penetration penetration = new Penetration();
+
+    for (int iteration = 0; iteration < PENETRATION_RESOLUTION_ITERATIONS; iteration++) {
+      boolean anyCorrected = false;
+
+      for (int i = 0; i < world.getBodyCount(); i++) {
+        Body other = world.getBody(i);
+        if (other == robotBody) {
+          continue;
+        }
+
+        for (BodyFixture robotFixture : robotBody.getFixtures()) {
+          for (BodyFixture otherFixture : other.getFixtures()) {
+            penetration.clear();
+            boolean overlapping = narrowphase.detect(
+                robotFixture.getShape(), robotTransform,
+                otherFixture.getShape(), other.getTransform(),
+                penetration);
+            if (!overlapping || penetration.getDepth() <= PENETRATION_SLOP_METERS) {
+              continue;
+            }
+
+            // Sat.detect's normal always points from the first shape (the robot, here) toward the
+            // second (the other body), so the robot must move the OPPOSITE way to separate from it.
+            Vector2 normal = penetration.getNormal();
+            double pushOutDistance = penetration.getDepth() - PENETRATION_SLOP_METERS;
+            robotTransform.translate(-normal.x * pushOutDistance, -normal.y * pushOutDistance);
+
+            Vector2 velocity = robotBody.getLinearVelocity();
+            double velocityIntoObstacle = velocity.dot(normal);
+            if (velocityIntoObstacle > 0) {
+              robotBody.setLinearVelocity(velocity.difference(normal.product(velocityIntoObstacle)));
+            }
+            anyCorrected = true;
+          }
+        }
+      }
+
+      if (!anyCorrected) {
+        break;
+      }
+    }
   }
 
   /**
