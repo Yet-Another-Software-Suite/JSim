@@ -2,6 +2,10 @@ package jsim.physics.layers;
 
 import static edu.wpi.first.units.Units.Kilograms;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import java.util.ArrayList;
+import java.util.List;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Geometry;
@@ -115,6 +119,16 @@ public interface FieldLayout {
         body.setMass(new org.dyn4j.geometry.Mass(body.getWorldCenter(), weight.in(Kilograms), 0));
       }
       return body;
+    }
+
+    public List<Pose2d> getPoses()
+    {
+      var arrayList = new ArrayList<Pose2d>();
+      for(var vert : vertices)
+      {
+        arrayList.add(new Pose2d(vert.getX(), vert.getY(), Rotation2d.kZero));
+      }
+      return arrayList;
     }
   }
 }

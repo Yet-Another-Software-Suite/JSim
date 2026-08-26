@@ -66,7 +66,7 @@ public final class Constants {
     // 360 deg/s gives comfortable spin speed without overshooting in teleop.
     public static final AngularVelocity kMaxAngularVelocity = DegreesPerSecond.of(360);
     // 1 m/s is a conservative starting cap; raise it once PID and feedforward are tuned.
-    public static final LinearVelocity kMaxLinearVelocity = MetersPerSecond.of(1);
+    public static final LinearVelocity kMaxLinearVelocity = MetersPerSecond.of(4);
 
     private static final Distance kWheelDiameter = Inches.of(4);
 

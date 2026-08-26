@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
  *
  * <p>dyn4j's collision detection is discrete: it only checks for overlap at the end of a step, not
  * along the swept path. A single big step (e.g. 4 m/s for 0.5s = 2m of travel) can skip clean over
- * an element far thinner than that in one shot. {@code update(...)} now internally chunks a large
+ * an element far thinner than that in one shot. {@code update(...)} internally chunks a large
  * {@code dtSeconds} into several {@code DEFAULT_DT_SECONDS}-sized substeps to prevent this.
  */
 class SwerveDrivePhysicsLargeDtTest {
