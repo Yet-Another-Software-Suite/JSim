@@ -11,9 +11,9 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.Timer;
 import jsim.physics.layers.PhysicsLayer;
 import yams.mechanisms.swerve.SwerveDrive;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,6 +63,12 @@ import java.util.List;
  */
 public class SwerveDrivePhysics {
 
+    /**
+     * Fallback loop period assumed for the very first {@link #update()} call, before a prior
+     * {@link Timer#getFPGATimestamp()} reading exists to diff against.
+     */
+    private static final double DEFAULT_DT_SECONDS = 0.020;
+
     /** Single-source final instance of WPILib kinematics derived during instantiation. */
     private final SwerveDriveKinematics kinematics;
 
@@ -73,7 +79,7 @@ public class SwerveDrivePhysics {
     private final Translation2d robotDimensions;
 
     /** Field2d object for SmartDashboard visualization of the robot's ground-truth pose. */
-    private final Field2d field2d = new Field2d();
+    private final Field2d field2d;
 
     /** Sequential processing pipeline containing active physics layers. */
     private final List<PhysicsLayer> layers = new ArrayList<>();
@@ -87,7 +93,14 @@ public class SwerveDrivePhysics {
     /** Current physical robot-relative chassis velocity after layer transformation. */
     private ChassisSpeeds currentPhysicalSpeeds = new ChassisSpeeds();
 
-    Field desiredChassisField;
+    /** FPGA timestamp of the previous {@link #update()} call, or a negative value before the first call. */
+    private double lastUpdateTimestampSeconds = -1.0;
+
+    /** Most recently supplied gyro angle, cached so {@link #resetOdometry} can re-baseline {@link #odometry}. */
+    private Rotation2d lastGyroAngle;
+
+    /** Most recently supplied module positions, cached so {@link #resetOdometry} can re-baseline {@link #odometry}. */
+    private SwerveModulePosition[] lastModulePositions;
 
     /**
      * Constructs a {@code SwerveDrivePhysics} manager bound to a YAMS {@link SwerveDrive} chassis.
@@ -100,20 +113,13 @@ public class SwerveDrivePhysics {
      */
     public SwerveDrivePhysics(SwerveDrive drive) {
         this.yamsDrive = drive;
-
-        // Reflective hackery
-        try {
-            Field poseEstimateField = SwerveDrive.class.getDeclaredField("m_poseEstimator");
-            poseEstimateField.setAccessible(true);
-            desiredChassisField = SwerveDrive.class.getDeclaredField("m_desiredChassisSpeeds");
-            desiredChassisField.setAccessible(true);
-            odometry = (SwerveDrivePoseEstimator) poseEstimateField.get(drive);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        field2d = drive.getField2d();
+        odometry = new SwerveDrivePoseEstimator(drive.getKinematics(), new Rotation2d(drive.getGyroAngle()), drive.getModulePositions(), drive.getConfig().getInitialPose());
 
         kinematics = drive.getKinematics();
         this.currentPose = drive.getPose();
+        this.lastGyroAngle = new Rotation2d(drive.getGyroAngle());
+        this.lastModulePositions = drive.getModulePositions();
 
         // fl, fr, bl, br
         Translation2d fl = drive.getConfig().getModules()[0].getConfig().getLocation().orElseThrow();
@@ -140,17 +146,14 @@ public class SwerveDrivePhysics {
             SwerveModulePosition[] initialPositions) {
 
         this.yamsDrive = null;
-        try {
-            desiredChassisField = SwerveDrive.class.getDeclaredField("m_desiredChassisSpeeds");
-            desiredChassisField.setAccessible(true);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        field2d = new Field2d();
 
         kinematics = new SwerveDriveKinematics(moduleLocations);
         odometry = new SwerveDrivePoseEstimator(kinematics, initialPose.getRotation(), initialPositions, initialPose);
 
         this.currentPose = initialPose;
+        this.lastGyroAngle = initialPose.getRotation();
+        this.lastModulePositions = initialPositions;
         this.robotDimensions = new Translation2d(
                 lengthWithBumpers.in(edu.wpi.first.units.Units.Meters) / 2.0,
                 widthWithBumpers.in(edu.wpi.first.units.Units.Meters) / 2.0);
@@ -190,8 +193,10 @@ public class SwerveDrivePhysics {
     }
 
     /**
-     * Advances the physics simulation by a single standard loop cycle (20ms) using parameters
-     * automatically queried from the bound YAMS {@link SwerveDrive}.
+     * Advances the physics simulation by a single loop cycle using parameters automatically
+     * queried from the bound YAMS {@link SwerveDrive}, with the step duration derived from the
+     * real elapsed time since the previous call via {@link Timer#getFPGATimestamp()} (falling
+     * back to {@link #DEFAULT_DT_SECONDS} on the first call).
      *
      * <p>This convenience method is designed for use inside {@code Subsystem.simulationPeriodic()}
      * when using YAMS drivetrain abstractions.
@@ -204,20 +209,17 @@ public class SwerveDrivePhysics {
             throw new IllegalStateException(
                     "Cannot call update() without parameters unless instantiated with a YAMS SwerveDrive!");
         }
-        desiredChassisField.setAccessible(true);
-        try {
-            return update(
-                    (ChassisSpeeds) desiredChassisField.get(yamsDrive),
-                    new Rotation2d(yamsDrive.getGyroAngle()),
-                    yamsDrive.getModulePositions(),
-                    0.020);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        double now = Timer.getFPGATimestamp();
+        double dtSeconds = (lastUpdateTimestampSeconds < 0)
+                ? DEFAULT_DT_SECONDS
+                : now - lastUpdateTimestampSeconds;
+        lastUpdateTimestampSeconds = now;
+
+        return update(
+                yamsDrive.getDesiredChassisSpeeds(),
+                new Rotation2d(yamsDrive.getGyroAngle()),
+                yamsDrive.getModulePositions(),
+                dtSeconds);
     }
 
     /**
@@ -247,7 +249,7 @@ public class SwerveDrivePhysics {
         // 1. Pipeline processing: Pass desired speeds sequentially through all layers
         ChassisSpeeds processedSpeeds = inputSpeeds;
         for (PhysicsLayer layer : layers) {
-            processedSpeeds = layer.process(currentPose, processedSpeeds, robotDimensions);
+            processedSpeeds = layer.process(currentPose, processedSpeeds, robotDimensions, dtSeconds);
         }
 
         this.currentPhysicalSpeeds = processedSpeeds;
@@ -261,12 +263,55 @@ public class SwerveDrivePhysics {
 
         // 3. Update internal single-source Odometry
         odometry.update(currentGyroAngle, modulePositions);
+        this.lastGyroAngle = currentGyroAngle;
+        this.lastModulePositions = modulePositions;
 
         // 4. Publish physics pose to SmartDashboard
-        field2d.setRobotPose(currentPose);
-        field2d.getObject("odometry").setPose(odometry.getEstimatedPosition());
+        field2d.getObject("jsim").setPose(currentPose);
+//        field2d.getObject("odometry").setPose(odometry.getEstimatedPosition());
 
         return new PhysicsState(currentPose, currentPhysicalSpeeds);
+    }
+
+    /**
+     * Resets the physics simulation to a stationary state at {@code pose}, as if the robot had
+     * just been placed there at rest (e.g. re-homing to a known field position). Equivalent to
+     * {@code resetOdometry(pose, new ChassisSpeeds())}.
+     *
+     * @param pose The field-relative pose to reset the ground-truth position and odometry to.
+     */
+    public void resetOdometry(Pose2d pose) {
+        resetOdometry(pose, new ChassisSpeeds());
+    }
+
+    /**
+     * Resets the physics simulation so the robot is at {@code pose} moving at
+     * {@code robotRelativeSpeeds}, discarding any prior ground-truth pose, physical velocity, and
+     * per-layer simulation state (e.g. a collision layer's residual bounce momentum).
+     *
+     * <p>Every registered {@link PhysicsLayer} is notified via {@link PhysicsLayer#reset} so
+     * layers that carry their own internal state (such as {@code Dyn4jCollisionLayer}'s rigid
+     * body) re-sync to the new pose/speeds immediately rather than waiting for the next
+     * {@link #update} call.
+     *
+     * @param pose                 The field-relative pose to reset the ground-truth position and odometry to.
+     * @param robotRelativeSpeeds  The robot-relative chassis speeds to assume immediately after
+     *                             reset. Callers already tracking a desired speed (e.g. from
+     *                             {@code SwerveDrive#getDesiredChassisSpeeds()}) can pass that
+     *                             directly.
+     */
+    public void resetOdometry(Pose2d pose, ChassisSpeeds robotRelativeSpeeds) {
+        this.currentPose = pose;
+        this.currentPhysicalSpeeds = robotRelativeSpeeds;
+        this.lastUpdateTimestampSeconds = -1.0;
+
+        for (PhysicsLayer layer : layers) {
+            layer.reset(pose, robotRelativeSpeeds);
+        }
+
+        odometry.resetPosition(lastGyroAngle, lastModulePositions, pose);
+        field2d.getObject("jsim").setPose(pose);
+//        field2d.getObject("odometry").setPose(odometry.getEstimatedPosition());
     }
 
     /**

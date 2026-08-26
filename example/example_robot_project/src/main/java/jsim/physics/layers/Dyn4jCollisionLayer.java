@@ -1,6 +1,8 @@
 package jsim.physics.layers;
 
 import static edu.wpi.first.units.Units.Kilograms;
+import static edu.wpi.first.units.Units.Milliseconds;
+import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -25,8 +27,12 @@ import org.dyn4j.world.World;
  */
 public class Dyn4jCollisionLayer implements PhysicsLayer {
 
-  /** Default loop step period in seconds (20ms / 50Hz standard robot loop). */
-  public static final double DEFAULT_DT_SECONDS = 0.020;
+  /**
+   * Fallback loop step period in seconds (20ms / 50Hz standard robot loop), used by
+   * {@link jsim.physics.SwerveDrivePhysics} for the very first simulation step before a real
+   * elapsed time is available.
+   */
+  public static final double DEFAULT_DT_SECONDS = Milliseconds.of(20).in(Seconds);
 
   /**
    * Default sentinel constant indicating that rotational inertia should be automatically calculated.
@@ -42,7 +48,6 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
   private final Body robotBody;
   private final Mass mass;
   private final FieldLayout fieldLayout;
-  private final double dtSeconds;
 
   /** Custom moment of inertia override in kg·m². A non-positive value indicates auto-calculation. */
   private final double explicitInertia;
@@ -59,7 +64,7 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
    * @param fieldLayout Static environment geometry to inject into the simulation world.
    */
   public Dyn4jCollisionLayer(Mass mass, FieldLayout fieldLayout) {
-    this(mass, AUTO_INERTIA, DEFAULT_CENTER_OF_MASS, fieldLayout, DEFAULT_DT_SECONDS);
+    this(mass, AUTO_INERTIA, DEFAULT_CENTER_OF_MASS, fieldLayout);
   }
 
   /**
@@ -71,7 +76,7 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
    * @param fieldLayout Static environment geometry to inject into the simulation world.
    */
   public Dyn4jCollisionLayer(Mass mass, double customInertiaKgM2, FieldLayout fieldLayout) {
-    this(mass, customInertiaKgM2, DEFAULT_CENTER_OF_MASS, fieldLayout, DEFAULT_DT_SECONDS);
+    this(mass, customInertiaKgM2, DEFAULT_CENTER_OF_MASS, fieldLayout);
   }
 
   /**
@@ -87,29 +92,10 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
       double customInertiaKgM2,
       Vector2 centerOfMass,
       FieldLayout fieldLayout) {
-    this(mass, customInertiaKgM2, centerOfMass, fieldLayout, DEFAULT_DT_SECONDS);
-  }
-
-  /**
-   * Constructs a collision layer with full manual overrides and custom loop timing.
-   *
-   * @param mass Total robot mass.
-   * @param customInertiaKgM2 Custom moment of inertia in kg·m².
-   * @param centerOfMass Offset vector of center of mass relative to robot center in meters.
-   * @param fieldLayout Static environment geometry to inject into the simulation world.
-   * @param dtSeconds Physics engine update time step in seconds.
-   */
-  public Dyn4jCollisionLayer(
-      Mass mass,
-      double customInertiaKgM2,
-      Vector2 centerOfMass,
-      FieldLayout fieldLayout,
-      double dtSeconds) {
     this.mass = mass;
     this.explicitInertia = customInertiaKgM2;
     this.explicitCenterOfMass = (centerOfMass != null) ? centerOfMass : DEFAULT_CENTER_OF_MASS;
     this.fieldLayout = fieldLayout;
-    this.dtSeconds = dtSeconds;
 
     this.world = new World<>();
     this.world.setGravity(World.ZERO_GRAVITY);
@@ -122,10 +108,12 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
    * @param currentPose Current ground-truth field position of the robot.
    * @param inputSpeeds Desired robot-relative chassis speeds before collision evaluation.
    * @param robotDimensions Half-length (X) and half-width (Y) bumper dimensions in meters.
+   * @param dtSeconds Time elapsed since the previous update step, in seconds.
    * @return Physics-constrained {@link ChassisSpeeds} after resolving rigid-body collisions.
    */
   @Override
-  public ChassisSpeeds process(Pose2d currentPose, ChassisSpeeds inputSpeeds, Translation2d robotDimensions) {
+  public ChassisSpeeds process(
+      Pose2d currentPose, ChassisSpeeds inputSpeeds, Translation2d robotDimensions, double dtSeconds) {
     if (!initialized) {
       initEnvironment(robotDimensions);
       initialized = true;
@@ -136,13 +124,12 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
     robotBody.getTransform().setRotation(currentPose.getRotation().getRadians());
 
     // 2. Convert robot-relative chassis speeds to field-relative linear vectors
-    Translation2d robotRelVel = new Translation2d(inputSpeeds.vxMetersPerSecond, inputSpeeds.vyMetersPerSecond);
-    Translation2d fieldRelVel = robotRelVel.rotateBy(currentPose.getRotation());
+    ChassisSpeeds fieldRelSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(inputSpeeds, currentPose.getRotation());
 
-    robotBody.setLinearVelocity(new Vector2(fieldRelVel.getX(), fieldRelVel.getY()));
-    robotBody.setAngularVelocity(inputSpeeds.omegaRadiansPerSecond);
+    robotBody.setLinearVelocity(new Vector2(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond));
+    robotBody.setAngularVelocity(fieldRelSpeeds.omegaRadiansPerSecond);
 
-    // 3. Advance physics engine by dynamic step period
+    // 3. Advance physics engine by the caller's real elapsed step period
     world.update(dtSeconds);
 
     // 4. Extract post-collision velocities
@@ -150,10 +137,34 @@ public class Dyn4jCollisionLayer implements PhysicsLayer {
     double postAngularVel = robotBody.getAngularVelocity();
 
     // 5. Convert field-relative response vector back to robot-relative speeds
-    Translation2d postFieldVel = new Translation2d(postLinearVel.x, postLinearVel.y);
-    Translation2d postRobotVel = postFieldVel.rotateBy(currentPose.getRotation().unaryMinus());
+    ChassisSpeeds postFieldSpeeds = new ChassisSpeeds(postLinearVel.x, postLinearVel.y, postAngularVel);
+    return ChassisSpeeds.fromFieldRelativeSpeeds(postFieldSpeeds, currentPose.getRotation());
+  }
 
-    return new ChassisSpeeds(postRobotVel.getX(), postRobotVel.getY(), postAngularVel);
+  /**
+   * Immediately re-syncs the dyn4j body's transform and velocity to {@code pose} and
+   * {@code robotRelativeSpeeds}, discarding any momentum or contact state accumulated from prior
+   * {@link #process} calls (e.g. residual bounce velocity from a collision).
+   *
+   * <p>If {@link #process} hasn't run yet, this is a no-op: {@link #initEnvironment} runs on the
+   * first {@code process} call and syncs from the caller's current pose/speeds at that point
+   * anyway, so there is no body to reset yet.
+   *
+   * @param pose Field-relative pose to reset to.
+   * @param robotRelativeSpeeds Robot-relative chassis speeds to assume immediately after reset.
+   */
+  @Override
+  public void reset(Pose2d pose, ChassisSpeeds robotRelativeSpeeds) {
+    if (!initialized) {
+      return;
+    }
+
+    robotBody.getTransform().setTranslation(pose.getX(), pose.getY());
+    robotBody.getTransform().setRotation(pose.getRotation().getRadians());
+
+    ChassisSpeeds fieldRelSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(robotRelativeSpeeds, pose.getRotation());
+    robotBody.setLinearVelocity(new Vector2(fieldRelSpeeds.vxMetersPerSecond, fieldRelSpeeds.vyMetersPerSecond));
+    robotBody.setAngularVelocity(fieldRelSpeeds.omegaRadiansPerSecond);
   }
 
   /**

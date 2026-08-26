@@ -29,18 +29,29 @@ import jsim.physics.layers.FieldLayout;
  */
 public class Field2026 implements FieldLayout {
 
-  private static final double FIELD_LENGTH = Inches.of(651.2).in(Meters);
-  private static final double FIELD_WIDTH = Inches.of(317.7).in(Meters);
-  private static final double WALL_THICKNESS = Inches.of(2.0).in(Meters);
+  /** Full field length (X axis), alliance wall to alliance wall, in meters. */
+  public static final double FIELD_LENGTH = Inches.of(651.2).in(Meters);
 
-  private static final double HUB_SIZE = Inches.of(47.0).in(Meters);
-  private static final double HUB_DISTANCE_FROM_WALL = Inches.of(158.6).in(Meters);
+  /** Full field width (Y axis), guardrail to guardrail, in meters. */
+  public static final double FIELD_WIDTH = Inches.of(317.7).in(Meters);
+
+  /** Thickness of the modeled boundary walls (guardrails and alliance walls), in meters. */
+  public static final double WALL_THICKNESS = Inches.of(2.0).in(Meters);
+
+  /** Side length of the square HUB footprint, in meters. */
+  public static final double HUB_SIZE = Inches.of(47.0).in(Meters);
+
+  /** Distance from an alliance wall to the center of that alliance's HUB, in meters. */
+  public static final double HUB_DISTANCE_FROM_WALL = Inches.of(158.6).in(Meters);
 
   private static final double BUMP_WIDTH = Inches.of(73.0).in(Meters); // along field width (Y)
   private static final double BUMP_DEPTH = Inches.of(44.4).in(Meters); // along field length (X)
 
-  private static final double TOWER_WIDTH = Inches.of(39.0).in(Meters); // TOWER BASE, along Y
-  private static final double TOWER_DEPTH = Inches.of(45.18).in(Meters); // TOWER BASE, along X
+  /** Width (Y axis) of the TOWER base footprint, in meters. */
+  public static final double TOWER_WIDTH = Inches.of(39.0).in(Meters);
+
+  /** Depth (X axis) of the TOWER base footprint, in meters. */
+  public static final double TOWER_DEPTH = Inches.of(45.18).in(Meters);
 
   private final FieldLayout delegate;
 
