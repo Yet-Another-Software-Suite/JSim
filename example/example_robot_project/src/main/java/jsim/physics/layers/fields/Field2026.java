@@ -1,5 +1,8 @@
 package jsim.physics.layers.fields;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
+
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
 import java.util.List;
@@ -81,22 +84,23 @@ public class Field2026 implements FieldLayout {
 
   /** Each TOWER UPRIGHT's Y-axis cross-section (~1.5in), per Section 5.8. */
   private static final double UPRIGHT_THICKNESS = 0.0381;
+  private static final double UPRIGHT_OFFSET = Inches.of(7).in(Meters);
 
   /** Blue alliance's TOWER, south (nearer Y=0) UPRIGHT (Section 5.8). */
   private static final Element BLUE_TOWER_UPRIGHT_SOUTH =
-      FieldLayout.rectangle(1.10515, 3.53295, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
+      FieldLayout.rectangle(1.10515, 3.53295 - UPRIGHT_OFFSET, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
 
   /** Blue alliance's TOWER, north (nearer Y=FIELD_WIDTH) UPRIGHT (Section 5.8). */
   private static final Element BLUE_TOWER_UPRIGHT_NORTH =
-      FieldLayout.rectangle(1.10515, 4.39025, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
+      FieldLayout.rectangle(1.10515, 4.39025 - UPRIGHT_OFFSET, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
 
   /** Red alliance's TOWER, south (nearer Y=0) UPRIGHT (Section 5.8). */
   private static final Element RED_TOWER_UPRIGHT_SOUTH =
-      FieldLayout.rectangle(15.43585, 3.67905, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
+      FieldLayout.rectangle(15.43585, 3.67905 + UPRIGHT_OFFSET, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
 
   /** Red alliance's TOWER, north (nearer Y=FIELD_WIDTH) UPRIGHT (Section 5.8). */
   private static final Element RED_TOWER_UPRIGHT_NORTH =
-      FieldLayout.rectangle(15.43585, 4.53625, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
+      FieldLayout.rectangle(15.43585, 4.53625 + UPRIGHT_OFFSET, UPRIGHT_DEPTH, UPRIGHT_THICKNESS);
 
   /**
    * Each TRENCH GATE's X-axis extent (~44.4in), per Section 5.6. Note: the manual describes the
