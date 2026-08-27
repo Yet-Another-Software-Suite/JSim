@@ -26,7 +26,6 @@ import java.util.function.Supplier;
 import jsim.physics.SwerveDrivePhysics;
 import jsim.physics.layers.Dyn4jCollisionLayer;
 import jsim.physics.layers.fields.Field2026;
-import org.json.simple.parser.ParseException;
 import yams.mechanisms.config.SwerveDriveConfig;
 import yams.mechanisms.config.SwerveModuleConfig;
 import yams.mechanisms.swerve.SwerveDrive;
@@ -134,7 +133,7 @@ public class SwerveSubsystem extends SubsystemBase {
     RobotConfig config;
     try {
       config = RobotConfig.fromGUISettings();
-    } catch (IOException | ParseException e) {
+    } catch (Exception e) {
       throw new RuntimeException("Failed to load PathPlanner GUI settings", e);
     }
 
