@@ -62,7 +62,7 @@ public class FuelLayer implements PhysicsLayer {
   }
 
   @Override
-  public ChassisSpeeds process(Pose2d currentPose, ChassisSpeeds inputSpeeds, Translation2d robotDimensions) {
+  public ChassisSpeeds process(Pose2d currentPose, ChassisSpeeds inputSpeeds, Translation2d robotDimensions, double dtSeconds) {
     if (!initialized) {
       spawnFuelGrid();
       initialized = true;
