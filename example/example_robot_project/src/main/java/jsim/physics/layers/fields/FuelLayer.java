@@ -8,8 +8,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
-import jsim.physics.PhysicsLayer;
-import jsim.physics.gamepieces.FuelPiece;
+import jsim.physics.layers.PhysicsLayer;
+import jsim.physics.layers.gamepieces.Fuel2026;
 
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
@@ -28,7 +28,7 @@ public class FuelLayer implements PhysicsLayer {
   public static final Mass FUEL_MASS = Grams.of(0.216);
   public static final Distance FUEL_DIAMETER = Meters.of(0.15);
 
-  private final List<FuelPiece> fuelPieces = new ArrayList<>();
+  private final List<Fuel2026> fuelPieces = new ArrayList<>();
   private final World<Body> world;
   private final Translation2d spawnCorner;
   private final int rows;
@@ -96,7 +96,7 @@ public class FuelLayer implements PhysicsLayer {
         fuelBody.getTransform().setTranslation(x, y);
 
         world.addBody(fuelBody);
-        fuelPieces.add(new FuelPiece(fuelBody));
+        fuelPieces.add(new Fuel2026(fuelBody));
       }
     }
   }
@@ -104,7 +104,7 @@ public class FuelLayer implements PhysicsLayer {
   /**
    * Returns all spawned fuel piece instances for intake checks or UI visualization.
    */
-  public List<FuelPiece> getFuelPieces() {
+  public List<Fuel2026> getFuelPieces() {
     return fuelPieces;
   }
 }
