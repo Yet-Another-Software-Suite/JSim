@@ -4,8 +4,12 @@ import static edu.wpi.first.units.Units.Grams;
 import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
 import jsim.physics.layers.PhysicsLayer;
@@ -33,6 +37,7 @@ public class FuelLayer implements PhysicsLayer {
   private final Translation2d spawnCorner;
   private final int rows;
   private final int cols;
+  private final StructArrayPublisher<Pose3d> posePublisher;
 
   private boolean initialized = false;
 
@@ -43,7 +48,7 @@ public class FuelLayer implements PhysicsLayer {
    * @param spawnCorner X, Y coordinates for the bottom-left corner of the spawn grid.
    */
   public FuelLayer(World<Body> world, Translation2d spawnCorner) {
-    this(world, spawnCorner, 20, 18);
+    this(world, spawnCorner, "fuel_test", 20, 18);
   }
 
   /**
@@ -55,10 +60,23 @@ public class FuelLayer implements PhysicsLayer {
    * @param cols Number of columns in the grid.
    */
   public FuelLayer(World<Body> world, Translation2d spawnCorner, int rows, int cols) {
+    this(world, spawnCorner, "fuel_test", rows, cols);
+  }
+
+  /**
+   * Constructs a FuelLayer with an explicit NetworkTables subtable name used for publishing live
+   * fuel poses.
+   */
+  public FuelLayer(World<Body> world, Translation2d spawnCorner, String ntSubTableName, int rows, int cols) {
     this.world = world;
     this.spawnCorner = spawnCorner;
     this.rows = rows;
     this.cols = cols;
+    this.posePublisher = NetworkTableInstance.getDefault()
+        .getTable("Mechanisms")
+        .getSubTable(ntSubTableName)
+        .getStructArrayTopic("poses", Pose3d.struct)
+        .publish();
   }
 
   @Override
@@ -67,6 +85,7 @@ public class FuelLayer implements PhysicsLayer {
       spawnFuelGrid();
       initialized = true;
     }
+    updatePublishedPose3dList();
     return inputSpeeds;
   }
 
@@ -106,5 +125,51 @@ public class FuelLayer implements PhysicsLayer {
    */
   public List<Fuel2026> getFuelPieces() {
     return fuelPieces;
+  }
+
+  /**
+   * Creates a live list of the current fuel body poses as 3D field-relative poses.
+   */
+  public List<Pose3d> getPose3dList() {
+    List<Pose3d> poses = new ArrayList<>(fuelPieces.size());
+    for (Fuel2026 fuelPiece : fuelPieces) {
+      var body = fuelPiece.getBody();
+      poses.add(new Pose3d(
+          body.getTransform().getTranslationX(),
+          body.getTransform().getTranslationY(),
+          0.0,
+          new Rotation3d()));
+    }
+    return poses;
+  }
+
+  /**
+   * Converts the current fuel bodies into a Pose3d array and publishes it to NetworkTables.
+   */
+  public void updatePublishedPose3dList() {
+    Pose3d[] poses = new Pose3d[fuelPieces.size()];
+    for (int i = 0; i < fuelPieces.size(); i++) {
+      var body = fuelPieces.get(i).getBody();
+      poses[i] = new Pose3d(
+          body.getTransform().getTranslationX(),
+          body.getTransform().getTranslationY(),
+          0.0,
+          new Rotation3d());
+    }
+    posePublisher.set(poses);
+  }
+
+  /**
+   * Returns the current fuel body poses as a Pose3d array for external consumers.
+   */
+  public Pose3d[] getPose3dArray() {
+    return getPose3dList().toArray(new Pose3d[0]);
+  }
+
+  /**
+   * Explicitly publishes the current fuel pose list to NetworkTables.
+   */
+  public void publishPose3dList() {
+    updatePublishedPose3dList();
   }
 }
