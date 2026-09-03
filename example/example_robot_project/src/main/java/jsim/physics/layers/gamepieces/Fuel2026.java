@@ -104,7 +104,7 @@ public class Fuel2026 extends Gamepiece {
   public void integrate(double dtSeconds, double gravity, boolean simulateAirResistance) {
     translate(velocity.times(dtSeconds));
 
-    if (!supported) {
+    if (!isSupported()) {
       Translation3d force = new Translation3d(0, 0, gravity * FUEL_MASS_KG);
       if (simulateAirResistance) {
         double speed = velocity.getNorm();
@@ -152,7 +152,7 @@ public class Fuel2026 extends Gamepiece {
    * @param restSpeed Vertical speed below which this ball is considered to have stopped.
    */
   public void settle(double dtSeconds, double restSpeed) {
-    if (!supported) {
+    if (!isSupported()) {
       return;
     }
     if (Math.abs(velocity.getZ()) >= restSpeed) {
