@@ -3,6 +3,11 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
+
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -13,7 +18,10 @@ import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -26,6 +34,7 @@ import java.util.function.Supplier;
 import jsim.physics.SwerveDrivePhysics;
 import jsim.physics.layers.Dyn4jCollisionLayer;
 import jsim.physics.layers.fields.Field2026;
+import jsim.physics.layers.fields.FuelLayer;
 import yams.mechanisms.config.SwerveDriveConfig;
 import yams.mechanisms.config.SwerveModuleConfig;
 import yams.mechanisms.swerve.SwerveDrive;
@@ -53,6 +62,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private final SwerveDrive drive;
   private final Pigeon2 gyro;
   private final SwerveDrivePhysics physicsSim;
+  private final FuelLayer fuel;
 
   /**
    * Builds a {@link SwerveInputStream} from joystick axes, pre-capped at {@link
@@ -114,12 +124,24 @@ public class SwerveSubsystem extends SubsystemBase {
 
     drive = new SwerveDrive(config);
     var field = new Field2026();
+    fuel = new FuelLayer(field);
+    fuel.withBumperHeight(Inches.of(4));
+//    fuel.registerIntake(new Transform3d(Inches.of(0), Inches.of(0), Inches.of(0), Rotation3d.kZero),
+//                        new Transform3d(Inches.of(0), Inches.of(0), Inches.of(0), Rotation3d.kZero))
     field.field = drive.getField2d();
     physicsSim =
         new SwerveDrivePhysics(drive)
-            .addLayer(new Dyn4jCollisionLayer(SwerveConstants.kRobotMass, field));
+            .addLayer(new Dyn4jCollisionLayer(SwerveConstants.kRobotMass, field))
+            .addLayer(fuel);
 
     configurePathPlanner();
+  }
+
+  public void fireBall()
+  {
+    // TODO: Make right.
+//    fuel.launchFuel(MetersPerSecond.of(1), Rotations.of(0), Rotations.of(0), Meters.of(1));
+//    fuel.spawnFuel(new Translation3d(0,0,0), new Translation3d(0,0,0));
   }
 
   /**
