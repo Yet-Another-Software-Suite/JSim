@@ -49,3 +49,22 @@ To start the desktop robot simulation with the example project:
 
 On Windows, use `gradlew.bat` instead of `./gradlew`.
 
+## Using JSim
+
+Create a `SwerveDrivePhysics` instance for the drivebase, then add the physics layers needed by the
+simulation:
+
+```java
+physicsSim = new SwerveDrivePhysics(drive)
+		.addLayer(new Dyn4jCollisionLayer(robotMass, field))
+		.addLayer(new FuelLayer(field));
+```
+
+Call `drive.simIterate()` followed by `physicsSim.update()` from the subsystem's
+`simulationPeriodic()` method. See
+[`SwerveSubsystem.java`](example/example_robot_project/src/main/java/frc/robot/subsystems/SwerveSubsystem.java)
+and [`FuelLayer.java`](example/example_robot_project/src/main/java/jsim/physics/layers/FuelLayer.java)
+for the complete integration examples.
+
+JSim is under active development. APIs and simulation behavior may change as additional FRC field
+elements and physics features are added.
