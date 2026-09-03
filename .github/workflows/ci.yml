@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up WPILib 2026
+        uses: wpilibsuite/setup-wpilib@v2026
+
+      - name: Build project
+        working-directory: example/example_robot_project
+        run: ./gradlew build
+
+      - name: Run test suite
+        working-directory: example/example_robot_project
+        run: ./gradlew test
