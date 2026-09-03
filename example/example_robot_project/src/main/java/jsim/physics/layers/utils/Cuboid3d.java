@@ -1,4 +1,4 @@
-package jsim.physics.layers;
+package jsim.physics.layers.utils;
 
 import static edu.wpi.first.units.Units.Meters;
 

@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import jsim.physics.layers.Cuboid3d;
+import jsim.physics.layers.utils.Cuboid3d;
 import org.junit.jupiter.api.Test;
 
 class Cuboid3dTest {

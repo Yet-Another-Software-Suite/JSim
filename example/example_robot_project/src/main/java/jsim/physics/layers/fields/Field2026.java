@@ -14,8 +14,6 @@ import jsim.physics.layers.FuelLayer;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.world.World;
 
-import jsim.physics.layers.FieldLayout;
-
 /**
  * Static field geometry for the 2026 FIRST Robotics Competition game, REBUILT.
  *

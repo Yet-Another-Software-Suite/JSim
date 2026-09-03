@@ -23,13 +23,14 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
-import jsim.physics.layers.FieldLayout.Element;
+import jsim.physics.layers.fields.FieldLayout.Element;
 import jsim.physics.layers.fields.Field2026;
 import jsim.physics.layers.gamepieces.Fuel2026;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import jsim.physics.layers.utils.Cuboid3d;
 
 /**
  * Three-dimensional FUEL simulation for the 2026 REBUILT game, as a {@link PhysicsLayer}.

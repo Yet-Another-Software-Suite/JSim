@@ -1,4 +1,4 @@
-package jsim.physics.layers;
+package jsim.physics.layers.fields;
 
 import static edu.wpi.first.units.Units.Kilograms;
 
@@ -9,6 +9,8 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import java.util.ArrayList;
 import java.util.List;
+import jsim.physics.layers.utils.Cuboid3d;
+import jsim.physics.layers.Dyn4jCollisionLayer;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Geometry;
@@ -18,7 +20,6 @@ import org.dyn4j.world.World;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Mass;
-import jsim.physics.layers.fields.Field2026;
 
 /**
  * Strategy interface for a season's static field geometry.
@@ -143,7 +144,7 @@ public interface FieldLayout {
     private final double minX;
     private final double maxX;
     private final double minY;
-    private final double maxY;
+    private final double   maxY;
     private final Cuboid3d cuboid;
 
     /** Creates an immovable field obstacle from the given polygon vertices. */

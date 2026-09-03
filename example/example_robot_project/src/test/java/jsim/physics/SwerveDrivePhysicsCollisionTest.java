@@ -10,7 +10,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import jsim.physics.layers.Dyn4jCollisionLayer;
-import jsim.physics.layers.FieldLayout;
+import jsim.physics.layers.fields.FieldLayout;
 import jsim.physics.layers.fields.Field2026;
 
 import org.junit.jupiter.api.Test;
