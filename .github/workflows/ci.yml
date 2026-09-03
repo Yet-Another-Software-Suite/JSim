@@ -8,6 +8,7 @@ jobs:
   build-and-test:
     name: Build and test
     runs-on: ubuntu-latest
+    container: wpilib/debian-base:trixie
 
     steps:
       - name: Check out repository
@@ -19,9 +20,6 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: gradle
-
-      - name: Set up WPILib 2026
-        uses: wpilibsuite/setup-wpilib@v2026
 
       - name: Build project
         working-directory: example/example_robot_project
