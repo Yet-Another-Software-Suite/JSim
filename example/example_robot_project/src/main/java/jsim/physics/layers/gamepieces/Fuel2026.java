@@ -26,7 +26,7 @@ import jsim.physics.layers.utils.Sphere3d;
  * of collision math -- its {@link #sphere() sphere} and ball-to-ball {@link #collide}
  * response -- that depend only on physical properties of the ball itself.
  */
-public class Fuel2026 {
+public class Fuel2026 extends Gamepiece {
 
   /** Diameter of one FUEL ball -- a fixed physical property of the game piece. */
   public static final Distance FUEL_DIAMETER = Meters.of(0.15);
@@ -74,11 +74,6 @@ public class Fuel2026 {
    */
   public static final double ROLLING_FRICTION = 0.1;
 
-  private Translation3d position;
-  private Translation3d velocity;
-  private boolean supported;
-  private boolean intaked;
-
   /**
    * Creates a FUEL piece at rest.
    *
@@ -95,119 +90,7 @@ public class Fuel2026 {
    * @param velocity Field-relative velocity, in meters per second.
    */
   public Fuel2026(Translation3d position, Translation3d velocity) {
-    this.position = position;
-    this.velocity = velocity;
-  }
-
-  /**
-   * Returns the field-relative position of this ball's center.
-   *
-   * @return Field-relative position of this ball's center, in meters.
-   */
-  public Translation3d getPosition() {
-    return position;
-  }
-
-  /**
-   * Sets this ball's field-relative position outright, e.g. when re-homing it after a HUB score.
-   *
-   * @param position New field-relative position of this ball's center, in meters.
-   */
-  public void setPosition(Translation3d position) {
-    this.position = position;
-  }
-
-  /**
-   * Returns this ball's field-relative velocity.
-   *
-   * @return Field-relative velocity of this ball, in meters per second.
-   */
-  public Translation3d getVelocity() {
-    return velocity;
-  }
-
-  /**
-   * Sets this ball's field-relative velocity outright, e.g. when launching it from a shooter.
-   *
-   * @param velocity New field-relative velocity of this ball, in meters per second.
-   */
-  public void setVelocity(Translation3d velocity) {
-    this.velocity = velocity;
-  }
-
-  /**
-   * Adds a velocity change to this ball, e.g. from a collision impulse.
-   *
-   * @param impulse Velocity change to add, in meters per second.
-   */
-  public void addImpulse(Translation3d impulse) {
-    this.velocity = velocity.plus(impulse);
-  }
-
-  /**
-   * Moves this ball by {@code offset} without changing its velocity, e.g. to resolve an overlap.
-   *
-   * @param offset Field-relative displacement to move this ball by, in meters.
-   */
-  public void translate(Translation3d offset) {
-    this.position = position.plus(offset);
-  }
-
-  /**
-   * Whether this ball is currently resting on a surface (the carpet, a BUMP, a TRENCH, ...).
-   * Supported balls skip gravity and lose horizontal speed to rolling friction instead of
-   * jittering against whatever they are sitting on.
-   *
-   * @return Whether this ball is currently resting on a surface.
-   */
-  public boolean isSupported() {
-    return supported;
-  }
-
-  /**
-   * Sets whether this ball is currently resting on a surface.
-   *
-   * @param supported Whether this ball is currently resting on a surface.
-   */
-  public void setSupported(boolean supported) {
-    this.supported = supported;
-  }
-
-  /**
-   * Whether this ball has been picked up by a registered intake. Intaked FUEL is removed from the
-   * simulation, so this flag only matters to callers still holding a reference to the piece.
-   *
-   * @return Whether this ball has been picked up by a registered intake.
-   */
-  public boolean isIntaked() {
-    return intaked;
-  }
-
-  /**
-   * Sets whether this ball has been picked up by a registered intake.
-   *
-   * @param intaked Whether this ball has been picked up by a registered intake.
-   */
-  public void setIntaked(boolean intaked) {
-    this.intaked = intaked;
-  }
-
-  /**
-   * Returns this ball's position projected onto the carpet, for robot-relative geometry.
-   *
-   * @return This ball's position projected onto the carpet, in field-relative meters.
-   */
-  public Translation2d getTranslation2d() {
-    return position.toTranslation2d();
-  }
-
-  /**
-   * Returns this ball's position as an (unrotated) pose, for NetworkTables publishing.
-   *
-   * @return This ball's position as an unrotated {@link Pose3d}.
-   */
-  public Pose3d getPose3d() {
-    return new Pose3d(position, new Rotation3d());
+    super(position, velocity);
   }
 
   /**
