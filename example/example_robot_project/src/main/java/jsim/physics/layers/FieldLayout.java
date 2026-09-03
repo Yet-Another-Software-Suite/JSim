@@ -3,7 +3,10 @@ package jsim.physics.layers;
 import static edu.wpi.first.units.Units.Kilograms;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import java.util.ArrayList;
 import java.util.List;
 import org.dyn4j.dynamics.Body;
@@ -141,6 +144,7 @@ public interface FieldLayout {
     private final double maxX;
     private final double minY;
     private final double maxY;
+    private final Cuboid3d cuboid;
 
     /** Creates an immovable field obstacle from the given polygon vertices. */
     public Element(Translation2d... vertices) {
@@ -198,6 +202,16 @@ public interface FieldLayout {
       this.maxX = highX;
       this.minY = lowY;
       this.maxY = highY;
+
+      double top = Math.max(topHeightAtMinX, topHeightAtMaxX);
+      this.cuboid = new Cuboid3d(
+          new Pose3d(
+              new Translation3d(
+                  (lowX + highX) / 2.0, (lowY + highY) / 2.0, (bottomHeight + top) / 2.0),
+              Rotation3d.kZero),
+          highX - lowX,
+          highY - lowY,
+          top - bottomHeight);
     }
 
     /**
@@ -274,6 +288,16 @@ public interface FieldLayout {
     /** Center of this element's footprint bounding box, in field-relative meters. */
     public Translation2d getCenter() {
       return new Translation2d((minX + maxX) / 2.0, (minY + maxY) / 2.0);
+    }
+
+    /**
+     * This element's footprint and vertical extent as an axis-aligned {@link Cuboid3d}, for sphere
+     * collision (see {@link Cuboid3d#overlapWithSphere}). For a flat-topped element this is exact;
+     * for a sloped one ({@link #isSloped()}) it is only the element's bounding box -- collide
+     * against the sloped face itself instead, using {@link #topHeightAt(double)}.
+     */
+    public Cuboid3d getCuboid() {
+      return cuboid;
     }
 
     public Body toBody() {

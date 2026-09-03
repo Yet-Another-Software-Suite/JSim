@@ -7,10 +7,8 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Radians;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -25,6 +23,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
+import jsim.physics.layers.Cuboid3d;
 import jsim.physics.layers.FieldLayout.Element;
 import jsim.physics.layers.PhysicsLayer;
 import jsim.physics.layers.gamepieces.Fuel2026;
@@ -558,76 +557,28 @@ public class FuelLayer implements PhysicsLayer {
   // ---------------------------------------------------------------------------------------------
 
   /**
-   * Resolves a ball overlapping an upright field structure, treated as the axis-aligned box given
-   * by the element's footprint and vertical extent.
+   * Resolves a ball overlapping an upright field structure, using the {@link Cuboid3d} that
+   * {@link Element#getCuboid()} builds from the element's footprint and vertical extent.
    *
-   * <p>The ball is pushed out along the direction from the nearest point of the box to its center,
-   * so the same routine handles being shoved sideways off a HUB wall and coming to rest on top of
-   * a TRENCH. A ball whose center has ended up inside the box escapes along whichever face it is
-   * closest to.
+   * <p>{@link Cuboid3d#overlapWithSphere} does the geometry: the ball is pushed out along the
+   * direction from the nearest point of the box to its center, so the same routine handles being
+   * shoved sideways off a HUB wall and coming to rest on top of a TRENCH. A ball whose center has
+   * ended up fully inside the box escapes along whichever face it is closest to.
    *
    * @param cor Coefficient of restitution to bounce the ball off this structure with.
    */
   private void collideBox(Fuel2026 fuel, Element element, double cor) {
-    double minX = element.getMinX();
-    double maxX = element.getMaxX();
-    double minY = element.getMinY();
-    double maxY = element.getMaxY();
-    double minZ = element.getBottomHeight();
-    double maxZ = element.getTopHeight();
-
-    Translation3d position = fuel.getPosition();
-    double x = position.getX();
-    double y = position.getY();
-    double z = position.getZ();
-
-    double reach = FUEL_RADIUS + CONTACT_SKIN;
-    if (x < minX - reach || x > maxX + reach
-        || y < minY - reach || y > maxY + reach
-        || z < minZ - reach || z > maxZ + reach) {
+    Cuboid3d.Contact contact =
+        element.getCuboid().overlapWithSphere(fuel.getPosition(), FUEL_RADIUS, CONTACT_SKIN);
+    if (contact == null) {
       return;
     }
-
-    double deltaX = x - MathUtil.clamp(x, minX, maxX);
-    double deltaY = y - MathUtil.clamp(y, minY, maxY);
-    double deltaZ = z - MathUtil.clamp(z, minZ, maxZ);
-    double distanceSquared = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
-    if (distanceSquared > reach * reach) {
-      return;
-    }
-
-    Translation3d normal;
-    double depth;
-    if (distanceSquared > 1e-12) {
-      double distance = Math.sqrt(distanceSquared);
-      normal = new Translation3d(deltaX / distance, deltaY / distance, deltaZ / distance);
-      depth = FUEL_RADIUS - distance;
-    } else {
-      // Center is inside the box: leave through the closest face.
-      double[] faceDistances = {x - minX, maxX - x, y - minY, maxY - y, z - minZ, maxZ - z};
-      int closestFace = 0;
-      for (int face = 1; face < faceDistances.length; face++) {
-        if (faceDistances[face] < faceDistances[closestFace]) {
-          closestFace = face;
-        }
-      }
-      normal = switch (closestFace) {
-        case 0 -> new Translation3d(-1, 0, 0);
-        case 1 -> new Translation3d(1, 0, 0);
-        case 2 -> new Translation3d(0, -1, 0);
-        case 3 -> new Translation3d(0, 1, 0);
-        case 4 -> new Translation3d(0, 0, -1);
-        default -> new Translation3d(0, 0, 1);
-      };
-      depth = FUEL_RADIUS + faceDistances[closestFace];
-    }
-
-    if (depth < 0 && !isRestingContact(fuel, normal)) {
+    if (contact.depth() < 0 && !isRestingContact(fuel, contact.normal())) {
       return; // Inside the contact skin but not settling onto a top face: not touching yet.
     }
 
-    fuel.translate(normal.times(depth));
-    bounce(fuel, normal, cor);
+    fuel.translate(contact.pushOut());
+    bounce(fuel, contact.normal(), cor);
   }
 
   /**
@@ -833,48 +784,30 @@ public class FuelLayer implements PhysicsLayer {
    */
   private void handleRobotCollision(
       Fuel2026 fuel, Pose2d robotPose, Translation2d robotDimensions, Translation2d robotVelocity) {
-    if (fuel.getPosition().getZ() > bumperHeightMeters) {
-      return; // Flying over the robot.
-    }
+    Cuboid3d bumperBox = new Cuboid3d(
+        new Pose3d(
+            new Translation3d(robotPose.getX(), robotPose.getY(), bumperHeightMeters / 2.0),
+            new Rotation3d(robotPose.getRotation())),
+        robotDimensions.getX() * 2.0,
+        robotDimensions.getY() * 2.0,
+        bumperHeightMeters);
 
-    Translation2d relativePosition = new Pose2d(fuel.getTranslation2d(), Rotation2d.kZero)
-        .relativeTo(robotPose)
-        .getTranslation();
-
-    // Distance the ball would have to travel to clear each bumper face; all four are negative
-    // exactly when the ball is inside the footprint.
-    double toBack = -FUEL_RADIUS - robotDimensions.getX() - relativePosition.getX();
-    double toFront = -FUEL_RADIUS - robotDimensions.getX() + relativePosition.getX();
-    double toRight = -FUEL_RADIUS - robotDimensions.getY() - relativePosition.getY();
-    double toLeft = -FUEL_RADIUS - robotDimensions.getY() + relativePosition.getY();
-    if (toBack > 0 || toFront > 0 || toRight > 0 || toLeft > 0) {
+    Cuboid3d.Contact contact = bumperBox.overlapWithSphere(fuel.getPosition(), FUEL_RADIUS);
+    if (contact == null) {
       return;
     }
 
-    Translation2d pushOut;
-    if (toBack >= toFront && toBack >= toRight && toBack >= toLeft) {
-      pushOut = new Translation2d(toBack, 0);
-    } else if (toFront >= toBack && toFront >= toRight && toFront >= toLeft) {
-      pushOut = new Translation2d(-toFront, 0);
-    } else if (toRight >= toBack && toRight >= toFront && toRight >= toLeft) {
-      pushOut = new Translation2d(0, toRight);
-    } else {
-      pushOut = new Translation2d(0, -toLeft);
-    }
+    fuel.translate(contact.pushOut());
 
-    pushOut = pushOut.rotateBy(robotPose.getRotation());
-    fuel.translate(new Translation3d(pushOut));
-
-    Translation2d normal = pushOut.div(pushOut.getNorm());
-    Translation2d horizontalVelocity = fuel.getVelocity().toTranslation2d();
-    double approachSpeed = horizontalVelocity.dot(normal);
+    double approachSpeed = fuel.getVelocity().dot(contact.normal());
     if (approachSpeed < 0) {
-      fuel.addImpulse(new Translation3d(normal.times(-approachSpeed * (1.0 + ROBOT_COR))));
+      fuel.addImpulse(contact.normal().times(-approachSpeed * (1.0 + ROBOT_COR)));
     }
 
-    double robotSpeedIntoBall = robotVelocity.dot(normal);
+    Translation3d robotVelocity3d = new Translation3d(robotVelocity.getX(), robotVelocity.getY(), 0);
+    double robotSpeedIntoBall = robotVelocity3d.dot(contact.normal());
     if (robotSpeedIntoBall > 0) {
-      fuel.addImpulse(new Translation3d(normal.times(robotSpeedIntoBall)));
+      fuel.addImpulse(contact.normal().times(robotSpeedIntoBall));
     }
   }
 
@@ -1056,7 +989,7 @@ public class FuelLayer implements PhysicsLayer {
 
     Pose3d[] intakeZones = new Pose3d[intakes.size()];
     for (int i = 0; i < intakeZones.length; i++) {
-      intakeZones[i] = intakes.get(i).getCenterPose();
+      intakeZones[i] = intakes.get(i).getBox().getCenter();
     }
     intakeZonePublisher.set(intakeZones);
 
@@ -1151,73 +1084,58 @@ public class FuelLayer implements PhysicsLayer {
      * impact instead of returning it.
      */
     private void collideNet(Fuel2026 fuel) {
-      Translation3d position = fuel.getPosition();
-      if (position.getZ() > net.getTopHeight() || position.getZ() < net.getBottomHeight()) {
-        return;
-      }
-      if (position.getY() > net.getMaxY() || position.getY() < net.getMinY()) {
+      Cuboid3d.Contact contact = net.getCuboid().overlapWithSphere(fuel.getPosition(), FUEL_RADIUS);
+      if (contact == null) {
         return;
       }
 
-      double planeX = net.getCenter().getX();
-      double pushOutX = position.getX() > planeX
-          ? Math.max(0.0, planeX - (position.getX() - FUEL_RADIUS))
-          : Math.min(0.0, planeX - (position.getX() + FUEL_RADIUS));
-      if (pushOutX == 0.0) {
-        return;
+      fuel.translate(contact.pushOut());
+      double approachSpeed = fuel.getVelocity().dot(contact.normal());
+      if (approachSpeed < 0) {
+        fuel.addImpulse(contact.normal().times(-(1.0 + NET_COR) * approachSpeed));
       }
-
-      fuel.translate(new Translation3d(pushOutX, 0, 0));
-      Translation3d velocity = fuel.getVelocity();
-      fuel.setVelocity(new Translation3d(
-          -velocity.getX() * NET_COR, velocity.getY() * NET_COR, velocity.getZ()));
     }
   }
 
   /**
    * A 3D pickup box, fixed to the robot, that removes FUEL from the FIELD while it is enabled.
    *
-   * <p>The box is stored as two opposite corners in the robot's own frame, so it is defined once
-   * and then carried around by the robot: {@link #update(Pose2d)} re-places it from the robot's
-   * latest pose every physics step, and {@link #contains(Translation3d)} tests a ball against it
-   * where the robot actually is right now. {@link #getCenterPose()} and {@link #getSize()} hand
-   * that same field-relative box back for visualization.
+   * <p>The box is stored as a {@link Cuboid3d} in the robot's own frame, so it is defined once and
+   * then carried around by the robot: {@link SimIntake#update(Pose2d)} re-places it from the
+   * robot's latest pose every physics step, and {@link SimIntake#contains(Translation3d)} tests a
+   * ball against it where the robot actually is right now. {@link SimIntake#getBox()} hands that
+   * same field-relative box back for visualization.
    */
   public static final class SimIntake {
 
-    /** Corner of the box nearest the robot's origin on all three axes, robot-relative. */
-    private final Translation3d minCorner;
-
-    /** Corner of the box furthest from the robot's origin on all three axes, robot-relative. */
-    private final Translation3d maxCorner;
+    /** This pickup box, fixed in the robot's own frame. */
+    private final Cuboid3d localBox;
 
     private final BooleanSupplier enabled;
     private final Runnable onIntake;
 
-    /** Latest robot pose the box has been placed from. */
-    private Pose3d robotPose = new Pose3d();
-
-    /** Field-relative center of the box, re-derived by {@link #update(Pose2d)}. */
-    private Pose3d centerPose;
+    /** This pickup box, re-placed onto the FIELD by {@link #update(Pose2d)} every physics step. */
+    private Cuboid3d fieldBox;
 
     private SimIntake(
         Transform3d cornerA, Transform3d cornerB, BooleanSupplier enabled, Runnable onIntake) {
-      Translation3d a = cornerA.getTranslation();
-      Translation3d b = cornerB.getTranslation();
-      this.minCorner = new Translation3d(
-          Math.min(a.getX(), b.getX()), Math.min(a.getY(), b.getY()), Math.min(a.getZ(), b.getZ()));
-      this.maxCorner = new Translation3d(
-          Math.max(a.getX(), b.getX()), Math.max(a.getY(), b.getY()), Math.max(a.getZ(), b.getZ()));
+      this.localBox = new Cuboid3d(cornerA.getTranslation(), cornerB.getTranslation());
       this.enabled = enabled;
       this.onIntake = onIntake;
       update(Pose2d.kZero);
     }
 
-    /** Re-places this pickup box from the robot's current pose. */
-    private void update(Pose2d newRobotPose) {
-      this.robotPose = new Pose3d(newRobotPose);
-      this.centerPose = robotPose.plus(
-          new Transform3d(minCorner.plus(maxCorner).div(2.0), Rotation3d.kZero));
+    /**
+     * Re-places this pickup box onto the FIELD from the robot's current pose, by reparenting
+     * {@link #localBox}'s center -- an offset in the robot's frame -- into the field frame through
+     * the robot's own field pose.
+     */
+    private void update(Pose2d robotPose) {
+      Pose3d robotPose3d = new Pose3d(robotPose);
+      Pose3d fieldCenter = robotPose3d.plus(
+          new Transform3d(localBox.getCenter().getTranslation(), localBox.getCenter().getRotation()));
+      this.fieldBox = new Cuboid3d(
+          fieldCenter, localBox.getXWidth(), localBox.getYWidth(), localBox.getZWidth());
     }
 
     /** Whether this intake is currently able to pick FUEL up. */
@@ -1231,37 +1149,15 @@ public class FuelLayer implements PhysicsLayer {
      * @param fieldPosition Field-relative position to test, in meters.
      */
     public boolean contains(Translation3d fieldPosition) {
-      Translation3d relative =
-          new Pose3d(fieldPosition, Rotation3d.kZero).relativeTo(robotPose).getTranslation();
-      return relative.getX() >= minCorner.getX()
-          && relative.getX() <= maxCorner.getX()
-          && relative.getY() >= minCorner.getY()
-          && relative.getY() <= maxCorner.getY()
-          && relative.getZ() >= minCorner.getZ()
-          && relative.getZ() <= maxCorner.getZ();
+      return fieldBox.contains(fieldPosition);
     }
 
     /**
-     * Field-relative center of this pickup box, oriented with the robot -- as of the last physics
-     * step. Publish this alongside {@link #getSize()} to draw the box in a 3D field view.
+     * This pickup box's current field-relative placement, oriented with the robot -- as of the
+     * last physics step. Publish this to draw the box in a 3D field view.
      */
-    public Pose3d getCenterPose() {
-      return centerPose;
-    }
-
-    /** Full size of this pickup box along the robot's X, Y and Z axes, in meters. */
-    public Translation3d getSize() {
-      return maxCorner.minus(minCorner);
-    }
-
-    /** Corner of this pickup box nearest the robot's origin on all three axes, robot-relative. */
-    public Translation3d getMinCorner() {
-      return minCorner;
-    }
-
-    /** Corner of this pickup box furthest from the robot's origin on all three axes, robot-relative. */
-    public Translation3d getMaxCorner() {
-      return maxCorner;
+    public Cuboid3d getBox() {
+      return fieldBox;
     }
   }
 }
