@@ -291,12 +291,11 @@ public class FuelLayer implements PhysicsLayer {
    * Advances the FUEL simulation by {@code dtSeconds}, in {@link #withSubticks(int) subticks}
    * steps, against the most recently seen robot pose and speeds.
    *
-   * <p>{@link #process} calls this for you; call it directly only to run the FUEL sim standalone,
-   * outside a {@code SwerveDrivePhysics} pipeline.
+   * <p>{@link #process} calls this for you.
    *
    * @param dtSeconds Time to advance, in seconds.
    */
-  public void stepSim(double dtSeconds) {
+  private void stepSim(double dtSeconds) {
     double subDt = dtSeconds / subticks;
     Translation2d robotVelocity = new Translation2d(
         lastFieldRelativeSpeeds.vxMetersPerSecond, lastFieldRelativeSpeeds.vyMetersPerSecond);
@@ -809,7 +808,7 @@ public class FuelLayer implements PhysicsLayer {
    * Publishes the current ball poses, intake pickup boxes and HUB scores to NetworkTables
    * immediately, regardless of the {@link #withLoggingFrequency(double) publish rate}.
    */
-  public void publish() {
+  private void publish() {
     posePublisher.set(getPose3dArray());
 
     Pose3d[] intakeZones = new Pose3d[intakes.size()];
