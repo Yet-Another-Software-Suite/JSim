@@ -6,6 +6,8 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import jsim.physics.layers.utils.Contact;
+import jsim.physics.layers.utils.Sphere3d;
 
 /**
  * Common state and lifecycle operations for a simulated game piece.
@@ -26,6 +28,7 @@ public class Gamepiece {
 
   /** Field-relative velocity, in meters per second. */
   protected Translation3d velocity;
+  private final double collisionRadius;
   private boolean supported;
   private boolean intaked;
   private Transform3d robotRelativeAttachment;
@@ -36,7 +39,7 @@ public class Gamepiece {
    * @param position Field-relative position of the piece's center, in meters.
    */
   public Gamepiece(Translation3d position) {
-    this(position, new Translation3d());
+    this(position, new Translation3d(), 0.0);
   }
 
   /**
@@ -46,8 +49,24 @@ public class Gamepiece {
    * @param velocity Field-relative velocity of the piece, in meters per second.
    */
   public Gamepiece(Translation3d position, Translation3d velocity) {
+    this(position, velocity, 0.0);
+  }
+
+  /**
+   * Creates a moving game piece with a spherical collision radius.
+   *
+   * @param position Field-relative position of the piece's center, in meters.
+   * @param velocity Field-relative velocity of the piece, in meters per second.
+   * @param collisionRadius Radius used by {@link #collide(Gamepiece, double)}, in meters.
+   */
+  protected Gamepiece(
+      Translation3d position, Translation3d velocity, double collisionRadius) {
+    if (collisionRadius < 0) {
+      throw new IllegalArgumentException("Gamepiece collision radius cannot be less than 0.");
+    }
     this.position = position;
     this.velocity = velocity;
+    this.collisionRadius = collisionRadius;
   }
 
   /**
@@ -156,6 +175,49 @@ public class Gamepiece {
    */
   public Pose3d getPose3d() {
     return new Pose3d(position, new Rotation3d());
+  }
+
+  /**
+   * Returns the spherical radius used for generic game-piece collisions.
+   *
+   * @return Collision radius, in meters.
+   */
+  public double getCollisionRadius() {
+    return collisionRadius;
+  }
+
+  /**
+   * Resolves an overlapping collision with another game piece.
+   *
+   * <p>Both pieces are treated as spherical, equal-mass bodies. The pieces are separated
+   * symmetrically and receive equal and opposite velocity impulses along their contact normal.
+   * Pieces whose shapes need a more specialized response can override this method.
+   *
+   * @param other The other game piece.
+   * @param coefficientOfRestitution How much normal collision velocity is retained, usually from
+   *     {@code 0.0} (inelastic) to {@code 1.0} (fully elastic).
+   * @return The resolved contact, or {@code null} if the pieces do not overlap.
+   */
+  public Contact collide(Gamepiece other, double coefficientOfRestitution) {
+    Contact contact = sphere().overlapWithSphere(other.sphere());
+    if (contact == null) {
+      return null;
+    }
+
+    Translation3d separation = contact.pushOut().div(2.0);
+    translate(separation.times(-1.0));
+    other.translate(separation);
+
+    double impulse = 0.5 * (1.0 + coefficientOfRestitution)
+        * other.getVelocity().minus(getVelocity()).dot(contact.normal());
+    addImpulse(contact.normal().times(impulse));
+    other.addImpulse(contact.normal().times(-impulse));
+    return contact;
+  }
+
+  /** Returns this piece's spherical collision shape. */
+  protected Sphere3d sphere() {
+    return new Sphere3d(position, collisionRadius);
   }
 
   /**

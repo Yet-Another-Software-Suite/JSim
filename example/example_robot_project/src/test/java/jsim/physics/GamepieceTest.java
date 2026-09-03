@@ -35,4 +35,24 @@ class GamepieceTest {
     piece.detachFromRobot();
     assertTrue(!piece.isAttachedToRobot());
   }
+
+  @Test
+  void differentGamepieceTypesCollideUsingTheirSharedSphericalShape() {
+    Gamepiece first = new TestGamepiece(new Translation3d(0, 0, 0));
+    Gamepiece second = new TestGamepiece(new Translation3d(0.15, 0, 0));
+    first.setVelocity(new Translation3d(1, 0, 0));
+    second.setVelocity(new Translation3d(-1, 0, 0));
+
+    first.collide(second, 1.0);
+
+    assertEquals(-1.0, first.getVelocity().getX(), 1e-9);
+    assertEquals(1.0, second.getVelocity().getX(), 1e-9);
+    assertEquals(0.2, first.getPosition().getDistance(second.getPosition()), 1e-9);
+  }
+
+  private static class TestGamepiece extends Gamepiece {
+    TestGamepiece(Translation3d position) {
+      super(position, new Translation3d(), 0.1);
+    }
+  }
 }

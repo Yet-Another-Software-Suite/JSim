@@ -90,7 +90,7 @@ public class Fuel2026 extends Gamepiece {
    * @param velocity Field-relative velocity, in meters per second.
    */
   public Fuel2026(Translation3d position, Translation3d velocity) {
-    super(position, velocity);
+    super(position, velocity, FUEL_RADIUS);
   }
 
   /**
@@ -170,7 +170,7 @@ public class Fuel2026 extends Gamepiece {
    * @return A {@link Sphere3d} centered on this ball with radius {@link #FUEL_RADIUS}.
    */
   public Sphere3d sphere() {
-    return new Sphere3d(position, FUEL_RADIUS);
+    return super.sphere();
   }
 
   /**
@@ -181,20 +181,7 @@ public class Fuel2026 extends Gamepiece {
    * @param cor Coefficient of restitution between two FUEL balls.
    */
   public void collide(Fuel2026 other, double cor) {
-    Contact contact = sphere().overlapWithSphere(other.sphere());
-    if (contact == null) {
-      return;
-    }
-
-    // contact.normal() points from this ball's center towards other's; separate them
-    // symmetrically along it.
-    Translation3d separation = contact.pushOut().div(2.0);
-    translate(separation.times(-1.0));
-    other.translate(separation);
-
-    double impulse = 0.5 * (1.0 + cor) * other.getVelocity().minus(getVelocity()).dot(contact.normal());
-    addImpulse(contact.normal().times(impulse));
-    other.addImpulse(contact.normal().times(-impulse));
+    super.collide(other, cor);
   }
 
   /**
