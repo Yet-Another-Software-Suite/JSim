@@ -183,7 +183,8 @@ public class SwerveDrivePhysics {
     }
 
     /**
-     * Returns the single-source-of-truth {@link SwerveDriveOdometry} instance created during initialization.
+    * Returns the single-source-of-truth {@link SwerveDrivePoseEstimator} instance created during
+    * initialization.
      *
      * @return The final odometry object shared across the drivetrain.
      */
