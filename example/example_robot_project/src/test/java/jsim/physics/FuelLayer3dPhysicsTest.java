@@ -16,7 +16,7 @@ import edu.wpi.first.units.measure.Distance;
 import jsim.physics.layers.Cuboid3d;
 import jsim.physics.layers.FieldLayout.Element;
 import jsim.physics.layers.fields.Field2026;
-import jsim.physics.layers.fields.FuelLayer;
+import jsim.physics.layers.FuelLayer;
 import jsim.physics.layers.gamepieces.Fuel2026;
 import org.junit.jupiter.api.Test;
 

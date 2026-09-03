@@ -10,7 +10,7 @@ import edu.wpi.first.math.geometry.Translation3d;
  *
  * <p>FUEL is simulated as a free particle rather than a rigid body -- it has a position and a
  * velocity but no orientation, since a smooth sphere's spin doesn't affect anything else in the
- * model. {@code jsim.physics.layers.fields.FuelLayer} owns the integration and all collision
+ * model. {@code jsim.physics.layers.FuelLayer} owns the integration and all collision
  * response; this class is just the state those steps read and write.
  */
 public class Fuel2026 {

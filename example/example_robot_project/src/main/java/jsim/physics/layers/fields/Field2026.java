@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import java.util.ArrayList;
 import java.util.List;
 
+import jsim.physics.layers.FuelLayer;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.world.World;
 

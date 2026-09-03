@@ -12,7 +12,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArraySubscriber;
 import jsim.physics.layers.fields.Field2026;
-import jsim.physics.layers.fields.FuelLayer;
+import jsim.physics.layers.FuelLayer;
 import org.junit.jupiter.api.Test;
 
 class FuelLayerPose3dNTPublishTest {
