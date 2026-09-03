@@ -8,7 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import jsim.physics.layers.utils.Contact;
 import jsim.physics.layers.utils.Cuboid3d;
+import jsim.physics.layers.utils.Sphere3d;
 import org.junit.jupiter.api.Test;
 
 class Cuboid3dTest {
@@ -52,14 +54,14 @@ class Cuboid3dTest {
   @Test
   void overlapWithSphereReturnsNullWhenFarAway() {
     Cuboid3d box = new Cuboid3d(new Pose3d(), 1.0, 1.0, 1.0);
-    assertNull(box.overlapWithSphere(new Translation3d(5, 0, 0), 0.1));
+    assertNull(box.overlapWithSphere(new Sphere3d(new Translation3d(5, 0, 0), 0.1)));
   }
 
   @Test
   void overlapWithSphereReportsOutwardNormalAndDepth() {
     Cuboid3d box = new Cuboid3d(new Pose3d(), 2.0, 2.0, 2.0);
     // Sphere of radius 0.5 centered 1.2m out along +X: penetrates the +X face by 0.3m.
-    Cuboid3d.Contact contact = box.overlapWithSphere(new Translation3d(1.2, 0, 0), 0.5);
+    Contact contact = box.overlapWithSphere(new Sphere3d(new Translation3d(1.2, 0, 0), 0.5));
 
     assertEquals(new Translation3d(1, 0, 0), contact.normal());
     assertEquals(0.3, contact.depth(), 1e-9);
@@ -70,7 +72,7 @@ class Cuboid3dTest {
   void overlapWithSphereEscapesThroughTheNearestFaceWhenFullyInside() {
     // A flat, wide box: a sphere centered inside it is much closer to a Z face than any side.
     Cuboid3d box = new Cuboid3d(new Pose3d(), 10.0, 10.0, 0.5);
-    Cuboid3d.Contact contact = box.overlapWithSphere(new Translation3d(0, 0, 0), 0.1);
+    Contact contact = box.overlapWithSphere(new Sphere3d(new Translation3d(0, 0, 0), 0.1));
 
     assertEquals(0.0, contact.normal().getX(), 1e-9);
     assertEquals(0.0, contact.normal().getY(), 1e-9);
@@ -85,7 +87,7 @@ class Cuboid3dTest {
         new Pose3d(new Translation3d(), new Rotation3d(0, 0, Math.PI / 2.0)), 2.0, 1.0, 1.0);
     // In the box's own (rotated) frame this sphere sits off the local +X face; in field terms
     // that face now points along +Y.
-    Cuboid3d.Contact contact = box.overlapWithSphere(new Translation3d(0, 1.2, 0), 0.5);
+    Contact contact = box.overlapWithSphere(new Sphere3d(new Translation3d(0, 1.2, 0), 0.5));
 
     assertEquals(0.0, contact.normal().getX(), 1e-9);
     assertEquals(1.0, contact.normal().getY(), 1e-9);
@@ -96,7 +98,7 @@ class Cuboid3dTest {
   void overlapWithSphereMarginReportsNegativeDepthForANearMiss() {
     Cuboid3d box = new Cuboid3d(new Pose3d(), 2.0, 2.0, 2.0);
     // Sphere surface is 0.1m short of the box; within a 0.2m margin, but not touching yet.
-    Cuboid3d.Contact contact = box.overlapWithSphere(new Translation3d(1.6, 0, 0), 0.5, 0.2);
+    Contact contact = box.overlapWithSphere(new Sphere3d(new Translation3d(1.6, 0, 0), 0.5), 0.2);
 
     assertEquals(new Translation3d(1, 0, 0), contact.normal());
     assertEquals(-0.1, contact.depth(), 1e-9);

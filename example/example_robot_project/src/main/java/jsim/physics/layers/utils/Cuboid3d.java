@@ -22,6 +22,7 @@ import java.util.Objects;
  * itself every step.
  *
  * @see edu.wpi.first.math.geometry.Rectangle2d
+ * @see Sphere3d
  */
 public class Cuboid3d {
 
@@ -186,26 +187,25 @@ public class Cuboid3d {
   /**
    * Resolves a sphere against this cuboid, for rigid-body-style collision response.
    *
-   * <p>Returns {@code null} if the sphere is further than {@code radius} from the cuboid's
-   * surface. Otherwise returns the outward {@link Contact#normal()} the sphere should bounce off
-   * of and how far it has penetrated the surface along that normal -- {@link Contact#pushOut()} is
-   * the vector that, added to the sphere's center, would just clear the overlap.
+   * <p>Returns {@code null} if the sphere is further than its radius from the cuboid's surface.
+   * Otherwise returns the outward {@link Contact#normal()} the sphere should bounce off of and how
+   * far it has penetrated the surface along that normal -- {@link Contact#pushOut()} is the vector
+   * that, added to the sphere's center, would just clear the overlap.
    *
    * <p>A sphere whose center has already crossed into the cuboid resolves through whichever face
    * it is closest to, so a ball that tunnels fully inside a thin structure in one step still pops
    * back out the nearest side rather than getting stuck.
    *
-   * @param sphereCenter Field-relative center of the sphere.
-   * @param radius Radius of the sphere.
+   * @param sphere The sphere to resolve against this cuboid.
    * @return The contact normal and penetration depth, or {@code null} if the two don't overlap.
    */
-  public Contact overlapWithSphere(Translation3d sphereCenter, double radius) {
-    return overlapWithSphere(sphereCenter, radius, 0.0);
+  public Contact overlapWithSphere(Sphere3d sphere) {
+    return overlapWithSphere(sphere, 0.0);
   }
 
   /**
-   * Resolves a sphere against this cuboid, as {@link #overlapWithSphere(Translation3d, double)},
-   * but widening detection by {@code margin} beyond the sphere's surface.
+   * Resolves a sphere against this cuboid, as {@link #overlapWithSphere(Sphere3d)}, but widening
+   * detection by {@code margin} beyond the sphere's surface.
    *
    * <p>A positive margin reports contacts the sphere hasn't quite reached yet -- {@link
    * Contact#depth()} comes back negative for those, meaning that much separation remains. Callers
@@ -214,19 +214,19 @@ public class Cuboid3d {
    * whether a near-miss should still count as resting contact (see {@code FuelLayer}'s handling of
    * a ball settling onto a surface).
    *
-   * @param sphereCenter Field-relative center of the sphere.
-   * @param radius Radius of the sphere.
+   * @param sphere The sphere to resolve against this cuboid.
    * @param margin Extra reach, in meters, beyond the sphere's surface to still report a contact for.
    * @return The contact normal and penetration depth (possibly negative, within {@code margin}),
    *     or {@code null} if nothing is within reach.
    */
-  public Contact overlapWithSphere(Translation3d sphereCenter, double radius, double margin) {
+  public Contact overlapWithSphere(Sphere3d sphere, double margin) {
+    double radius = sphere.getRadius();
     double hx = xWidth / 2.0;
     double hy = yWidth / 2.0;
     double hz = zWidth / 2.0;
     double reach = radius + margin;
 
-    Translation3d local = toLocal(sphereCenter);
+    Translation3d local = toLocal(sphere.getCenter());
     double lx = local.getX();
     double ly = local.getY();
     double lz = local.getZ();
@@ -307,22 +307,5 @@ public class Cuboid3d {
   @Override
   public int hashCode() {
     return Objects.hash(center, xWidth, yWidth, zWidth);
-  }
-
-  /**
-   * The result of resolving a sphere against a {@link Cuboid3d}: the field-relative outward
-   * surface normal at the contact point, and how far the sphere has penetrated along it.
-   *
-   * @param normal Unit vector pointing away from the cuboid's surface, in field-relative meters.
-   * @param depth How far past the surface the sphere has penetrated along {@code normal}. Positive
-   *     means genuine overlap; see {@link #overlapWithSphere(Translation3d, double, double)} for
-   *     when this can be negative.
-   */
-  public record Contact(Translation3d normal, double depth) {
-
-    /** The vector to add to the sphere's center to just clear this contact. */
-    public Translation3d pushOut() {
-      return normal.times(depth);
-    }
   }
 }

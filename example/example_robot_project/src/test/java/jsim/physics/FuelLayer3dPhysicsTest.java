@@ -29,7 +29,7 @@ import static edu.wpi.first.units.Units.Meters;
 class FuelLayer3dPhysicsTest {
 
   private static final Field2026 FIELD = new Field2026();
-  private static final double FUEL_RADIUS = FuelLayer.FUEL_DIAMETER.in(Meters) / 2.0;
+  private static final double FUEL_RADIUS = Fuel2026.FUEL_RADIUS;
   private static final Translation2d ROBOT_DIMENSIONS = new Translation2d(0.4, 0.4);
 
   /** A pose far from any structure or starting FUEL, so the robot never interferes with a test. */
@@ -238,6 +238,23 @@ class FuelLayer3dPhysicsTest {
     assertEquals(facingPlusY.getX() + 0.0, box.getCenter().getX(), 1e-9,
         "Facing +Y, the box's forward offset should land on the robot's Y axis");
     assertEquals(facingPlusY.getY() + 0.6, box.getCenter().getY(), 1e-9);
+  }
+
+  @Test
+  void registerIntakeAcceptsACuboid3dDirectly() {
+    Pose2d robotPose = new Pose2d(8.0, 4.0, Rotation2d.kZero);
+    Cuboid3d localBox = new Cuboid3d(
+        new Translation3d(0.3, -0.3, 0.0), new Translation3d(0.9, 0.3, 0.3));
+
+    FuelLayer layer = emptyLayer();
+    layer.registerIntake(localBox);
+    layer.spawnFuel(new Translation3d(8.6, 4.0, FUEL_RADIUS));
+
+    run(layer, robotPose, new ChassisSpeeds(), 0.02);
+
+    assertTrue(layer.getFuelPieces().isEmpty(),
+        "A Cuboid3d-registered intake should pick up FUEL inside it");
+    assertEquals(localBox.getXWidth(), layer.getIntakes().get(0).getBox().getXWidth(), 1e-9);
   }
 
   @Test

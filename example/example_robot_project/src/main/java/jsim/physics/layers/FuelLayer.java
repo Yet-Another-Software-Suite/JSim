@@ -1,10 +1,8 @@
 package jsim.physics.layers;
 
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Radians;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -24,7 +22,6 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Mass;
 import jsim.physics.layers.fields.FieldLayout.Element;
 import jsim.physics.layers.fields.Field2026;
 import jsim.physics.layers.gamepieces.Fuel2026;
@@ -32,6 +29,7 @@ import jsim.physics.layers.gamepieces.Fuel2026;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import jsim.physics.layers.utils.Contact;
 import jsim.physics.layers.utils.Cuboid3d;
 
 /**
@@ -77,45 +75,8 @@ import jsim.physics.layers.utils.Cuboid3d;
  */
 public class FuelLayer implements PhysicsLayer {
 
-  /** Mass of one FUEL ball. */
-  public static final Mass FUEL_MASS = Pounds.of(0.448);
-
-  /** Diameter of one FUEL ball. */
-  public static final Distance FUEL_DIAMETER = Meters.of(0.15);
-
-  /** Radius of one FUEL ball, in meters. */
-  private static final double FUEL_RADIUS = FUEL_DIAMETER.in(Meters) / 2.0;
-
-  /** Mass of one FUEL ball, in kilograms. */
-  private static final double FUEL_MASS_KG = FUEL_MASS.in(Kilograms);
-
   /** Downwards acceleration due to gravity, in m/s^2. */
   private static final double GRAVITY = -9.81;
-
-  /** Density of dry air at room temperature, in kg/m^3. */
-  private static final double AIR_DENSITY = 1.2041;
-
-  /** Drag coefficient of a smooth sphere, dimensionless. */
-  private static final double DRAG_COEFFICIENT = 0.47;
-
-  /** Constant part of the drag force, i.e. {@code 0.5 * rho * Cd * A}. */
-  private static final double DRAG_FORCE_FACTOR =
-      0.5 * AIR_DENSITY * DRAG_COEFFICIENT * Math.PI * FUEL_RADIUS * FUEL_RADIUS;
-
-  /** Coefficient of restitution between FUEL and a field structure. */
-  private static final double FIELD_COR = Math.sqrt(22.0 / 51.5);
-
-  /** Coefficient of restitution between two FUEL balls. */
-  private static final double FUEL_COR = 0.5;
-
-  /** Coefficient of restitution between FUEL and a HUB net, which absorbs most of the impact. */
-  private static final double NET_COR = 0.2;
-
-  /** Coefficient of restitution between FUEL and a robot bumper. */
-  private static final double ROBOT_COR = 0.1;
-
-  /** Proportion of horizontal velocity a resting ball loses to rolling friction per second. */
-  private static final double ROLLING_FRICTION = 0.1;
 
   /** Vertical speed, in m/s, below which a ball touching a surface settles onto it. */
   private static final double REST_SPEED = 0.05;
@@ -158,7 +119,8 @@ public class FuelLayer implements PhysicsLayer {
 
   /**
    * The FIELD's playable footprint, inset by one ball radius on every side, so a ball's own edge
-   * (not its center) is what the FIELD boundary actually stops. Backs {@link #clampToFieldBounds}.
+   * (not its center) is what the FIELD boundary actually stops. Passed to
+   * {@link Fuel2026#clampToBounds} every substep.
    */
   private final Rectangle2d fieldBounds;
 
@@ -214,8 +176,8 @@ public class FuelLayer implements PhysicsLayer {
     this.obstacles = field.getGamePieceObstacles();
     this.fieldBounds = new Rectangle2d(
         new Pose2d(field.getFieldLength() / 2.0, field.getFieldWidth() / 2.0, Rotation2d.kZero),
-        field.getFieldLength() - 2.0 * FUEL_RADIUS,
-        field.getFieldWidth() - 2.0 * FUEL_RADIUS);
+        field.getFieldLength() - 2.0 * Fuel2026.FUEL_RADIUS,
+        field.getFieldWidth() - 2.0 * Fuel2026.FUEL_RADIUS);
 
     this.blueHub = new Hub(
         field.getBlueHubCenter(), field.getBlueHubExit(), field.getBlueHubNet(),
@@ -249,6 +211,7 @@ public class FuelLayer implements PhysicsLayer {
    * flat-footprint {@link #registerIntake(Transform2d, Transform2d) overload}, which spans exactly
    * this height and so must be given its footprint after this is set.
    *
+   * @param bumperHeight Height of the top of the robot's bumpers above the carpet.
    * @return This layer, for chaining.
    */
   public FuelLayer withBumperHeight(Distance bumperHeight) {
@@ -272,6 +235,7 @@ public class FuelLayer implements PhysicsLayer {
    * Enables or disables aerodynamic drag on airborne FUEL. Off by default, matching the simpler
    * ballistic model most shooter tuning starts from.
    *
+   * @param simulateAirResistance Whether airborne FUEL should feel aerodynamic drag.
    * @return This layer, for chaining.
    */
   public FuelLayer withAirResistance(boolean simulateAirResistance) {
@@ -339,7 +303,7 @@ public class FuelLayer implements PhysicsLayer {
 
     for (int tick = 0; tick < subticks; tick++) {
       for (Fuel2026 fuel : fuelPieces) {
-        integrate(fuel, subDt);
+        fuel.integrate(subDt, GRAVITY, simulateAirResistance);
         handleFieldCollisions(fuel, subDt);
       }
 
@@ -366,7 +330,7 @@ public class FuelLayer implements PhysicsLayer {
   public void spawnStartingFuel() {
     double halfSpacing = STARTING_FUEL_SPACING / 2.0;
     Translation3d center = new Translation3d(
-        field.getFieldLength() / 2.0, field.getFieldWidth() / 2.0, FUEL_RADIUS);
+        field.getFieldLength() / 2.0, field.getFieldWidth() / 2.0, Fuel2026.FUEL_RADIUS);
 
     // Two mirrored 15x6 blocks either side of the center line, held apart by the center tape.
     for (int row = 0; row < 15; row++) {
@@ -402,8 +366,8 @@ public class FuelLayer implements PhysicsLayer {
             ? depot.getMinX() + offsetFromWall
             : depot.getMaxX() - offsetFromWall;
         double offsetY = halfSpacing + STARTING_FUEL_SPACING * row;
-        spawnFuel(new Translation3d(x, centerY + offsetY, FUEL_RADIUS));
-        spawnFuel(new Translation3d(x, centerY - offsetY, FUEL_RADIUS));
+        spawnFuel(new Translation3d(x, centerY + offsetY, Fuel2026.FUEL_RADIUS));
+        spawnFuel(new Translation3d(x, centerY - offsetY, Fuel2026.FUEL_RADIUS));
       }
     }
   }
@@ -472,220 +436,31 @@ public class FuelLayer implements PhysicsLayer {
             verticalSpeed));
   }
 
-  // ---------------------------------------------------------------------------------------------
-  // Integration
-  // ---------------------------------------------------------------------------------------------
-
-  /**
-   * Moves a ball by one substep and, unless it is resting on something, accelerates it under
-   * gravity and drag.
-   */
-  private void integrate(Fuel2026 fuel, double dtSeconds) {
-    fuel.translate(fuel.getVelocity().times(dtSeconds));
-
-    if (!fuel.isSupported()) {
-      Translation3d force = new Translation3d(0, 0, GRAVITY * FUEL_MASS_KG);
-      if (simulateAirResistance) {
-        double speed = fuel.getVelocity().getNorm();
-        if (speed > 1e-6) {
-          force = force.plus(fuel.getVelocity().times(-DRAG_FORCE_FACTOR * speed));
-        }
-      }
-      fuel.addImpulse(force.div(FUEL_MASS_KG).times(dtSeconds));
-    }
-
-    // Cleared here so this substep's collisions decide afresh whether the ball is still supported.
-    fuel.setSupported(false);
-  }
-
   /**
    * Collides a ball against the carpet, every {@link Field2026#getGamePieceObstacles() field
    * structure}, the FIELD boundary and both HUBS, then lets it settle if it came to rest.
+   *
+   * @param fuel The ball to collide.
+   * @param dtSeconds Substep duration, in seconds.
    */
   private void handleFieldCollisions(Fuel2026 fuel, double dtSeconds) {
-    collideCarpet(fuel);
+    fuel.collideCarpet(CONTACT_SKIN, REST_SPEED);
 
     for (Element obstacle : obstacles) {
       if (obstacle.isSloped()) {
-        collideSlopedTop(fuel, obstacle);
+        fuel.collideSlopedTop(obstacle, CONTACT_SKIN, SUPPORT_NORMAL_Z, REST_SPEED);
       } else {
-        collideBox(fuel, obstacle, FIELD_COR);
+        fuel.collideBox(obstacle.getCuboid(), Fuel2026.FIELD_COR, CONTACT_SKIN, SUPPORT_NORMAL_Z, REST_SPEED);
       }
     }
 
-    clampToFieldBounds(fuel);
+    fuel.clampToBounds(fieldBounds, SUPPORT_NORMAL_Z);
 
     for (Hub hub : hubs) {
       hub.handleFuelInteraction(fuel, dtSeconds);
     }
 
-    settle(fuel, dtSeconds);
-  }
-
-  /**
-   * Drops a ball that is touching the carpet back onto it, bouncing whatever downwards speed it
-   * had left. A ball hovering within {@link #CONTACT_SKIN} of the carpet with almost no vertical
-   * speed left settles onto it instead of bouncing.
-   */
-  private void collideCarpet(Fuel2026 fuel) {
-    Translation3d position = fuel.getPosition();
-    Translation3d velocity = fuel.getVelocity();
-    boolean overlapping = position.getZ() < FUEL_RADIUS;
-    if (!overlapping
-        && (position.getZ() > FUEL_RADIUS + CONTACT_SKIN
-            || Math.abs(velocity.getZ()) >= REST_SPEED)) {
-      return;
-    }
-
-    fuel.setPosition(new Translation3d(position.getX(), position.getY(), FUEL_RADIUS));
-    if (overlapping && velocity.getZ() < 0) {
-      fuel.setVelocity(new Translation3d(
-          velocity.getX(), velocity.getY(), -velocity.getZ() * FIELD_COR));
-    }
-    fuel.setSupported(true);
-  }
-
-  /**
-   * Settles a ball that is touching a surface flat enough to hold it and has nearly stopped
-   * moving vertically: its remaining vertical speed is dropped so it stops jittering, and its
-   * horizontal speed bleeds off to rolling friction. A ball still moving vertically is left
-   * unsupported so gravity keeps acting on it next substep.
-   */
-  private void settle(Fuel2026 fuel, double dtSeconds) {
-    if (!fuel.isSupported()) {
-      return;
-    }
-    if (Math.abs(fuel.getVelocity().getZ()) >= REST_SPEED) {
-      fuel.setSupported(false);
-      return;
-    }
-
-    Translation3d velocity = fuel.getVelocity();
-    fuel.setVelocity(new Translation3d(velocity.getX(), velocity.getY(), 0.0)
-        .times(1.0 - ROLLING_FRICTION * dtSeconds));
-  }
-
-  // ---------------------------------------------------------------------------------------------
-  // Field structure collisions
-  // ---------------------------------------------------------------------------------------------
-
-  /**
-   * Resolves a ball overlapping an upright field structure, using the {@link Cuboid3d} that
-   * {@link Element#getCuboid()} builds from the element's footprint and vertical extent.
-   *
-   * <p>{@link Cuboid3d#overlapWithSphere} does the geometry: the ball is pushed out along the
-   * direction from the nearest point of the box to its center, so the same routine handles being
-   * shoved sideways off a HUB wall and coming to rest on top of a TRENCH. A ball whose center has
-   * ended up fully inside the box escapes along whichever face it is closest to.
-   *
-   * @param cor Coefficient of restitution to bounce the ball off this structure with.
-   */
-  private void collideBox(Fuel2026 fuel, Element element, double cor) {
-    Cuboid3d.Contact contact =
-        element.getCuboid().overlapWithSphere(fuel.getPosition(), FUEL_RADIUS, CONTACT_SKIN);
-    if (contact == null) {
-      return;
-    }
-    if (contact.depth() < 0 && !isRestingContact(fuel, contact.normal())) {
-      return; // Inside the contact skin but not settling onto a top face: not touching yet.
-    }
-
-    fuel.translate(contact.pushOut());
-    bounce(fuel, contact.normal(), cor);
-  }
-
-  /**
-   * Whether a ball that is close to -- but not yet overlapping -- a surface should be treated as
-   * resting on it: the surface has to be flat enough to hold the ball up, and the ball has to have
-   * nearly stopped moving vertically. See {@link #CONTACT_SKIN}.
-   */
-  private boolean isRestingContact(Fuel2026 fuel, Translation3d normal) {
-    return normal.getZ() > SUPPORT_NORMAL_Z && Math.abs(fuel.getVelocity().getZ()) < REST_SPEED;
-  }
-
-  /**
-   * Resolves a ball rolling on a field structure whose top face slopes along X, such as a BUMP
-   * face. The sloped face is treated as a line in the XZ plane spanning the element's footprint;
-   * a ball within the element's Y band and closer to that line than its own radius gets pushed
-   * out perpendicular to the slope, so it rolls up and over rather than stopping against a wall.
-   */
-  private void collideSlopedTop(Fuel2026 fuel, Element element) {
-    Translation3d position = fuel.getPosition();
-    if (position.getY() < element.getMinY() || position.getY() > element.getMaxY()) {
-      return;
-    }
-
-    // Collapse to the XZ plane, where the sloped face is a single line segment.
-    Translation2d start = new Translation2d(element.getMinX(), element.getTopHeightAtMinX());
-    Translation2d end = new Translation2d(element.getMaxX(), element.getTopHeightAtMaxX());
-    Translation2d ballXz = new Translation2d(position.getX(), position.getZ());
-    Translation2d segment = end.minus(start);
-
-    double segmentLength = segment.getNorm();
-    if (segmentLength < 1e-9) {
-      return;
-    }
-
-    Translation2d closest = start.plus(
-        segment.times(ballXz.minus(start).dot(segment) / (segmentLength * segmentLength)));
-    if (closest.getDistance(start) + closest.getDistance(end) > segmentLength) {
-      return; // Nearest point on the infinite line falls outside the face itself.
-    }
-
-    double distance = ballXz.getDistance(closest);
-    if (distance > FUEL_RADIUS + CONTACT_SKIN) {
-      return;
-    }
-
-    Translation3d normal = new Translation3d(
-        -segment.getY() / segmentLength, 0, segment.getX() / segmentLength);
-    if (distance > FUEL_RADIUS && !isRestingContact(fuel, normal)) {
-      return; // Inside the contact skin but still moving: not touching the face yet.
-    }
-
-    fuel.translate(normal.times(FUEL_RADIUS - distance));
-    bounce(fuel, normal, FIELD_COR);
-  }
-
-  /**
-   * Reflects a ball's velocity off a surface with the given outward {@code normal}, and marks the
-   * ball supported if that surface is flat enough to rest on. A ball already moving away from the
-   * surface keeps its velocity -- it has been pushed clear and shouldn't be pulled back.
-   */
-  private void bounce(Fuel2026 fuel, Translation3d normal, double cor) {
-    double approachSpeed = fuel.getVelocity().dot(normal);
-    if (approachSpeed < 0) {
-      fuel.addImpulse(normal.times(-(1.0 + cor) * approachSpeed));
-    }
-    if (normal.getZ() > SUPPORT_NORMAL_Z) {
-      fuel.setSupported(true);
-    }
-  }
-
-  /**
-   * Keeps a ball inside the FIELD perimeter at every height. The perimeter elements themselves
-   * only reach as high as the netting above the guardrails, so this is the backstop that stops a
-   * wild shot from leaving the simulation entirely.
-   *
-   * <p>{@link Rectangle2d#nearest} does the X/Y geometry -- {@link #fieldBounds} is already inset
-   * by one ball radius, so whichever coordinates it clamps are exactly the ones that crossed the
-   * boundary. {@link #bounce} then decides, per axis, whether the ball was actually heading further
-   * out (and so needs a wall bounce) or just grazed the boundary while already heading back in.
-   */
-  private void clampToFieldBounds(Fuel2026 fuel) {
-    Translation2d position = fuel.getPosition().toTranslation2d();
-    Translation2d nearest = fieldBounds.nearest(position);
-    if (nearest.equals(position)) {
-      return;
-    }
-
-    fuel.setPosition(fuel.getPosition().plus(new Translation3d(nearest.minus(position))));
-    if (nearest.getX() != position.getX()) {
-      bounce(fuel, new Translation3d(Math.signum(nearest.getX() - position.getX()), 0, 0), FIELD_COR);
-    }
-    if (nearest.getY() != position.getY()) {
-      bounce(fuel, new Translation3d(0, Math.signum(nearest.getY() - position.getY()), 0), FIELD_COR);
-    }
+    fuel.settle(dtSeconds, REST_SPEED);
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -704,7 +479,7 @@ public class FuelLayer implements PhysicsLayer {
     activeCells.clear();
 
     for (int i = 0; i < fuelPieces.size(); i++) {
-      int cellIndex = cellIndexOf(fuelPieces.get(i));
+      int cellIndex = fuelPieces.get(i).cellIndexOf(CELL_SIZE, gridColumns, gridRows);
       if (cellIndex < 0) {
         continue;
       }
@@ -715,11 +490,11 @@ public class FuelLayer implements PhysicsLayer {
       }
     }
 
-    double diameter = FUEL_RADIUS * 2.0;
+    double diameter = Fuel2026.FUEL_RADIUS * 2.0;
     for (int i = 0; i < fuelPieces.size(); i++) {
       Fuel2026 fuel = fuelPieces.get(i);
-      int column = columnOf(fuel);
-      int row = rowOf(fuel);
+      int column = fuel.columnOf(CELL_SIZE);
+      int row = fuel.rowOf(CELL_SIZE);
 
       for (int c = column - 1; c <= column + 1; c++) {
         for (int r = row - 1; r <= row + 1; r++) {
@@ -733,50 +508,12 @@ public class FuelLayer implements PhysicsLayer {
             }
             Fuel2026 otherFuel = fuelPieces.get(other);
             if (fuel.getPosition().getDistance(otherFuel.getPosition()) < diameter) {
-              handleFuelCollision(fuel, otherFuel);
+              fuel.collide(otherFuel, Fuel2026.FUEL_COR);
             }
           }
         }
       }
     }
-  }
-
-  /** Separates two overlapping balls and exchanges an equal and opposite impulse between them. */
-  private static void handleFuelCollision(Fuel2026 a, Fuel2026 b) {
-    Translation3d offset = a.getPosition().minus(b.getPosition());
-    double distance = offset.getNorm();
-    Translation3d normal = distance > 1e-9
-        ? offset.div(distance)
-        : new Translation3d(1, 0, 0); // Perfectly coincident: shove them apart arbitrarily.
-    if (distance <= 1e-9) {
-      distance = 0.0;
-    }
-
-    double overlap = FUEL_RADIUS * 2.0 - distance;
-    a.translate(normal.times(overlap / 2.0));
-    b.translate(normal.times(-overlap / 2.0));
-
-    double impulse = 0.5 * (1.0 + FUEL_COR) * b.getVelocity().minus(a.getVelocity()).dot(normal);
-    a.addImpulse(normal.times(impulse));
-    b.addImpulse(normal.times(-impulse));
-  }
-
-  private int columnOf(Fuel2026 fuel) {
-    return (int) Math.floor(fuel.getPosition().getX() / CELL_SIZE);
-  }
-
-  private int rowOf(Fuel2026 fuel) {
-    return (int) Math.floor(fuel.getPosition().getY() / CELL_SIZE);
-  }
-
-  /** Flat index of the grid cell a ball sits in, or -1 if it is somehow off the FIELD. */
-  private int cellIndexOf(Fuel2026 fuel) {
-    int column = columnOf(fuel);
-    int row = rowOf(fuel);
-    if (column < 0 || column >= gridColumns || row < 0 || row >= gridRows) {
-      return -1;
-    }
-    return column * gridRows + row;
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -788,6 +525,8 @@ public class FuelLayer implements PhysicsLayer {
    * it is closest to, bouncing off it and picking up the robot's own speed into that face, so a
    * driving robot plows FUEL along in front of it.
    *
+   * @param fuel The ball to collide against the robot.
+   * @param robotPose Current ground-truth field pose of the robot.
    * @param robotDimensions Half-length (X) and half-width (Y) bumper dimensions in meters.
    * @param robotVelocity Field-relative translational velocity of the robot, in m/s.
    */
@@ -801,16 +540,9 @@ public class FuelLayer implements PhysicsLayer {
         robotDimensions.getY() * 2.0,
         bumperHeightMeters);
 
-    Cuboid3d.Contact contact = bumperBox.overlapWithSphere(fuel.getPosition(), FUEL_RADIUS);
+    Contact contact = fuel.collideBox(bumperBox, Fuel2026.ROBOT_COR, 0.0, SUPPORT_NORMAL_Z, REST_SPEED);
     if (contact == null) {
       return;
-    }
-
-    fuel.translate(contact.pushOut());
-
-    double approachSpeed = fuel.getVelocity().dot(contact.normal());
-    if (approachSpeed < 0) {
-      fuel.addImpulse(contact.normal().times(-approachSpeed * (1.0 + ROBOT_COR)));
     }
 
     Translation3d robotVelocity3d = new Translation3d(robotVelocity.getX(), robotVelocity.getY(), 0);
@@ -823,6 +555,8 @@ public class FuelLayer implements PhysicsLayer {
   /**
    * Moves every intake's pickup box to follow the robot, then removes the FUEL sitting inside any
    * active one and fires its callback.
+   *
+   * @param robotPose Current ground-truth field pose of the robot.
    */
   private void handleIntakes(Pose2d robotPose) {
     for (SimIntake intake : intakes) {
@@ -846,39 +580,84 @@ public class FuelLayer implements PhysicsLayer {
   /**
    * Registers an intake that removes FUEL from the FIELD whenever a ball enters its pickup box.
    *
-   * <p>The two transforms are opposite corners of that box, measured from the robot's center on
-   * the carpet -- so {@code x} is forwards, {@code y} is left, and {@code z} is up off the floor.
-   * The box travels and rotates with the robot every physics step, so a ball is picked up only
-   * where the mechanism actually is. Because the box states its own height, this is also what
-   * decides whether a ball is low enough to be picked up: an over-the-bumper intake wants a
-   * {@code z} range starting at its own lip, a ground intake one starting at zero.
+   * <p>{@code localBox} is defined once, in the robot's own frame -- so {@code x} is forwards,
+   * {@code y} is left, and {@code z} is up off the floor -- and is then carried around by the
+   * robot: {@link SimIntake#update} re-places it onto the FIELD from the robot's latest pose every
+   * physics step, so a ball is picked up only where the mechanism actually is. Because the box
+   * states its own height, this is also what decides whether a ball is low enough to be picked up:
+   * an over-the-bumper intake wants a {@code z} range starting at its own lip, a ground intake one
+   * starting at zero.
    *
-   * <p>Only the transforms' translations are used; the box is axis-aligned in the robot's frame.
+   * <p>This is the primary {@code registerIntake} overload; the {@link Transform3d} and
+   * {@link Transform2d}-corner overloads all build a {@link Cuboid3d} and delegate here.
    *
    * <pre>{@code
    * // A ground intake spanning the full bumper width, reaching 8in past the front bumper.
    * fuel.registerIntake(
-   *     new Transform3d(Inches.of(14), Inches.of(-14), Inches.zero(), Rotation3d.kZero),
-   *     new Transform3d(Inches.of(22), Inches.of(14), Inches.of(6), Rotation3d.kZero),
+   *     new Cuboid3d(
+   *         new Translation3d(Inches.of(14), Inches.of(-14), Inches.zero()),
+   *         new Translation3d(Inches.of(22), Inches.of(14), Inches.of(6))),
    *     intake::isRunning,
    *     intake::onFuelAcquired);
    * }</pre>
    *
-   * @param cornerA One corner of the pickup box, relative to the robot's center.
-   * @param cornerB The opposite corner of the pickup box, relative to the robot's center.
+   * @param localBox The pickup box, relative to the robot's center.
    * @param enabled Whether the intake is currently able to pick FUEL up.
    * @param onIntake Called once per ball picked up, e.g. to bump a held-piece count.
    * @return This layer, for chaining.
    */
-  public FuelLayer registerIntake(
-      Transform3d cornerA, Transform3d cornerB, BooleanSupplier enabled, Runnable onIntake) {
-    intakes.add(new SimIntake(cornerA, cornerB, enabled, onIntake));
+  public FuelLayer registerIntake(Cuboid3d localBox, BooleanSupplier enabled, Runnable onIntake) {
+    intakes.add(new SimIntake(localBox, enabled, onIntake));
     return this;
   }
 
   /**
    * Registers an intake with no pickup callback.
    *
+   * @param localBox The pickup box, relative to the robot's center.
+   * @param enabled Whether the intake is currently able to pick FUEL up.
+   * @return This layer, for chaining.
+   * @see #registerIntake(Cuboid3d, BooleanSupplier, Runnable)
+   */
+  public FuelLayer registerIntake(Cuboid3d localBox, BooleanSupplier enabled) {
+    return registerIntake(localBox, enabled, () -> {});
+  }
+
+  /**
+   * Registers an intake that is always running.
+   *
+   * @param localBox The pickup box, relative to the robot's center.
+   * @return This layer, for chaining.
+   * @see #registerIntake(Cuboid3d, BooleanSupplier, Runnable)
+   */
+  public FuelLayer registerIntake(Cuboid3d localBox) {
+    return registerIntake(localBox, () -> true, () -> {});
+  }
+
+  /**
+   * Registers an intake from two opposite corners of an axis-aligned pickup box, relative to the
+   * robot's center. Only the transforms' translations are used.
+   *
+   * @param cornerA One corner of the pickup box, relative to the robot's center.
+   * @param cornerB The opposite corner of the pickup box, relative to the robot's center.
+   * @param enabled Whether the intake is currently able to pick FUEL up.
+   * @param onIntake Called once per ball picked up, e.g. to bump a held-piece count.
+   * @return This layer, for chaining.
+   * @see #registerIntake(Cuboid3d, BooleanSupplier, Runnable)
+   */
+  public FuelLayer registerIntake(
+      Transform3d cornerA, Transform3d cornerB, BooleanSupplier enabled, Runnable onIntake) {
+    return registerIntake(
+        new Cuboid3d(cornerA.getTranslation(), cornerB.getTranslation()), enabled, onIntake);
+  }
+
+  /**
+   * Registers an intake with no pickup callback.
+   *
+   * @param cornerA One corner of the pickup box, relative to the robot's center.
+   * @param cornerB The opposite corner of the pickup box, relative to the robot's center.
+   * @param enabled Whether the intake is currently able to pick FUEL up.
+   * @return This layer, for chaining.
    * @see #registerIntake(Transform3d, Transform3d, BooleanSupplier, Runnable)
    */
   public FuelLayer registerIntake(
@@ -889,6 +668,9 @@ public class FuelLayer implements PhysicsLayer {
   /**
    * Registers an intake that is always running.
    *
+   * @param cornerA One corner of the pickup box, relative to the robot's center.
+   * @param cornerB The opposite corner of the pickup box, relative to the robot's center.
+   * @return This layer, for chaining.
    * @see #registerIntake(Transform3d, Transform3d, BooleanSupplier, Runnable)
    */
   public FuelLayer registerIntake(Transform3d cornerA, Transform3d cornerB) {
@@ -906,15 +688,14 @@ public class FuelLayer implements PhysicsLayer {
    * @param enabled Whether the intake is currently able to pick FUEL up.
    * @param onIntake Called once per ball picked up, e.g. to bump a held-piece count.
    * @return This layer, for chaining.
-   * @see #registerIntake(Transform3d, Transform3d, BooleanSupplier, Runnable)
+   * @see #registerIntake(Cuboid3d, BooleanSupplier, Runnable)
    */
   public FuelLayer registerIntake(
       Transform2d cornerA, Transform2d cornerB, BooleanSupplier enabled, Runnable onIntake) {
     return registerIntake(
-        new Transform3d(
-            cornerA.getX(), cornerA.getY(), 0.0, Rotation3d.kZero),
-        new Transform3d(
-            cornerB.getX(), cornerB.getY(), bumperHeightMeters, Rotation3d.kZero),
+        new Cuboid3d(
+            new Translation3d(cornerA.getX(), cornerA.getY(), 0.0),
+            new Translation3d(cornerB.getX(), cornerB.getY(), bumperHeightMeters)),
         enabled,
         onIntake);
   }
@@ -922,6 +703,10 @@ public class FuelLayer implements PhysicsLayer {
   /**
    * Registers a flat-footprint intake with no pickup callback.
    *
+   * @param cornerA One corner of the pickup footprint, relative to the robot's center.
+   * @param cornerB The opposite corner of the pickup footprint, relative to the robot's center.
+   * @param enabled Whether the intake is currently able to pick FUEL up.
+   * @return This layer, for chaining.
    * @see #registerIntake(Transform2d, Transform2d, BooleanSupplier, Runnable)
    */
   public FuelLayer registerIntake(
@@ -932,13 +717,20 @@ public class FuelLayer implements PhysicsLayer {
   /**
    * Registers a flat-footprint intake that is always running.
    *
+   * @param cornerA One corner of the pickup footprint, relative to the robot's center.
+   * @param cornerB The opposite corner of the pickup footprint, relative to the robot's center.
+   * @return This layer, for chaining.
    * @see #registerIntake(Transform2d, Transform2d, BooleanSupplier, Runnable)
    */
   public FuelLayer registerIntake(Transform2d cornerA, Transform2d cornerB) {
     return registerIntake(cornerA, cornerB, () -> true, () -> {});
   }
 
-  /** Every registered intake, whose pickup boxes track the robot as the simulation steps. */
+  /**
+   * Returns every registered intake, whose pickup boxes track the robot as the simulation steps.
+   *
+   * @return Every registered intake.
+   */
   public List<SimIntake> getIntakes() {
     return intakes;
   }
@@ -947,12 +739,20 @@ public class FuelLayer implements PhysicsLayer {
   // State access and publishing
   // ---------------------------------------------------------------------------------------------
 
-  /** Every FUEL ball currently on the FIELD, for intake checks or custom visualization. */
+  /**
+   * Returns every FUEL ball currently on the FIELD, for intake checks or custom visualization.
+   *
+   * @return Every FUEL ball currently on the FIELD.
+   */
   public List<Fuel2026> getFuelPieces() {
     return fuelPieces;
   }
 
-  /** Field-relative center of every FUEL ball currently on the FIELD, in meters. */
+  /**
+   * Returns the field-relative center of every FUEL ball currently on the FIELD.
+   *
+   * @return Field-relative center of every FUEL ball currently on the FIELD, in meters.
+   */
   public List<Translation3d> getFuelTranslations() {
     List<Translation3d> translations = new ArrayList<>(fuelPieces.size());
     for (Fuel2026 fuel : fuelPieces) {
@@ -961,7 +761,11 @@ public class FuelLayer implements PhysicsLayer {
     return translations;
   }
 
-  /** Every FUEL ball's position as an (unrotated) 3D pose. */
+  /**
+   * Returns every FUEL ball's position as an (unrotated) 3D pose.
+   *
+   * @return Every FUEL ball's position as an unrotated {@link Pose3d}.
+   */
   public List<Pose3d> getPose3dList() {
     List<Pose3d> poses = new ArrayList<>(fuelPieces.size());
     for (Fuel2026 fuel : fuelPieces) {
@@ -970,7 +774,11 @@ public class FuelLayer implements PhysicsLayer {
     return poses;
   }
 
-  /** Every FUEL ball's position as an (unrotated) 3D pose, for struct array consumers. */
+  /**
+   * Returns every FUEL ball's position as an (unrotated) 3D pose, for struct array consumers.
+   *
+   * @return Every FUEL ball's position as an unrotated {@link Pose3d} array.
+   */
   public Pose3d[] getPose3dArray() {
     Pose3d[] poses = new Pose3d[fuelPieces.size()];
     for (int i = 0; i < poses.length; i++) {
@@ -979,12 +787,20 @@ public class FuelLayer implements PhysicsLayer {
     return poses;
   }
 
-  /** The blue alliance's HUB, for reading and resetting its score. */
+  /**
+   * Returns the blue alliance's HUB, for reading and resetting its score.
+   *
+   * @return The blue alliance's {@link Hub}.
+   */
   public Hub getBlueHub() {
     return blueHub;
   }
 
-  /** The red alliance's HUB, for reading and resetting its score. */
+  /**
+   * Returns the red alliance's HUB, for reading and resetting its score.
+   *
+   * @return The red alliance's {@link Hub}.
+   */
   public Hub getRedHub() {
     return redHub;
   }
@@ -1028,6 +844,15 @@ public class FuelLayer implements PhysicsLayer {
 
     private int score = 0;
 
+    /**
+     * Creates a HUB.
+     *
+     * @param center Center of this HUB, in field-relative meters.
+     * @param exit Where scored FUEL re-enters play from this HUB.
+     * @param net This HUB's backing net element.
+     * @param entryRadius Radius of this HUB's open goal about its center, in meters.
+     * @param entryHeight Height of this HUB's open goal above the carpet, in meters.
+     */
     private Hub(
         Translation2d center,
         Translation3d exit,
@@ -1042,7 +867,11 @@ public class FuelLayer implements PhysicsLayer {
       this.dispersalDirection = Math.signum(exit.getX() - center.getX());
     }
 
-    /** Number of FUEL balls SCORED in this HUB since the last {@link #resetScore()}. */
+    /**
+     * Returns the number of FUEL balls SCORED in this HUB since the last {@link #resetScore()}.
+     *
+     * @return Number of FUEL balls SCORED in this HUB since the last reset.
+     */
     public int getScore() {
       return score;
     }
@@ -1052,12 +881,21 @@ public class FuelLayer implements PhysicsLayer {
       score = 0;
     }
 
-    /** Center of this HUB, in field-relative meters. */
+    /**
+     * Returns the center of this HUB.
+     *
+     * @return Center of this HUB, in field-relative meters.
+     */
     public Translation2d getCenter() {
       return center;
     }
 
-    /** Scores a ball that just dropped through the goal, otherwise bounces it off the net. */
+    /**
+     * Scores a ball that just dropped through the goal, otherwise bounces it off the net.
+     *
+     * @param fuel The ball to check and resolve.
+     * @param dtSeconds Substep duration, in seconds.
+     */
     private void handleFuelInteraction(Fuel2026 fuel, double dtSeconds) {
       if (didFuelScore(fuel, dtSeconds)) {
         score++;
@@ -1072,6 +910,10 @@ public class FuelLayer implements PhysicsLayer {
     /**
      * Whether a ball crossed the goal opening downwards during this substep -- inside the goal
      * radius, now below the opening, and above it before the substep moved it.
+     *
+     * @param fuel The ball to check.
+     * @param dtSeconds Substep duration, in seconds.
+     * @return Whether {@code fuel} just scored in this HUB.
      */
     private boolean didFuelScore(Fuel2026 fuel, double dtSeconds) {
       Translation3d position = fuel.getPosition();
@@ -1080,7 +922,11 @@ public class FuelLayer implements PhysicsLayer {
           && position.minus(fuel.getVelocity().times(dtSeconds)).getZ() > entryHeight;
     }
 
-    /** A shove back onto the FIELD away from the HUB, with some spread so returns fan out. */
+    /**
+     * A shove back onto the FIELD away from the HUB, with some spread so returns fan out.
+     *
+     * @return A randomized dispersal velocity, in meters per second.
+     */
     private Translation3d dispersalVelocity() {
       return new Translation3d(
           dispersalDirection * (Math.random() + 0.1) * 1.5, Math.random() * 2.0 - 1.0, 0);
@@ -1091,18 +937,11 @@ public class FuelLayer implements PhysicsLayer {
      * rather than a solid: a ball that reaches it is pushed out to whichever side of the plane its
      * center is already on, and keeps only a fraction of its speed, since netting absorbs an
      * impact instead of returning it.
+     *
+     * @param fuel The ball to bounce off the net.
      */
     private void collideNet(Fuel2026 fuel) {
-      Cuboid3d.Contact contact = net.getCuboid().overlapWithSphere(fuel.getPosition(), FUEL_RADIUS);
-      if (contact == null) {
-        return;
-      }
-
-      fuel.translate(contact.pushOut());
-      double approachSpeed = fuel.getVelocity().dot(contact.normal());
-      if (approachSpeed < 0) {
-        fuel.addImpulse(contact.normal().times(-(1.0 + NET_COR) * approachSpeed));
-      }
+      fuel.collideBox(net.getCuboid(), Fuel2026.NET_COR, 0.0, SUPPORT_NORMAL_Z, REST_SPEED);
     }
   }
 
@@ -1126,9 +965,15 @@ public class FuelLayer implements PhysicsLayer {
     /** This pickup box, re-placed onto the FIELD by {@link #update(Pose2d)} every physics step. */
     private Cuboid3d fieldBox;
 
-    private SimIntake(
-        Transform3d cornerA, Transform3d cornerB, BooleanSupplier enabled, Runnable onIntake) {
-      this.localBox = new Cuboid3d(cornerA.getTranslation(), cornerB.getTranslation());
+    /**
+     * Creates an intake.
+     *
+     * @param localBox The pickup box, in the robot's own frame.
+     * @param enabled Whether the intake is currently able to pick FUEL up.
+     * @param onIntake Called once per ball picked up.
+     */
+    private SimIntake(Cuboid3d localBox, BooleanSupplier enabled, Runnable onIntake) {
+      this.localBox = localBox;
       this.enabled = enabled;
       this.onIntake = onIntake;
       update(Pose2d.kZero);
@@ -1138,6 +983,8 @@ public class FuelLayer implements PhysicsLayer {
      * Re-places this pickup box onto the FIELD from the robot's current pose, by reparenting
      * {@link #localBox}'s center -- an offset in the robot's frame -- into the field frame through
      * the robot's own field pose.
+     *
+     * @param robotPose Current ground-truth field pose of the robot.
      */
     private void update(Pose2d robotPose) {
       Pose3d robotPose3d = new Pose3d(robotPose);
@@ -1147,7 +994,11 @@ public class FuelLayer implements PhysicsLayer {
           fieldCenter, localBox.getXWidth(), localBox.getYWidth(), localBox.getZWidth());
     }
 
-    /** Whether this intake is currently able to pick FUEL up. */
+    /**
+     * Returns whether this intake is currently able to pick FUEL up.
+     *
+     * @return Whether this intake is currently able to pick FUEL up.
+     */
     public boolean isEnabled() {
       return enabled.getAsBoolean();
     }
@@ -1156,14 +1007,17 @@ public class FuelLayer implements PhysicsLayer {
      * Whether {@code fieldPosition} is inside this pickup box as it currently sits on the FIELD.
      *
      * @param fieldPosition Field-relative position to test, in meters.
+     * @return Whether {@code fieldPosition} is inside this pickup box.
      */
     public boolean contains(Translation3d fieldPosition) {
       return fieldBox.contains(fieldPosition);
     }
 
     /**
-     * This pickup box's current field-relative placement, oriented with the robot -- as of the
-     * last physics step. Publish this to draw the box in a 3D field view.
+     * Returns this pickup box's current field-relative placement, oriented with the robot -- as of
+     * the last physics step. Publish this to draw the box in a 3D field view.
+     *
+     * @return This pickup box's current field-relative placement.
      */
     public Cuboid3d getBox() {
       return fieldBox;
