@@ -9,6 +9,8 @@ import static edu.wpi.first.units.Units.Radians;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rectangle2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -153,6 +155,13 @@ public class FuelLayer implements PhysicsLayer {
   private static final double STARTING_FUEL_SPACING = 0.152;
 
   private final Field2026 field;
+
+  /**
+   * The FIELD's playable footprint, inset by one ball radius on every side, so a ball's own edge
+   * (not its center) is what the FIELD boundary actually stops. Backs {@link #clampToFieldBounds}.
+   */
+  private final Rectangle2d fieldBounds;
+
   private final List<Fuel2026> fuelPieces = new ArrayList<>();
   private final List<Element> obstacles;
   private final List<Hub> hubs = new ArrayList<>();
@@ -203,6 +212,10 @@ public class FuelLayer implements PhysicsLayer {
   public FuelLayer(Field2026 field, String ntSubTableName) {
     this.field = field;
     this.obstacles = field.getGamePieceObstacles();
+    this.fieldBounds = new Rectangle2d(
+        new Pose2d(field.getFieldLength() / 2.0, field.getFieldWidth() / 2.0, Rotation2d.kZero),
+        field.getFieldLength() - 2.0 * FUEL_RADIUS,
+        field.getFieldWidth() - 2.0 * FUEL_RADIUS);
 
     this.blueHub = new Hub(
         field.getBlueHubCenter(), field.getBlueHubExit(), field.getBlueHubNet(),
@@ -653,29 +666,25 @@ public class FuelLayer implements PhysicsLayer {
    * Keeps a ball inside the FIELD perimeter at every height. The perimeter elements themselves
    * only reach as high as the netting above the guardrails, so this is the backstop that stops a
    * wild shot from leaving the simulation entirely.
+   *
+   * <p>{@link Rectangle2d#nearest} does the X/Y geometry -- {@link #fieldBounds} is already inset
+   * by one ball radius, so whichever coordinates it clamps are exactly the ones that crossed the
+   * boundary. {@link #bounce} then decides, per axis, whether the ball was actually heading further
+   * out (and so needs a wall bounce) or just grazed the boundary while already heading back in.
    */
   private void clampToFieldBounds(Fuel2026 fuel) {
-    Translation3d position = fuel.getPosition();
-    Translation3d velocity = fuel.getVelocity();
-    double maxX = field.getFieldLength() - FUEL_RADIUS;
-    double maxY = field.getFieldWidth() - FUEL_RADIUS;
-
-    if (position.getX() < FUEL_RADIUS && velocity.getX() < 0) {
-      fuel.setPosition(new Translation3d(FUEL_RADIUS, position.getY(), position.getZ()));
-      fuel.addImpulse(new Translation3d(-(1.0 + FIELD_COR) * velocity.getX(), 0, 0));
-    } else if (position.getX() > maxX && velocity.getX() > 0) {
-      fuel.setPosition(new Translation3d(maxX, position.getY(), position.getZ()));
-      fuel.addImpulse(new Translation3d(-(1.0 + FIELD_COR) * velocity.getX(), 0, 0));
+    Translation2d position = fuel.getPosition().toTranslation2d();
+    Translation2d nearest = fieldBounds.nearest(position);
+    if (nearest.equals(position)) {
+      return;
     }
 
-    position = fuel.getPosition();
-    velocity = fuel.getVelocity();
-    if (position.getY() < FUEL_RADIUS && velocity.getY() < 0) {
-      fuel.setPosition(new Translation3d(position.getX(), FUEL_RADIUS, position.getZ()));
-      fuel.addImpulse(new Translation3d(0, -(1.0 + FIELD_COR) * velocity.getY(), 0));
-    } else if (position.getY() > maxY && velocity.getY() > 0) {
-      fuel.setPosition(new Translation3d(position.getX(), maxY, position.getZ()));
-      fuel.addImpulse(new Translation3d(0, -(1.0 + FIELD_COR) * velocity.getY(), 0));
+    fuel.setPosition(fuel.getPosition().plus(new Translation3d(nearest.minus(position))));
+    if (nearest.getX() != position.getX()) {
+      bounce(fuel, new Translation3d(Math.signum(nearest.getX() - position.getX()), 0, 0), FIELD_COR);
+    }
+    if (nearest.getY() != position.getY()) {
+      bounce(fuel, new Translation3d(0, Math.signum(nearest.getY() - position.getY()), 0), FIELD_COR);
     }
   }
 
