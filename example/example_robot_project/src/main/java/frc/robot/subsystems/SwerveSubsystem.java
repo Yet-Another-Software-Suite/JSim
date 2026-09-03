@@ -3,6 +3,8 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Inches;
+
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -20,13 +22,12 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SwerveConstants;
-import java.io.IOException;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import jsim.physics.SwerveDrivePhysics;
 import jsim.physics.layers.Dyn4jCollisionLayer;
 import jsim.physics.layers.fields.Field2026;
-import org.json.simple.parser.ParseException;
+import jsim.physics.layers.FuelLayer;
 import yams.mechanisms.config.SwerveDriveConfig;
 import yams.mechanisms.config.SwerveModuleConfig;
 import yams.mechanisms.swerve.SwerveDrive;
@@ -54,6 +55,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private final SwerveDrive drive;
   private final Pigeon2 gyro;
   private final SwerveDrivePhysics physicsSim;
+  private final FuelLayer fuel;
 
   /**
    * Builds a {@link SwerveInputStream} from joystick axes, pre-capped at {@link
@@ -115,12 +117,24 @@ public class SwerveSubsystem extends SubsystemBase {
 
     drive = new SwerveDrive(config);
     var field = new Field2026();
+    fuel = new FuelLayer(field);
+    fuel.withBumperHeight(Inches.of(4));
+//    fuel.registerIntake(new Transform3d(Inches.of(0), Inches.of(0), Inches.of(0), Rotation3d.kZero),
+//                        new Transform3d(Inches.of(0), Inches.of(0), Inches.of(0), Rotation3d.kZero))
     field.field = drive.getField2d();
     physicsSim =
         new SwerveDrivePhysics(drive)
-            .addLayer(new Dyn4jCollisionLayer(SwerveConstants.kRobotMass, field));
+            .addLayer(new Dyn4jCollisionLayer(SwerveConstants.kRobotMass, field))
+            .addLayer(fuel);
 
     configurePathPlanner();
+  }
+
+  public void fireBall()
+  {
+    // TODO: Make right.
+//    fuel.launchFuel(MetersPerSecond.of(1), Rotations.of(0), Rotations.of(0), Meters.of(1));
+//    fuel.spawnFuel(new Translation3d(0,0,0), new Translation3d(0,0,0));
   }
 
   /**
@@ -134,7 +148,7 @@ public class SwerveSubsystem extends SubsystemBase {
     RobotConfig config;
     try {
       config = RobotConfig.fromGUISettings();
-    } catch (IOException | ParseException e) {
+    } catch (Exception e) {
       throw new RuntimeException("Failed to load PathPlanner GUI settings", e);
     }
 
