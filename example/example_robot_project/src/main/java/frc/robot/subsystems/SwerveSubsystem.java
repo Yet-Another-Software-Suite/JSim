@@ -73,6 +73,16 @@ public class SwerveSubsystem extends SubsystemBase {
         .withMaximumAngularVelocity(SwerveConstants.kMaxAngularVelocity);
   }
 
+  /**
+   * Creates a YAMS swerve module from its drive motor, azimuth motor, encoder, and field location.
+   *
+   * @param drive Drive motor controller.
+   * @param azimuth Azimuth motor controller.
+   * @param absoluteEncoder Absolute steering encoder.
+   * @param moduleName Name used for module telemetry.
+   * @param location Module location relative to the robot center, in meters.
+   * @return Configured swerve module.
+   */
   public SwerveModule createModule(
       SparkMax drive,
       SparkMax azimuth,
@@ -95,6 +105,7 @@ public class SwerveSubsystem extends SubsystemBase {
     return new SwerveModule(moduleConfig);
   }
 
+  /** Creates the robot hardware, drivetrain, simulation layers, and PathPlanner integration. */
   public SwerveSubsystem() {
     gyro = new Pigeon2(SwerveConstants.kGyroId);
 
@@ -130,9 +141,9 @@ public class SwerveSubsystem extends SubsystemBase {
     configurePathPlanner();
   }
 
-  public void fireBall()
-  {
-    // TODO: Make right.
+  /** Placeholder for the example robot's future FUEL launch command. */
+  public void fireBall() {
+   // TODO: Make right.
 //    fuel.launchFuel(MetersPerSecond.of(1), Rotations.of(0), Rotations.of(0), Meters.of(1));
 //    fuel.spawnFuel(new Translation3d(0,0,0), new Translation3d(0,0,0));
   }
@@ -175,10 +186,22 @@ public class SwerveSubsystem extends SubsystemBase {
     return drive.drive(() -> ChassisSpeeds.fromFieldRelativeSpeeds(stream.get(), new Rotation2d(drive.getGyroAngle())));
   }
 
+  /**
+   * Creates a command that continuously applies robot-relative chassis speeds.
+   *
+   * @param speeds Chassis speed source in the robot frame.
+   * @return Command that drives using the supplied speeds.
+   */
   public Command setRobotRelativeChassisSpeeds(ChassisSpeeds speeds) {
     return run(() -> drive.setRobotRelativeChassisSpeeds(speeds));
   }
 
+  /**
+   * Creates a command that continuously drives using robot-relative chassis speeds from a supplier.
+   *
+   * @param speedsSupplier Robot-relative chassis speed source.
+   * @return Command that drives using the supplied speeds.
+   */
   public Command driveRobotRelative(Supplier<ChassisSpeeds> speedsSupplier) {
     return drive.drive(speedsSupplier);
   }
@@ -203,6 +226,11 @@ public class SwerveSubsystem extends SubsystemBase {
     return AutoBuilder.pathfindToPose(point, SwerveConstants.kPathfindingConstraints);
   }
 
+  /**
+   * Creates a command that turns the wheels into the drivetrain's locked pose.
+   *
+   * @return Command that locks the drivetrain.
+   */
   public Command lock() {
     return run(drive::lockPose);
   }
